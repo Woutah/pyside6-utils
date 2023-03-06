@@ -298,13 +298,14 @@ class IntRangeSelector(QtWidgets.QSlider):
 	minHandleDifference = QtCore.Property(int, lambda self: self._min_handle_difference, setminSpanWidth)
 	
 
-class RangeSelector(QtWidgets.QSlider):
+class RangeSelector(IntRangeSelector):
 
 
 	rangeChanged = QtCore.Signal(object) #Min/max of slider range changed (Of any type)
 	valuesChanged = QtCore.Signal(object, object) #Min/max of selected range changed (Of any type)
 
 
+	SUPPORTED_TYPES = typing.Union[int, float, QtCore.QDate, QtCore.QTime, QtCore.QDateTime]
 
 	def __init__(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None) -> None:
 		super().__init__(parent)
@@ -313,9 +314,57 @@ class RangeSelector(QtWidgets.QSlider):
 		# self._layout.setSpacing(0)
 		self._has_value_boxes = True
 		self._value_boxes = [QtWidgets.QSpinBox(), QtWidgets.QSpinBox()]
-		self._range_selector = IntRangeSelector()
+		# self._range_selector = IntRangeSelector()
+		self._minimum = None
+		self._maximum = None
 
-		self
+		self._enforce_minimum = False
+		self._enforce_maximum = False
+
+		
+	def minimum(self) -> any:
+		return self._minimum
+
+	def maximum(self) -> any:
+		return self._maximum
+	
+	def setMinimum(self, value : SUPPORTED_TYPES):
+		self._minimum = value
+		# self._value_boxes[0].setMinimum(value)
+		# self._value_boxes[1].setMinimum(value)
+		self.update()
+	
+	def setMaximum(self, value : SUPPORTED_TYPES):
+		self._maximum = value
+		# self._value_boxes[0].setMaximum(value)
+		# self._value_boxes[1].setMaximum(value)
+		self.update()
+
+	def setAll(self, minimum : SUPPORTED_TYPES, maximum : SUPPORTED_TYPES, min_value : SUPPORTED_TYPES, max_value : SUPPORTED_TYPES):
+		self._minimum = minimum
+		self._maximum = maximum
+		self._min_value = min_value
+		self._max_value = max_value
+		# self._value_boxes[0].setMinimum(minimum)
+		# self._value_boxes[0].setMaximum(maximum)
+		# self._value_boxes[1].setMinimum(minimum)
+		# self._value_boxes[1].setMaximum(maximum)
+		self.update()
+
+	def update(self):
+		#Check if type of min/max is in SUPPORTED_TYPES
+		if type(self._minimum) not in self.SUPPORTED_TYPES or type(self._maximum) not in self.SUPPORTED_TYPES or type(self._min_value) not in self.SUPPORTED_TYPES or type(self._max_value) not in self.SUPPORTED_TYPES:
+			self.setEnabled(False)
+			raise TypeError(f"One of the values (min/max minval/maxval) of type {type(self._minimum)} is not a supported type for RangeSelector. Supported types are: {self.SUPPORTED_TYPES}")
+		
+		#Check if all types are the same
+		if type(self._minimum) != type(self._maximum) or type(self._minimum) != type(self._min_value) or type(self._minimum) != type(self._max_value):
+			self.setEnabled(False)
+			raise TypeError(f"Types of min/max minval/maxval are not the same. Types are: {type(self._minimum)}, {type(self._maximum)}, {type(self._min_value)}, {type(self._max_value)}")
+		
+		
+
+		super().update()
 
 	def setHasValueBoxes(self, value):
 		self._has_value_boxes = value
@@ -323,15 +372,29 @@ class RangeSelector(QtWidgets.QSlider):
 		self._value_boxes[1].setVisible(value)
 		self.update()
 
+	def enforceLimits(self):
+		if self._enforce_minimum:
+			self._min_value = min(self._minimum, self._min_value)
+		if self._enforce_maximum:
+			self._max_value = max(self._maximum, self._max_value)
 
-	def setLimits(self, min_val, max_val):
-		self.limits = (min_val, max_val)
-		
-		
+	def setEnforceMinimum(self, value):
+		self._enforce_minimum = value
+		self.update()
+	
+	def setEnforceMaximum(self, value):
+		self._enforce_maximum = value
+		self.update()
+	
+		 
 
 
 	#QAbstractSlider properties
-	minimum = QtCore.Property(int, lambda self: self._range_selector.minimum(), lambda self, value: self._range_selector.setMinimum(value))
+	value = None
+	# sliderPosition = QtCore.Property(object, lambda self: (self._value_boxes[0].value(), self._value_boxes[1].value()), lambda self, value: self.setSliderPositions(value))
+	minimum = QtCore.Property(int, lambda self: self.minimum(), setMinimum)
+	enforceMinimum = QtCore.Property(bool, lambda self: self._enforce_minimum, setEnforceMinimum) #Whether to enforce the minimum value when using setSliderPositions-methods
+	enforceMaximum = QtCore.Property(bool, lambda self: self._enforce_maximum, setEnforceMaximum) #Whether to enforce the maximum value when using setSliderPositions-methods
 
 	hasValueBoxes = QtCore.Property(bool, lambda self: self._has_value_boxes, setHasValueBoxes)
 
