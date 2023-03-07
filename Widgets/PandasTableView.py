@@ -75,6 +75,8 @@ class PandasTableView(QTableView):
 				continue
 			data.append(self.model().data(index, Qt.EditRole))
 		return data
+	
+
 	def displaySelectionStats(self):
 		"""Display the number of selected cells, the average and the sum of the selected data"""
 		if self._status_bar is None: #Only show stats if a status bar is available

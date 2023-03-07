@@ -26,5 +26,5 @@ QPyDesignerCustomWidgetCollection.registerCustomWidget(RangeSelector,
                                                        	tool_tip=RangeSelector.DESCRIPTION, 
                                                         xml=DOM_XML,
                                                         container=False,
-                                                        group="AAA")
+                                                        group="Input Widgets (Custom)")
                                                         
