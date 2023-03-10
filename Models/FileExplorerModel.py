@@ -2,11 +2,14 @@
 
 import PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets
 import typing
+import os
 
+import logging
+log = logging.getLogger(__name__)
 
 class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 
-	def __init__(self, parent: typing.Optional[PySide6.QtCore.QObject] = None) -> None:
+	def __init__(self, parent: typing.Optional[PySide6.QtCore.QObject] = None, allow_select_files_only=True) -> None:
 		super().__init__(parent)
 		self._selected_path = None
 
@@ -15,9 +18,18 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 		self._selection_icon = PySide6.QtWidgets.QApplication.style().standardIcon(self._selection_pixmap)
 		self._prev_selection = None
 
+		if allow_select_files_only:
+			self._allow_select_files_only = True
+		
+
 	def setHightLight(self, selection: PySide6.QtCore.QModelIndex) -> None:
 		"""Set the current selection to the model"""
-		print(f"Setting model selection to index {self.filePath(selection)}")
+		log.info(f"Trying to set model selection to: {self.filePath(selection)}")
+
+		if self._allow_select_files_only and not os.path.isfile(self.filePath(selection)): #Skip selection if only files are allowed and the selection is not a file
+			log.warn(f"Selection is not a file, skipping selection: {self.filePath(selection)}")
+			return
+
 		self._selected_path = self.filePath(selection)
 		
 		if self._prev_selection:
@@ -33,8 +45,6 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 
 
 
-
-# class test:
 	def data(self, index: PySide6.QtCore.QModelIndex, role: int = PySide6.QtCore.Qt.DisplayRole) -> typing.Any:
 
 		#If first column and fileIconRole, return selection icon
@@ -42,20 +52,4 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 			#Return arrow icon if selected
 			return self._selection_icon
 
-		# if self._selected_path and (self.filePath(index) == self._selected_path):
-		# 	# filepath = self.filePath(index)
-		# 	# if self._selected_path == filepath:
-		# 	print("Setting font to bold")
-		# 	font = PySide6.QtGui.QFont()
-		# 	font.setBold(True)
-		# 	return font
-		# 	return "->" + self.fileName(index)
-
 		return super().data(index, role)
-	
-
-	# def setSelectedPath(self, path: str) -> None:
-	# 	"""Set the current selection to the model"""
-	# 	self._selected_path = path
-	
-	# selectedPath = PySide6.QtCore.Property(str, fget=lambda self: self._selected_path, fset = setSelectedPath)

@@ -129,6 +129,7 @@ class FileExplorerView(QtWidgets.QTreeView):
 		#Check if model is a FileExplorerModel
 		model = self.model()
 		if isinstance(model, FileExplorerModel):
+			print("Is instance of FileExplorerModel, not trying to set")
 			model.setHightLight(self.currentIndex())
 
 

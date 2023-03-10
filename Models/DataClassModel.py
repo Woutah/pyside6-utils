@@ -60,6 +60,10 @@ class DataclassModel(QtCore.QAbstractItemModel):
 
 		self.setDataClass(data)
 
+		self.maxTooltipLineWidth = 100
+		self.ignoreTooltipNextlines = True
+		
+
 
 	
 
@@ -71,8 +75,15 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		self.data_class = data
 		self._root_node = DataClassTreeItem("Root", None, None, None)
 
+
 		#Build a dictionary with a path structure using dataclass.fields["metadata"]["display_path"] as key, split by "/"
 		self.data_hierachy = {}
+
+		if data is None:
+			self.modelReset.emit()
+			self.endResetModel()
+			return
+		
 		temp =  fields(self.data_class)
 		for field in fields(self.data_class):
 			if "display_path" in field.metadata: #TODO: implement a sub-DataClassModel? 
