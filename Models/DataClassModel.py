@@ -90,13 +90,15 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		"""
 		super().__init__(parent)
 
-		self.setDataClass(data)
 
 		self.maxTooltipLineWidth = 100
 		self.ignoreTooltipNextlines = True
 		self._undo_stack = None
 		if use_undo_stack: 		
 			self._undo_stack = QtGui.QUndoStack(self) #TODO: is this the best place to do this? UndoStack also goes wrong when the underlying dataclass changes outside of this model
+		
+		
+		self.setDataClass(data)
 
 
 
@@ -292,7 +294,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			return self._setData(index, value, role)
 			
 		if role == QtCore.Qt.EditRole:
-				self._undo_stack.push(SetDataCommand(self, index, value, role))
+				self._undo_stack.push(SetDataCommand(self, index, value, role)) #Push the command to the stack
 		return False
 
 	def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
