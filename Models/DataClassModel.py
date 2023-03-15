@@ -61,7 +61,7 @@ class SetDataCommand(QtGui.QUndoCommand):
 		self._new_value = value
 		self._old_value = self._model.data(index, role)
 		self._role = role
-		self._prop_name = self._model.data( (self._index.row(), 0), QtCore.Qt.DisplayRole) #For naming the command
+		self._prop_name = self._model.data( model.index(self._index.row(), 0), QtCore.Qt.DisplayRole) #Used for naming the undo/redo action
 
 
 	def text(self) -> str:
