@@ -126,8 +126,9 @@ class FileExplorerView(QtWidgets.QTreeView):
 	def highlightSelection(self):
 		print("Setting hightlight selection in view")
 		model = self.model()
-		if model:
-			self._highlight = self.model().filePath(self.currentIndex()) #TODO: check if the right type?
+		if model and isinstance(model, FileExplorerModel):
+			self._highlight = self.model().filePath(self.currentIndex())
+			print("Is instance of FileExplorerModel, not trying to set")
 			model.setHightLight(self.currentIndex())
 
 

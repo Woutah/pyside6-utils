@@ -50,15 +50,56 @@ class DataClassTreeItem(object):
 			child.print(indent + 1)
 
 
+class SetDataCommand(QtGui.QUndoCommand):
+	"""Used to set data in the model, so that these actions can be undone and redone.
+	"""
+	def __init__(self, model : 'DataclassModel', index : QtCore.QModelIndex, value : any, role : int = QtCore.Qt.EditRole) -> None:
+		super().__init__()
+		self._model = model
+		#Convert index to persistent index, so that it can be used after some time #TODO: is this the best way to do this?
+		self._index = QtCore.QPersistentModelIndex(index)
+		self._new_value = value
+		self._old_value = self._model.data(index, role)
+		self._role = role
+
+
+	def text(self) -> str:
+		return "Set data"
+	
+	def undo(self):
+		self._model._setData(self._index, self._old_value, self._role)
+
+	def redo(self):
+		self._model._setData(self._index, self._new_value, self._role)
+		
+
+
 class DataclassModel(QtCore.QAbstractItemModel):
 	"""
 	This is a model that can be used to display a dataclass.
 	"""
 
-	def __init__(self, data : typing, parent: typing.Optional[QtCore.QObject] = None ) -> None:
+
+	def __init__(self, data : typing, parent: typing.Optional[QtCore.QObject] = None, use_undo_stack = False) -> None:
+		"""This model can be used to display a dataclass.
+
+		Args:
+			data (dataclass): The dataclass that is to be displayed.
+			parent (typing.Optional[QtCore.QObject], optional): The parent of this model. Defaults to None.
+			use_undo_stack (bool): Whether to keep track of an undo stack. Defaults to False.
+		"""
 		super().__init__(parent)
 
+
+		self.maxTooltipLineWidth = 100
+		self.ignoreTooltipNextlines = True
+		self._undo_stack = None
+		if use_undo_stack: 		
+			self._undo_stack = QtGui.QUndoStack(self) #TODO: is this the best place to do this? UndoStack also goes wrong when the underlying dataclass changes outside of this model
+		
+		
 		self.setDataClass(data)
+
 
 
 	
@@ -68,11 +109,20 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		Sets the dataclass that is used to display data.
 		"""
 		self.beginResetModel()
+		if self._undo_stack:
+			self._undo_stack.clear() #Reset undo stack
 		self.data_class = data
 		self._root_node = DataClassTreeItem("Root", None, None, None)
 
+
 		#Build a dictionary with a path structure using dataclass.fields["metadata"]["display_path"] as key, split by "/"
 		self.data_hierachy = {}
+
+		if data is None:
+			self.modelReset.emit()
+			self.endResetModel()
+			return
+		
 		temp =  fields(self.data_class)
 		for field in fields(self.data_class):
 			if "display_path" in field.metadata: #TODO: implement a sub-DataClassModel? 
@@ -221,9 +271,9 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			return None
 		else:
 			return None
-
-
-	def setData(self, index: QtCore.QModelIndex, value: typing.Any, role: int = QtCore.Qt.EditRole) -> bool:
+		
+	
+	def _setData(self, index: QtCore.QModelIndex, value: typing.Any, role: int = QtCore.Qt.EditRole) -> bool:
 		"""
 		Sets the role data for the item at index to value.
 		"""
@@ -231,6 +281,20 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			self.data_class.__dict__[index.internalPointer().name] = value
 			self.dataChanged.emit(index, index)
 			return True
+		return False
+
+
+
+	def setData(self, index: QtCore.QModelIndex, value: typing.Any, role: int = QtCore.Qt.EditRole) -> bool:
+		"""
+		Sets the role data for the item at index to value.
+		"""
+		
+		if not self._undo_stack:
+			return self._setData(index, value, role)
+			
+		if role == QtCore.Qt.EditRole:
+				self._undo_stack.push(SetDataCommand(self, index, value, role)) #Push the command to the stack
 		return False
 
 	def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
@@ -246,6 +310,17 @@ class DataclassModel(QtCore.QAbstractItemModel):
 						flags |= QtCore.Qt.ItemIsEditable
 					return flags
 			return QtCore.Qt.ItemIsEnabled
+		
+
+	def redo(self):
+		if self._undo_stack:
+			return self._undo_stack.redo()
+		
+
+	def undo(self):
+		if self._undo_stack:
+			return self._undo_stack.undo()
+
 	def columnCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
 		"""
 		Returns the number of columns for the children of the given parent.
