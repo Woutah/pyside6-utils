@@ -248,7 +248,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			except:
 				pass
 			try:
-				result_str += f" (type: {name_field_dict[node.name].type})"
+				result_str += f" (type: {name_field_dict[node.name].type.__name__})"
 				result_str += f" (default: {name_field_dict[node.name].default})"
 			except:
 				pass
