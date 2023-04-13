@@ -22,7 +22,7 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 			self._allow_select_files_only = True
 		
 
-	def setHightLight(self, selection: PySide6.QtCore.QModelIndex) -> None:
+	def setHightLightKaas(self, selection: PySide6.QtCore.QModelIndex) -> None:
 		"""Set the current selection to the model"""
 		log.info(f"Trying to set model selection to: {self.filePath(selection)}")
 
@@ -33,15 +33,11 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 		self._selected_path = self.filePath(selection)
 		
 		if self._prev_selection:
-			self.dataChanged.emit(self._prev_selection, self._prev_selection)
+			self.dataChanged.emit(self._prev_selection, self._prev_selection)#, [PySide6.QtCore.Qt.DisplayRole, PySide6.QtCore.Qt.FileIconRole])
 
-		self._prev_selection = PySide6.QtCore.QPersistentModelIndex(selection)
-		self.dataChanged.emit(self._prev_selection, self._prev_selection)
-		# self._prev_selection = selection
-
-
-		#Inform view that data has changed
-		self.dataChanged.emit(selection, selection)
+		new_selection = self.index(selection.row(), 0, selection.parent()) #Get index of first column (this is where the icon resides)
+		self._prev_selection = PySide6.QtCore.QPersistentModelIndex(new_selection)
+		self.dataChanged.emit(new_selection, new_selection)#, [PySide6.QtCore.Qt.FileIconRole])
 
 
 

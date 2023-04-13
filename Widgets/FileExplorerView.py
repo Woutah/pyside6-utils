@@ -128,8 +128,9 @@ class FileExplorerView(QtWidgets.QTreeView):
 		model = self.model()
 		if model and isinstance(model, FileExplorerModel):
 			self._highlight = self.model().filePath(self.currentIndex())
-			print("Is instance of FileExplorerModel, not trying to set")
-			model.setHightLight(self.currentIndex())
+			print("Is instance of FileExplorerModel, now trying to set")
+			model.setHightLightKaas(self.currentIndex())
+			print("Done setting in model")
 
 
 	# def paintEvent(self, event: PySide6.QtGui.QPaintEvent) -> None:
