@@ -61,11 +61,12 @@ class SetDataCommand(QtGui.QUndoCommand):
 		self._new_value = value
 		self._old_value = self._model.data(index, role)
 		self._role = role
+		self._prop_name = self._model.data( model.index(self._index.row(), 0), QtCore.Qt.DisplayRole) #Used for naming the undo/redo action
 
 
 	def text(self) -> str:
-		return "Set data"
-	
+		return f"Set {self._prop_name} ({self._old_value} -> {self._new_value})"
+
 	def undo(self):
 		self._model._setData(self._index, self._old_value, self._role)
 
@@ -80,13 +81,13 @@ class DataclassModel(QtCore.QAbstractItemModel):
 	"""
 
 
-	def __init__(self, data : typing, parent: typing.Optional[QtCore.QObject] = None, use_undo_stack = False) -> None:
+	def __init__(self, data : typing, parent: typing.Optional[QtCore.QObject] = None, undo_stack : QtGui.QUndoStack = None) -> None:
 		"""This model can be used to display a dataclass.
 
 		Args:
 			data (dataclass): The dataclass that is to be displayed.
 			parent (typing.Optional[QtCore.QObject], optional): The parent of this model. Defaults to None.
-			use_undo_stack (bool): Whether to keep track of an undo stack. Defaults to False.
+			undo_stack (QtGui.QUndoStack, optional): The undo stack that is used to undo and redo changes. Defaults to None, in which case no undo stack will be created/used.
 		"""
 		super().__init__(parent)
 
@@ -94,8 +95,9 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		self.maxTooltipLineWidth = 100
 		self.ignoreTooltipNextlines = True
 		self._undo_stack = None
-		if use_undo_stack: 		
-			self._undo_stack = QtGui.QUndoStack(self) #TODO: is this the best place to do this? UndoStack also goes wrong when the underlying dataclass changes outside of this model
+
+
+		self._undo_stack = undo_stack
 		
 		
 		self.setDataClass(data)
@@ -111,7 +113,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		self.beginResetModel()
 		if self._undo_stack:
 			self._undo_stack.clear() #Reset undo stack
-		self.data_class = data
+		self._data_class = data
 		self._root_node = DataClassTreeItem("Root", None, None, None)
 
 
@@ -123,8 +125,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			self.endResetModel()
 			return
 		
-		temp =  fields(self.data_class)
-		for field in fields(self.data_class):
+		temp =  fields(self._data_class)
+		for field in fields(self._data_class):
 			if "display_path" in field.metadata: #TODO: implement a sub-DataClassModel? 
 				path = field.metadata["display_path"].split("/")
 				current_dict = self.data_hierachy
@@ -138,10 +140,16 @@ class DataclassModel(QtCore.QAbstractItemModel):
 
 
 		#Build tree using data_hierachy dictionary
-		self._build_tree(self.data_class, self.data_hierachy, self._root_node)
+		self._build_tree(self._data_class, self.data_hierachy, self._root_node)
 		self.modelReset.emit()
 		self.endResetModel()
 		# self._root_node.print()
+
+	def getDataClass(self) -> typing.Any:
+		"""
+		Returns the dataclass that is used to display data.
+		"""
+		return self._data_class
 
 	def _build_tree(self, data : typing.Type[dataclass], data_hierarchy: typing.Dict, parent: DataClassTreeItem) -> None:
 		"""
@@ -209,14 +217,14 @@ class DataclassModel(QtCore.QAbstractItemModel):
 
 
 		node : DataClassTreeItem = index.internalPointer() 
-		keys = list(self.data_class.__dict__.keys())
+		keys = list(self._data_class.__dict__.keys())
 
 		# if index.column() == 0: #If retrieving the name of the property
 		# 	return keys[index.row()]
 
 
 		# temp = fields(self.data)
-		name_field_dict = {field.name: field for field in fields(self.data_class)}
+		name_field_dict = {field.name: field for field in fields(self._data_class)}
 
 		if role == QtCore.Qt.DisplayRole:
 			# return self.data_class.__dict__[index.internalPointer()[0]]
@@ -227,10 +235,10 @@ class DataclassModel(QtCore.QAbstractItemModel):
 				except (IndexError, KeyError, AttributeError):
 					return node.name
 			else:
-				return self.data_class.__dict__.get(node.name, None)
+				return self._data_class.__dict__.get(node.name, None)
 
 		elif role == QtCore.Qt.EditRole:
-			return self.data_class.__dict__.get(node.name, None)
+			return self._data_class.__dict__.get(node.name, None)
 		elif role == QtCore.Qt.ToolTipRole:
 			# return self.data.__dict__[index.internalPointer()[0]]
 			# try:
@@ -240,7 +248,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			except:
 				pass
 			try:
-				result_str += f" (type: {name_field_dict[node.name].type})"
+				result_str += f" (type: {name_field_dict[node.name].type.__name__})"
 				result_str += f" (default: {name_field_dict[node.name].default})"
 			except:
 				pass
@@ -278,7 +286,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		Sets the role data for the item at index to value.
 		"""
 		if role == QtCore.Qt.EditRole:
-			self.data_class.__dict__[index.internalPointer().name] = value
+			self._data_class.__dict__[index.internalPointer().name] = value
 			self.dataChanged.emit(index, index)
 			return True
 		return False
