@@ -4,7 +4,13 @@ from PySide6 import QtCore, QtWidgets, QtGui
 from dataclasses import dataclass, field, fields
 from datetime import datetime
 import typing_inspect
+from enum import Enum
 
+
+#Create a custom role
+class DataClassRoles(Enum):
+	_FirstUserRoleDoNotUse = QtCore.Qt.UserRole
+	dataclassFieldTypeRole = QtCore.Qt.UserRole + 1 
 
 
 #Create TreeItem class for dataclass tree view
@@ -253,9 +259,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			except:
 				pass
 			return result_str
-			# except (KeyError, AttributeError) as ex:
-			# 	print(ex)
-			# return None
+		elif role == DataClassRoles.dataclassFieldTypeRole:
+			return name_field_dict[node.name].type #Get field.type 
 		elif role == QtCore.Qt.DecorationRole:
 			# colors = [QtCore.Qt.red, QtCore.Qt.green, QtCore.Qt.blue, QtCore.Qt.yellow, QtCore.Qt.cyan, QtCore.Qt.magenta]
 			# return QtGui.QColor(colors[index.row() % len(colors)])
