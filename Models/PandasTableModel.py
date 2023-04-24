@@ -32,10 +32,10 @@ class PandasTableModel(QAbstractTableModel):
 			return str(data)
 		elif role == Qt.EditRole:
 			return self._dataframe.iloc[index.row(), index.column()]
-		elif role == Qt.BackgroundRole:
-			return None
+		# elif role == Qt.BackgroundRole:
+		# 	return None
 
-		return None
+		return super().data(index, role)
 
 
 	def headerData(

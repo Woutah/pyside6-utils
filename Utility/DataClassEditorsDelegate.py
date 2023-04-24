@@ -2,11 +2,25 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import typing_inspect
 import typing
+from Models.DataClassModel import DataClassRoles
 
-#Create a custom delegate to allow for editing 
-class MoreTableEditorsDelegate(QtWidgets.QStyledItemDelegate):
+
+class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
+	#Custom delegate that allows for editing of different data types of DataClassModel
 	def createEditor(self, parent, option, index):
 		# print(f"Field type: {index.internalPointer().field.type}")
+
+		# print(f"index: {index}, row,column: {index.row()},{index.column()}")
+		# try:
+		# 	kaas = index.internalPointer()
+		# except Exception as e:
+		# 	print(f"EXCEPTIOJN: {e}")
+
+		entry_type = index.data()
+
+		#NOTE: using index.internalPointer goes wrong when using a proxy model, instead, it is probably best to define custom roles to get 
+		index = index.model().mapToSource(index)
+
 		if index.internalPointer().field.type == datetime:
 			editor = QtWidgets.QDateTimeEdit(parent)
 			editor.setCalendarPopup(True)
@@ -36,9 +50,8 @@ class MoreTableEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	def setEditorData(self, editor, index):
 		value = index.data(QtCore.Qt.EditRole)
 
-		# if isinstance(value, datetime):
-		
-		if index.internalPointer().field.type == datetime:
+		mapped_index = index.model().mapToSource(index)
+		if mapped_index.internalPointer().field.type == datetime:
 			# value = QtCore.QDateTime(value)
 			editor.setDateTime(value)
 		else:
@@ -46,7 +59,8 @@ class MoreTableEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 	def setModelData(self, editor, model, index):
 		
-		if index.internalPointer().field.type == datetime:
+		mapped_index = index.model().mapToSource(index)
+		if mapped_index.internalPointer().field.type == datetime:
 			value = editor.dateTime()
 			model.setData(index, value, QtCore.Qt.EditRole)
 		else:
@@ -58,7 +72,7 @@ class MoreTableEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 
 	def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
-
+		return super().paint(painter, option, index)
 		if index.internalPointer().field and (index.column() == 1):
 			if index.internalPointer().field.type == datetime:
 				value = index.data(QtCore.Qt.DisplayRole)
