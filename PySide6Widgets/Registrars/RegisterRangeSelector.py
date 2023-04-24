@@ -1,6 +1,6 @@
-from Widgets.RangeSelector import RangeSelector
+from PySide6Widgets.Widgets.RangeSelector import RangeSelector
 from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
-from constants import Paths
+from PySide6Widgets.constants import Paths
 import os
 
 base_name = RangeSelector.__name__[0].lower() #lowercase first letter

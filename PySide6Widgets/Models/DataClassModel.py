@@ -361,8 +361,8 @@ LITERAL_EXAMPLE  = typing.Literal["Lit1", "Lit2", "Lit3"]
 
 if __name__ == "__main__":
 
-	from Examples.Data.ExampleDataClass import ExampleDataClass
-	from Utility.MoreTableEditorsDelegate import MoreTableEditorsDelegate
+	from PySide6Widgets.Examples.Data.ExampleDataClass import ExampleDataClass
+	from PySide6Widgets.Utility.MoreTableEditorsDelegate import MoreTableEditorsDelegate
 	import sys
 
 	app = QtWidgets.QApplication(sys.argv)

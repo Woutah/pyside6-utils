@@ -8,7 +8,7 @@ from PySide6.QtCore import QLibraryInfo, QProcess, QProcessEnvironment
 from PySide6.QtWidgets import QApplication, QMessageBox
 import pathlib
 
-import Registrars.RegisterCollapsibleGroupbox
+from ..Registrars.RegisterCollapsibleGroupbox import CollapsibleGroupBox
 
 
 #Get path 1 folder up from this file

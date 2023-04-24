@@ -6,7 +6,7 @@ import PySide6.QtCore
 import PySide6.QtGui
 import typing
 from PySide6.QtGui import QKeySequence, QShortcut
-from Models.FileExplorerModel import FileExplorerModel
+from PySide6Widgets.Models.FileExplorerModel import FileExplorerModel
 import pandas as pd
 import os
 import winshell

@@ -1,0 +1,9 @@
+LICENSE
+setup.py
+PySide6Widgets/__init__.py
+PySide6Widgets/constants.py
+PySide6Widgets/temp.py
+PySide6Widgets.egg-info/PKG-INFO
+PySide6Widgets.egg-info/SOURCES.txt
+PySide6Widgets.egg-info/dependency_links.txt
+PySide6Widgets.egg-info/top_level.txt

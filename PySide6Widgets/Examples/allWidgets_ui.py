@@ -19,9 +19,9 @@ from PySide6.QtWidgets import (QApplication, QHeaderView, QLabel, QMainWindow,
     QMenuBar, QSizePolicy, QSlider, QSpacerItem,
     QStatusBar, QVBoxLayout, QWidget)
 
-from Widgets.CollapsibleGroupBox import CollapsibleGroupBox
-from Widgets.PandasTableView import PandasTableView
-from Widgets.RangeSelector import RangeSelector
+from PySide6Widgets.Widgets.CollapsibleGroupBox import CollapsibleGroupBox
+from PySide6Widgets.Widgets.PandasTableView import PandasTableView
+from PySide6Widgets.Widgets.RangeSelector import RangeSelector
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

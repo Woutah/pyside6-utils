@@ -3,7 +3,7 @@
 from PySide6.QtWidgets import QApplication, QMainWindow
 from allWidgets_ui import Ui_MainWindow
 import pandas as pd
-from Models.PandasTableModel import PandasTableModel
+from PySide6Widgets.Models.PandasTableModel import PandasTableModel
 
 if __name__ == "__main__":
 	import sys

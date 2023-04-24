@@ -2,3 +2,4 @@
 *.code-workspace
 __pycache__/
 __init__.*
+PySide6_Widgets.egg-info/

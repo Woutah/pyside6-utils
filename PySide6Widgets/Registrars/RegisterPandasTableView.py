@@ -1,14 +1,14 @@
-from Widgets.FileExplorerView import FileExplorerView
+from PySide6Widgets.Widgets.PandasTableView import PandasTableView
 from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
-from constants import Paths
+from PySide6Widgets.constants import Paths
 import os
 
-base_name = FileExplorerView.__name__[0].lower() #lowercase first letter
-base_name += FileExplorerView.__name__[1:]
+base_name = PandasTableView.__name__[0].lower() #lowercase first letter
+base_name += PandasTableView.__name__[1:]
 
 DOM_XML = f"""
 	<ui language='c++'>
-		<widget class='{FileExplorerView.__name__}' name='{base_name}'>
+		<widget class='{PandasTableView.__name__}' name='{base_name}'>
 			<property name='geometry'>
 				<rect>
 					<x>0</x>
@@ -27,12 +27,12 @@ if len(Paths.package_name) > 0:
       module+= f"{Paths.package_name}."
 if len(Paths.widgets_subpath) > 0:
       module+= f"{Paths.widgets_subpath.replace(os.sep, '.')}."
-module+= f"{FileExplorerView.__name__}"
+module+= f"{PandasTableView.__name__}"
 
-QPyDesignerCustomWidgetCollection.registerCustomWidget(FileExplorerView, 
-                                                    	module=module,#f"Widgets.{FileExplorerView.__name__}",
-                                                       	tool_tip=FileExplorerView.DESCRIPTION, 
+QPyDesignerCustomWidgetCollection.registerCustomWidget(PandasTableView, 
+                                                    	module=f"Widgets.{PandasTableView.__name__}",
+                                                       	tool_tip=PandasTableView.DESCRIPTION, 
                                                         xml=DOM_XML,
-                                                        container=False,
+                                                        container=True,
                                                         group="Item Views (Custom)")
                                                         

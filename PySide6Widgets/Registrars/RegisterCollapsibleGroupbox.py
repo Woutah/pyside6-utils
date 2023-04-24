@@ -1,6 +1,6 @@
-from Widgets.CollapsibleGroupBox import CollapsibleGroupBox
+from PySide6Widgets.Widgets.CollapsibleGroupBox import CollapsibleGroupBox
 from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
-from constants import Paths
+from PySide6Widgets.constants import Paths
 import os
 
 
