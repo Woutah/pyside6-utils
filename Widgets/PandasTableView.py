@@ -27,6 +27,8 @@ class PandasTableView(QTableView):
 		self.selectionModel().selectionChanged.connect(self.displaySelectionStats)
 		return ret
 	
+
+	
 	def copySelection(self):
 		# clear the current contents of the clipboard
 		selected = self.selectedIndexes()
@@ -87,9 +89,9 @@ class PandasTableView(QTableView):
 
 		#Get the average and sum of the selected data
 		try:
-			average = sum(data) / len(data)
-			total = sum(data)
-		except TypeError:
+			average = round(sum(data) / len(data), 2)
+			total = round(sum(data), 2)
+		except (TypeError, ZeroDivisionError):
 			average = "-"
 			total = "-"
 
