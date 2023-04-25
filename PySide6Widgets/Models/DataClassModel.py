@@ -8,9 +8,9 @@ from enum import Enum
 
 
 #Create a custom role
-class DataClassRoles(Enum):
-	_FirstUserRoleDoNotUse = QtCore.Qt.UserRole
-	dataclassFieldTypeRole = QtCore.Qt.UserRole + 1 
+# class DataClassRoles(Enum):
+# 	_FirstUserRoleDoNotUse = QtCore.Qt.UserRole
+# 	dataclassFieldTypeRole = QtCore.Qt.UserRole + 1 
 
 
 #Create TreeItem class for dataclass tree view
@@ -68,10 +68,11 @@ class SetDataCommand(QtGui.QUndoCommand):
 		self._old_value = self._model.data(index, role)
 		self._role = role
 		self._prop_name = self._model.data( model.index(self._index.row(), 0), QtCore.Qt.DisplayRole) #Used for naming the undo/redo action
+		self.setText(f"Set {self._prop_name} ({self._old_value} -> {self._new_value})")
 
-
-	def text(self) -> str:
-		return f"Set {self._prop_name} ({self._old_value} -> {self._new_value})"
+	# def text(self) -> str:
+	# 	return "kaas"
+		# return f"Set {self._prop_name} ({self._old_value} -> {self._new_value})"
 
 	def undo(self):
 		self._model._setData(self._index, self._old_value, self._role)
@@ -96,20 +97,10 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			undo_stack (QtGui.QUndoStack, optional): The undo stack that is used to undo and redo changes. Defaults to None, in which case no undo stack will be created/used.
 		"""
 		super().__init__(parent)
-
-
 		self.maxTooltipLineWidth = 100
 		self.ignoreTooltipNextlines = True
-		self._undo_stack = None
-
-
 		self._undo_stack = undo_stack
-		
-		
 		self.setDataClass(data)
-
-
-
 	
 
 	def setDataClass(self, data: typing.Any) -> None:
@@ -117,8 +108,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		Sets the dataclass that is used to display data.
 		"""
 		self.beginResetModel()
-		if self._undo_stack:
-			self._undo_stack.clear() #Reset undo stack
+		# if self._undo_stack:
+		# 	self._undo_stack.clear() #Reset undo stack NOTE: if we do this, this seemingly causes some issues with the undo stack if we're combining multiple dataclassmodels using a single undo stack
 		self._data_class = data
 		self._root_node = DataClassTreeItem("Root", None, None, None)
 
@@ -131,7 +122,6 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			self.endResetModel()
 			return
 		
-		temp =  fields(self._data_class)
 		for field in fields(self._data_class):
 			if "display_path" in field.metadata: #TODO: implement a sub-DataClassModel? 
 				path = field.metadata["display_path"].split("/")
@@ -221,15 +211,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		if not index.isValid():
 			return None
 
-
 		node : DataClassTreeItem = index.internalPointer() 
-		keys = list(self._data_class.__dict__.keys())
-
-		# if index.column() == 0: #If retrieving the name of the property
-		# 	return keys[index.row()]
-
-
-		# temp = fields(self.data)
 		name_field_dict = {field.name: field for field in fields(self._data_class)}
 
 		if role == QtCore.Qt.DisplayRole:
@@ -246,8 +228,6 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		elif role == QtCore.Qt.EditRole:
 			return self._data_class.__dict__.get(node.name, None)
 		elif role == QtCore.Qt.ToolTipRole:
-			# return self.data.__dict__[index.internalPointer()[0]]
-			# try:
 			result_str = ""
 			try:
 				result_str += name_field_dict[node.name].metadata.get("help", None)
@@ -259,11 +239,19 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			except:
 				pass
 			return result_str
-		elif role == DataClassRoles.dataclassFieldTypeRole:
-			return name_field_dict[node.name].type #Get field.type 
+		elif role == QtCore.Qt.UserRole: #TODO: maybe create Enum with more descriptive names. NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance of Qt.DisplayRole
+			result = name_field_dict.get(node.name, None) #Get field
+			if result:
+				return result.type #If field is available -> return type
+			else:
+				return None
+		elif role == QtCore.Qt.UserRole+1: #Default value role
+			result = name_field_dict.get(node.name, None) #Get field
+			if result:
+				return result.default
+			else:
+				return None
 		elif role == QtCore.Qt.DecorationRole:
-			# colors = [QtCore.Qt.red, QtCore.Qt.green, QtCore.Qt.blue, QtCore.Qt.yellow, QtCore.Qt.cyan, QtCore.Qt.magenta]
-			# return QtGui.QColor(colors[index.row() % len(colors)])
 			return None
 		elif role == QtCore.Qt.BackgroundRole:
 			return None
@@ -274,7 +262,6 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		elif role == QtCore.Qt.CheckStateRole:
 			return None
 		elif role == QtCore.Qt.SizeHintRole:
-			#Make sure that the first column is displayed properly
 			return None
 		elif role == QtCore.Qt.FontRole:
 			return None
@@ -295,19 +282,23 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			self.dataChanged.emit(index, index)
 			return True
 		return False
-
+	
 
 
 	def setData(self, index: QtCore.QModelIndex, value: typing.Any, role: int = QtCore.Qt.EditRole) -> bool:
 		"""
 		Sets the role data for the item at index to value.
 		"""
-		
+
+
 		if not self._undo_stack:
 			return self._setData(index, value, role)
 			
 		if role == QtCore.Qt.EditRole:
-				self._undo_stack.push(SetDataCommand(self, index, value, role)) #Push the command to the stack
+			if self._data_class.__dict__[index.internalPointer().name] == value: #If the value is different from the current value
+				return False #Do nothing
+			self._undo_stack.push(SetDataCommand(self, index, value, role)) #Push the command to the stack
+			return True
 		return False
 
 	def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlags:
@@ -367,7 +358,7 @@ LITERAL_EXAMPLE  = typing.Literal["Lit1", "Lit2", "Lit3"]
 if __name__ == "__main__":
 
 	from PySide6Widgets.Examples.Data.ExampleDataClass import ExampleDataClass
-	from PySide6Widgets.Utility.MoreTableEditorsDelegate import MoreTableEditorsDelegate
+	from PySide6Widgets.Utility.DataClassEditorsDelegate import DataClassEditorsDelegate
 	import sys
 
 	app = QtWidgets.QApplication(sys.argv)
@@ -381,9 +372,9 @@ if __name__ == "__main__":
 
 	#table_view.show()
 	view1.setModel(model)
-	view1.setItemDelegate(MoreTableEditorsDelegate())
+	view1.setItemDelegate(DataClassEditorsDelegate())
 	view2.setModel(model)
-	view2.setItemDelegate(MoreTableEditorsDelegate())
+	view2.setItemDelegate(DataClassEditorsDelegate())
 	#adjust treeview to fit contents, but allow user to resize
 	#Fit header of view 1 to contents, then allow user to resize
 	view1.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)

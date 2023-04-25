@@ -129,7 +129,7 @@ class FileExplorerView(QtWidgets.QTreeView):
 		if model and isinstance(model, FileExplorerModel):
 			self._highlight = self.model().filePath(self.currentIndex())
 			print("Is instance of FileExplorerModel, now trying to set")
-			model.setHightLightKaas(self.currentIndex())
+			model.setHightLight(self.currentIndex())
 			print("Done setting in model")
 
 

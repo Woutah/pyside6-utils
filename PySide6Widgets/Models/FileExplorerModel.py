@@ -8,6 +8,9 @@ import logging
 log = logging.getLogger(__name__)
 
 class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
+	"""A QFileSystemModel that also allows for hightlighting of a single file, for example when selecting a file for editing pruposes"""
+
+	highlightPathChanged = PySide6.QtCore.Signal(str)
 
 	def __init__(self, parent: typing.Optional[PySide6.QtCore.QObject] = None, allow_select_files_only=True) -> None:
 		super().__init__(parent)
@@ -20,9 +23,16 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 
 		if allow_select_files_only:
 			self._allow_select_files_only = True
-		
+	
+	def resetHighlight(self) -> None:
+		"""Reset the highlight"""
+		self._selected_path = None
+		if self._prev_selection:
+			self.dataChanged.emit(self._prev_selection, self._prev_selection) #Also update the icon of the previously highlighted item
+			self._prev_selection = None
+		self.highlightPathChanged.emit(None)
 
-	def setHightLightKaas(self, selection: PySide6.QtCore.QModelIndex) -> None:
+	def setHightLight(self, selection: PySide6.QtCore.QModelIndex) -> None:
 		"""Set the current selection to the model"""
 		log.info(f"Trying to set model selection to: {self.filePath(selection)}")
 
@@ -38,10 +48,13 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 		new_selection = self.index(selection.row(), 0, selection.parent()) #Get index of first column (this is where the icon resides)
 		self._prev_selection = PySide6.QtCore.QPersistentModelIndex(new_selection)
 		self.dataChanged.emit(new_selection, new_selection)#, [PySide6.QtCore.Qt.FileIconRole])
+		self.highlightPathChanged.emit(self._selected_path)
 
 
 
 	def data(self, index: PySide6.QtCore.QModelIndex, role: int = PySide6.QtCore.Qt.DisplayRole) -> typing.Any:
+
+		#TODO: what if highlighted file changed? (e.g. file renamed/removed)
 
 		#If first column and fileIconRole, return selection icon
 		if role == PySide6.QtWidgets.QFileSystemModel.FileIconRole and index.column() == 0 and self._selected_path and (self.filePath(index) == self._selected_path):
