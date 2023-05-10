@@ -32,6 +32,14 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 			self._prev_selection = None
 		self.highlightPathChanged.emit(None)
 
+	def getHighlightPath(self) -> str:
+		"""Get the currently highlighted path"""
+		return self._selected_path
+
+	def setHightLightPath(self, path: str) -> None:
+		self._selected_path = path
+		self.highlightPathChanged.emit(self._selected_path)
+
 	def setHightLight(self, selection: PySide6.QtCore.QModelIndex) -> None:
 		"""Set the current selection to the model"""
 		log.info(f"Trying to set model selection to: {self.filePath(selection)}")

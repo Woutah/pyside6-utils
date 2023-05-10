@@ -2,6 +2,9 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from datetime import datetime
 import typing_inspect
 import typing
+from numbers import Number, Real, Integral
+from enum import Enum
+from PySide6Widgets.Utility.sklearn_param_validation import Interval, StrOptions
 # from PySide6Widgets.Models.DataClassModel import DataClassRoles
 
 # #Get pixmap of sp_DialogOkButton
@@ -17,52 +20,143 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		# index = index.model().mapToSource(index)
 		# kaas = DataClassRoles.dataclassFieldTypeRole
 		# entry_type = index.data(DataClassRoles.dataclassFieldTypeRole)
-		entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role? 
-		default_value = index.data(QtCore.Qt.UserRole + 1) #TODO: maybe create a more descriptive role?
+		# entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role? 
+		field = index.data(QtCore.Qt.UserRole + 1) #TODO: maybe create a more descriptive role?
+		etry_type = field.metadata.get("type", None) if field else None
 
-		# default_btn.setText("")
+		self.editor_list = [] #List of the editor types that are created
+
 		editor = None
-		if entry_type: #If entry_type is not None
+		entry_type = None
+		metadata = None
+		constraints = None
+		if field:
+			metadata = field.metadata
+			entry_type = field.type
+			constraints = metadata.get("constraints", None)
+		
+		if constraints: #First try to get editor based off of constraints
+			if len(constraints) == 0: #If no constraints are defined, use default editor
+				pass
+			elif "array-like" in constraints: #for now use text-editor for lists
+				pass 
+			elif len(constraints) <= 2:
+				if len(constraints) == 1 and None in constraints: #If only none:
+					pass
+				else:					
+					if None in constraints:
+						the_constraint = constraints[0] if constraints[0] is not None else constraints[1]
+					else:
+						the_constraint = constraints[0]
+				#The possible constraints are: 
+					# "array-like":
+					# "sparse matrix"
+					# "random_state"
+					# callable
+					# None
+					# isinstance(constraint, type) #Type-enforcing constraint
+					# (Interval, StrOptions, Options, HasMethods)
+					# "boolean"
+					# "verbose"
+					# "missing_values"
+						# "cv_object"
+					if the_constraint == bool or the_constraint == "boolean":
+						editor = QtWidgets.QComboBox(parent)
+						editor.addItems(["True", "False"])
+						self.editor_list.append(editor)
+						return editor
+					elif isinstance(the_constraint, type) and issubclass(the_constraint, Integral): #If int or (other subclass of) integral
+						editor = QtWidgets.QSpinBox(parent)
+						editor.setMaximum(9999999)
+						editor.setMinimum(-9999999)
+						self.editor_list.append(editor)
+						return editor
+					elif isinstance(the_constraint, type) and issubclass(the_constraint, Real): #If float or (other subclass of) real
+						editor = QtWidgets.QDoubleSpinBox(parent)
+						self.editor_list.append(editor)
+						editor.setDecimals(5) #TODO: make this user-selectable?
+						editor.setMinimum(-9999999)
+						editor.setMaximum(9999999)
+						pass
+					elif isinstance(the_constraint, Interval):
+						if isinstance(the_constraint.type, Integral):
+							editor = QtWidgets.QSpinBox(parent)
+						else:
+							editor = QtWidgets.QDoubleSpinBox(parent)
+						editor.setMaximum(the_constraint.right)
+						editor.setMinimum(the_constraint.left)
+						
+						self.editor_list.append(editor)
+						return editor
+					elif isinstance(the_constraint, StrOptions):
+						editor = QtWidgets.QComboBox(parent)
+						all_options = list(the_constraint.options)
+						#Sort options alphabetically
+						all_options.sort()
+						editor.addItems(all_options)
+						self.editor_list.append(editor)
+
+						try:
+							constraints_help_dict = metadata["constraints_help"]
+							for i, option in enumerate(all_options):
+								if option in constraints_help_dict: #If key-help is defined, add it as tooltip
+									editor.setItemData(i, constraints_help_dict[option], QtCore.Qt.ToolTipRole)
+						except KeyError:
+							pass
+						return editor
+			elif len(constraints) >= 3:
+				pass #For now too complex -> skip, TODO: but create a user-selectable editor for this? 
+		
+		
+		elif entry_type: #if no constraints -> try to get editor based off of type-hint instead
 			if entry_type == datetime: 
 				editor = QtWidgets.QDateTimeEdit(parent)
 				editor.setCalendarPopup(True)
+				self.editor_list.append(editor)
+				return editor
 			elif typing_inspect.get_origin(entry_type) == typing.Literal:
 				editor = QtWidgets.QComboBox(parent)
 				editor.addItems(entry_type.__args__)
+			# 	editor.setCurrentText(value)
+				# editor.addItems(entry_type.__args__)
+				self.editor_list.append(editor)
+				return editor
 			elif entry_type == float:
 				editor = QtWidgets.QDoubleSpinBox(parent)
 				# editor.setDecimals(5)
 				editor.setDecimals(5)
-
 				#Remove min/max values
 				editor.setMinimum(-9999999)
 				editor.setMaximum(9999999)
-		else:
-			editor = super().createEditor(parent, option, index) #If no custom editor is created, use the default editor
-
-		# editor_layout = QtWidgets.QHBoxLayout(parent)
-		# editor_layout.addWidget(editor)
-		# #Add spacer to push btn to right
-		# spacer = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-		# editor_layout.addItem(spacer)
-		# default_btn = QtWidgets.QPushButton(parent)
-		# default_btn.setIcon(dialog_default_icon)
-		# editor_layout.addWidget(default_btn)
-		# default_btn.setMaximumWidth(20)
+				self.editor_list.append(editor)
+				return editor
+			
+		editor = super().createEditor(parent, option, index) #If no custom editor is created, use the default editor
+		self.editor_list.append(editor)
 
 		return editor
 		
 
 	def setEditorData(self, editor, index):
 		value = index.data(QtCore.Qt.EditRole)
-
-		entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role? 
+		entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role?
+		# field = index.data(QtCore.Qt.UserRole + 1) #TODO: maybe create a more descriptive role?
 
 		if entry_type == datetime:
 			# value = QtCore.QDateTime(value)
 			editor.setDateTime(value)
-		else:
-			super().setEditorData(editor, index)
+		# elif typing_inspect.get_origin(entry_type) == typing.Literal:
+		# 	editor.addItems(entry_type.__args__)
+		# 	editor.setCurrentText(value)
+
+		# 	if field and field.metadata: #Key help is a dict of format { 'key': 'help text'} which is used to set the tooltip of the combobox
+		# 		constraints_help_dict = field.metadata.get('constraints_help', {})
+		# 		for i, entry in enumerate(entry_type.__args__):
+		# 			if entry in constraints_help_dict:
+		# 				editor.setItemData(i, constraints_help_dict[entry], QtCore.Qt.ToolTipRole)
+		# 	editor.setToolTip(field.constraints_help)
+		# else:
+		super().setEditorData(editor, index)
 
 	def setModelData(self, editor, model, index):
 		

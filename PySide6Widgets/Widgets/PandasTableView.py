@@ -41,8 +41,13 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 			return (*default_data, )
 
 		return super().headerData(section, orientation, role)
-
-
+	
+	def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
+		"""Sort by the edit role (so that we can sort by the value in the cell, not the display role)"""
+		try:
+			return self.sourceModel().data(left, Qt.EditRole) < self.sourceModel().data(right, Qt.EditRole)
+		except Exception as e: #TODO: what if two types? -> let it be handled by default
+			return super().lessThan(left, right)
 
 class PandasTableView(QTableView):
 	DESCRIPTION = "A view to display a pandas dataframe, works best in combination with PandasTableModel - places a proxymodel in between the tableview and the model to allow sorting and filtering"
@@ -55,10 +60,11 @@ class PandasTableView(QTableView):
 		self._copy_shortcut.activated.connect(self.copySelection)
 
 
-		self._proxy_model = PandasTableProxyModel(self)
-		self._proxy_model.setDynamicSortFilter(True)
-		self._proxy_model.setSourceModel(None)
-		super().setModel(self._proxy_model)
+		self.Proxy_Model = PandasTableProxyModel(self)
+		self.Proxy_Model.setDynamicSortFilter(True)
+		self.Proxy_Model.setSourceModel(None)
+		# self._proxy_model.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
+		super().setModel(self.Proxy_Model)
 
 		self.selectionModel().selectionChanged.connect(self.displaySelectionStats) #TODO: 
 
@@ -76,14 +82,7 @@ class PandasTableView(QTableView):
 		self._status_bar = status_bar
 
 	def setModel(self, model: QtCore.QAbstractItemModel) -> None:
-		return self._proxy_model.setSourceModel(model)
-		#TODO: do we need a selection model?
-
-		#OLD (not using proxy model):
-		# ret = super().setModel(model)
-		# self.selectionModel().selectionChanged.connect(self.displaySelectionStats)
-		# return ret
-	
+		return self.Proxy_Model.setSourceModel(model)
 	
 
 	
@@ -149,13 +148,22 @@ class PandasTableView(QTableView):
 		try:
 			average = round(sum(data) / len(data), 2)
 			total = round(sum(data), 2)
+			thesum = sum(data)
 		except (TypeError, ZeroDivisionError):
 			average = "-"
 			total = "-"
+			thesum = "-"
+		additional_text = ""
 
+		if len(data) == 2: #If we selected exactly 2 cells -> also show the difference
+			try:
+				difference = abs(data[1] - data[0])
+				additional_text = ", Difference: {}".format(difference)
+			except (TypeError, ZeroDivisionError):
+				additional_text = ""
 		#Display the results
 		self._status_bar.showMessage(
-			"Selected cells: {}, Average: {}, Total: {}".format(
-				len(data), average, total
+			"Selected cells: {}, Average: {}, Total: {}, Sum: {}{}".format(
+				len(data), average, total, thesum,additional_text
 			)
 		)

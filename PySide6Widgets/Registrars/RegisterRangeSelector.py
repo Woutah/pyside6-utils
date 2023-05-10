@@ -22,7 +22,7 @@ if len(Paths.widgets_subpath) > 0:
 module+= f"{RangeSelector.__name__}"
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(RangeSelector, 
-                                                    	module=f"Widgets.{RangeSelector.__name__}",
+                                                    	module=module,
                                                        	tool_tip=RangeSelector.DESCRIPTION, 
                                                         xml=DOM_XML,
                                                         container=False,

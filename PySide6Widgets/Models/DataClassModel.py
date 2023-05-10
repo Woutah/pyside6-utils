@@ -6,6 +6,10 @@ from datetime import datetime
 import typing_inspect
 from enum import Enum
 
+@dataclass
+class RunTimeLiteral: #Just used to make the typing.Literal work at runtime
+	pass
+
 
 #Create a custom role
 # class DataClassRoles(Enum):
@@ -234,41 +238,42 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			except:
 				pass
 			try:
-				result_str += f" (type: {name_field_dict[node.name].type.__name__})"
-				result_str += f" (default: {name_field_dict[node.name].default})"
+				#Get both but cap the length of each to 20 characters
+				result_str += f" (type: {name_field_dict[node.name].type.__name__[:20]})"
+				result_str += f" (default: {name_field_dict[node.name].default[:20]})"
+				# constraints = name_field_dict[node.name].metadata.get("constraints", None)
+				# if constraints is not None:
+				# 	result_str += f" (constraints: {' '.join(constraints)})"
 			except:
 				pass
 			return result_str
-		elif role == QtCore.Qt.UserRole: #TODO: maybe create Enum with more descriptive names. NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance of Qt.DisplayRole
+		elif role == QtCore.Qt.UserRole: #Get type role #TODO: maybe create Enum with more descriptive names. NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance of Qt.DisplayRole
 			result = name_field_dict.get(node.name, None) #Get field
 			if result:
 				return result.type #If field is available -> return type
 			else:
 				return None
-		elif role == QtCore.Qt.UserRole+1: #Default value role
+		elif role == QtCore.Qt.UserRole+1: #Field role
 			result = name_field_dict.get(node.name, None) #Get field
-			if result:
-				return result.default
-			else:
-				return None
-		elif role == QtCore.Qt.DecorationRole:
-			return None
-		elif role == QtCore.Qt.BackgroundRole:
-			return None
-		elif role == QtCore.Qt.ForegroundRole:
-			return None
-		elif role == QtCore.Qt.TextAlignmentRole:
-			return None
-		elif role == QtCore.Qt.CheckStateRole:
-			return None
-		elif role == QtCore.Qt.SizeHintRole:
-			return None
-		elif role == QtCore.Qt.FontRole:
-			return None
-		elif role == QtCore.Qt.InitialSortOrderRole:
-			return None
-		elif role == QtCore.Qt.UserRole:
-			return None
+			return result
+		# elif role == QtCore.Qt.DecorationRole:
+		# 	return None
+		# elif role == QtCore.Qt.BackgroundRole:
+		# 	return None
+		# elif role == QtCore.Qt.ForegroundRole:
+		# 	return None
+		# elif role == QtCore.Qt.TextAlignmentRole:
+		# 	return None
+		# elif role == QtCore.Qt.CheckStateRole:
+		# 	return None
+		# elif role == QtCore.Qt.SizeHintRole:
+		# 	return None
+		# elif role == QtCore.Qt.FontRole:
+		# 	return None
+		# elif role == QtCore.Qt.InitialSortOrderRole:
+		# 	return None
+		# elif role == QtCore.Qt.UserRole:
+		# 	return None
 		else:
 			return None
 		
@@ -349,8 +354,6 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			return QtCore.QModelIndex()
 
 
-
-LITERAL_EXAMPLE  = typing.Literal["Lit1", "Lit2", "Lit3"]
 
 
 

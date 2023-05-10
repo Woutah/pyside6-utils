@@ -11,6 +11,8 @@ import pandas as pd
 import os
 import winshell
 # from Models.FileExplorerModel import FileExplorerModel
+import logging
+log = logging.getLogger(__name__)
 	
 class DeleteAction(PySide6.QtGui.QUndoCommand):
 	def __init__(self, file_system_model : QtWidgets.QFileSystemModel, index, parent: typing.Optional[PySide6.QtGui.QUndoCommand] = None) -> None:
@@ -65,53 +67,81 @@ class FileExplorerView(QtWidgets.QTreeView):
 
 		#Create context menu
 		self._context_menu = QtWidgets.QMenu(self)
-		self._copy_action = self._context_menu.addAction("Copy")
-		self._paste_action = self._context_menu.addAction("Paste")
-		self._delete_action = self._context_menu.addAction("Delete")
-		self._rename_action = self._context_menu.addAction("Rename")
-		self._highlight_action = self._context_menu.addAction("Select")
 
-		self._redo_action = self._context_menu.addAction("Redo")
-		self._undo_action = self._context_menu.addAction("Undo")
+
+		self.actionUndo = self._context_menu.addAction("Undo")
+		self.actionRedo = self._context_menu.addAction("Redo")
+		self.actionCopy = self._context_menu.addAction("Copy")
+		self.actionPaste = self._context_menu.addAction("Paste")
+		self.actionDelete = self._context_menu.addAction("Delete")
+		self.actionRename = self._context_menu.addAction("Rename")
+		self.actionHighlight = self._context_menu.addAction("Select")
+
+		# self.actionUndo = PySide6.QtGui.QAction(self, "Undo")
+		# self.actionRedo = PySide6.QtGui.QAction(self, "Redo")
+		# self.actionCopy = PySide6.QtGui.QAction(self, "Copy")
+		# self.actionPaste = PySide6.QtGui.QAction(self, "Paste")
+		# self.actionDelete = PySide6.QtGui.QAction(self, "Delete")
+		# self.actionRename = PySide6.QtGui.QAction(self, "Rename")
+		# self.actionHighlight = PySide6.QtGui.QAction(self, "Select")
 
 		#Make sortable
 		self.setSortingEnabled(True)
 		
-		#Add actions to list
+		#Add 
 		self.setContextMenuPolicy(PySide6.QtCore.Qt.ActionsContextMenu)
 		# self.addAction(self._copy_action)
 		# self.addAction(self._paste_action)
-		self.addAction(self._delete_action)
-		self.addAction(self._highlight_action)
+		self.addAction(self.actionDelete)
+		self.addAction(self.actionHighlight)
+		self.addAction(self.actionUndo)
+		self.addAction(self.actionRedo)
 		# self.addAction(self._rename_action)
 		
 
 		#Also create shortcuts and link them to actions
-		self._copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), self)
-		self._pase_shortcut = QShortcut(QKeySequence("Ctrl+V"), self)
-		self._delete_shortcut = QShortcut(QKeySequence("Del"), self)
-		self._redo_shortcut = QShortcut(QKeySequence("Ctrl+Y"), self)
-		self._undo_shortcut = QShortcut(QKeySequence("Ctrl+Z"), self)
-		#on enter press, select file
-		self._highlight_shortcut = QShortcut(QKeySequence("Return"), self)
+		self._undo_shortcut = PySide6.QtCore.QCoreApplication.translate("ApplyMachineLearningWindow", u"Ctrl+Z", None)
+		self._redo_shortcut = PySide6.QtCore.QCoreApplication.translate("FileExplorerView", u"Ctrl+Y", None)
+		self._copy_shortcut = PySide6.QtCore.QCoreApplication.translate("FileExplorerView", u"Ctrl+C", None)
+		self._paste_shortcut = PySide6.QtCore.QCoreApplication.translate("FileExplorerView", u"Ctrl+V", None)
+		self._delete_shortcut = PySide6.QtCore.QCoreApplication.translate("FileExplorerView", u"Del", None)
+		self._rename_shortcut = PySide6.QtCore.QCoreApplication.translate("FileExplorerView", u"F2", None)
+		self._highlight_shortcut = PySide6.QtCore.QCoreApplication.translate("FileExplorerView", u"Return", None)
 
-		self._copy_shortcut.activated.connect(self._copy_action.trigger)
-		self._pase_shortcut.activated.connect(self._paste_action.trigger)
-		self._delete_shortcut.activated.connect(self._delete_action.trigger)
-		self._redo_shortcut.activated.connect(self._redo_action.trigger)
-		self._undo_shortcut.activated.connect(self._undo_action.trigger)
-		self._highlight_shortcut.activated.connect(self._highlight_action.trigger)
+
 		
+		self.actionUndo.setShortcut(self._undo_shortcut)
+		self.actionRedo.setShortcut(self._redo_shortcut)
+		self.actionCopy.setShortcut(self._copy_shortcut)
+		self.actionPaste.setShortcut(self._paste_shortcut)
+		self.actionDelete.setShortcut(self._delete_shortcut)
+		self.actionRename.setShortcut(self._rename_shortcut)
+		self.actionHighlight.setShortcut(self._highlight_shortcut)
+
+
+		self.actionUndo.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+		self.actionRedo.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+		self.actionCopy.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+		self.actionPaste.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+		self.actionDelete.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+		self.actionRename.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+		self.actionHighlight.setShortcutContext(PySide6.QtCore.Qt.WidgetShortcut)
+
+		
+		# self._undo_action.setShortcutContext(Qt.WidgetShortcut)
+		# self._redo_action.setShortcutContext(Qt.WidgetShortcut)
 
 
 		#Link actions to function
 		# self._copy_action.triggered.connect(self.copySelection)
 		# self._paste_action.triggered.connect(self.pasteSelection)
-		self._delete_action.triggered.connect(self.deleteSelection)
-		self._rename_action.triggered.connect(self.renameSelection)
-		self._redo_action.triggered.connect(self.redoAction)
-		self._undo_action.triggered.connect(self.undoAction)
-		self._highlight_action.triggered.connect(self.highlightSelection)
+		self.actionRedo.triggered.connect(self.redoAction)
+		self.actionUndo.triggered.connect(self.undoAction)
+		# self.actionCopy.triggered.connect(self.actionCopy)#TODO: implement
+		# self.actionPaste.triggered.connect(self.actionPaste)#TODO: implement
+		self.actionDelete.triggered.connect(self.deleteSelection)
+		self.actionRename.triggered.connect(self.renameSelection)
+		self.actionHighlight.triggered.connect(self.highlightSelection)
 
 		self._highlight = None
 
@@ -124,13 +154,13 @@ class FileExplorerView(QtWidgets.QTreeView):
 		return super().setModel(model)
 
 	def highlightSelection(self):
-		print("Setting hightlight selection in view")
+		log.info("Setting hightlight selection in view")
 		model = self.model()
 		if model and isinstance(model, FileExplorerModel):
 			self._highlight = self.model().filePath(self.currentIndex())
-			print("Is instance of FileExplorerModel, now trying to set")
+			log.info("Is instance of FileExplorerModel, now trying to set")
 			model.setHightLight(self.currentIndex())
-			print("Done setting in model")
+			log.info("Done setting in model")
 
 
 	# def paintEvent(self, event: PySide6.QtGui.QPaintEvent) -> None:
@@ -158,19 +188,8 @@ class FileExplorerView(QtWidgets.QTreeView):
 
 
 	def deleteSelection(self):
-		#Move selected file to trash using the MoveToTrash function
-		#Get the current index
 		index = self.currentIndex()
-		# print(f"Now trying to delete {self.model().filePath(index)}")
-
 		self._undo_stack.push(DeleteAction(self.model(), index))
-
-		# index = self.currentIndex()
-		# #Get the file path
-		# file_path = self.model().filePath(index)
-		# removed_path = PySide6.QtCore.QFile.moveToTrash(file_path)
-		
-
 		
 
 	def renameSelection(self):

@@ -30,7 +30,7 @@ if len(Paths.widgets_subpath) > 0:
 module+= f"{PandasTableView.__name__}"
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(PandasTableView, 
-                                                    	module=f"Widgets.{PandasTableView.__name__}",
+                                                    	module=module,
                                                        	tool_tip=PandasTableView.DESCRIPTION, 
                                                         xml=DOM_XML,
                                                         container=True,
