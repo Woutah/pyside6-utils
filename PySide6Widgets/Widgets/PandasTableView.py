@@ -10,6 +10,7 @@ import typing
 import os
 import pandas as pd
 from enum import Enum
+from numbers import Number
 
 class TableViewRoles(Enum):
 	headerRole = Qt.UserRole + 1
@@ -26,6 +27,7 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 		self._sort_order = [] #Qt.DescendingOrder or Qt.AscendingOrder
 		self._filter_columns = [] #List of column names to filter by
 		self._filter_strings = [] #List of strings to filter by
+		# self.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 
 	
 	def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = None) -> any:
@@ -44,10 +46,21 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 	
 	def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
 		"""Sort by the edit role (so that we can sort by the value in the cell, not the display role)"""
+		ldata = self.sourceModel().data(left, Qt.EditRole)
+		rdata = self.sourceModel().data(right, Qt.EditRole)
+		lnone = ldata is None or pd.isnull(ldata)
+		rnone = rdata is None or pd.isnull(rdata)
+		if lnone:
+			if rnone:
+				return False
+			return True
 		try:
-			return self.sourceModel().data(left, Qt.EditRole) < self.sourceModel().data(right, Qt.EditRole)
-		except Exception as e: #TODO: what if two types? -> let it be handled by default
+			val = ldata < rdata
+			return val
+		except Exception as e:
 			return super().lessThan(left, right)
+
+
 
 class PandasTableView(QTableView):
 	DESCRIPTION = "A view to display a pandas dataframe, works best in combination with PandasTableModel - places a proxymodel in between the tableview and the model to allow sorting and filtering"
@@ -65,6 +78,7 @@ class PandasTableView(QTableView):
 		self.Proxy_Model.setSourceModel(None)
 		# self._proxy_model.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 		super().setModel(self.Proxy_Model)
+		# self.Proxy_Model.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 
 		self.selectionModel().selectionChanged.connect(self.displaySelectionStats) #TODO: 
 
@@ -72,11 +86,6 @@ class PandasTableView(QTableView):
 		#Detect right-clicks on table headers
 	# 	self.horizontalHeader().sectionClicked.connect(self.headerClicked)
 		
-	# def headerClicked(self, logicalIndex):
-	# 	print("Header clicked", logicalIndex)
-	# 	print("Sorting by column", self._proxy_model.mapToSource(self._proxy_model.index(0, logicalIndex)).column())
-	# 	self._proxy_model.sort(self._proxy_model.mapToSource(self._proxy_model.index(0, logicalIndex)).column(), Qt.AscendingOrder)
-
 
 	def setStatusBar(self, status_bar):
 		self._status_bar = status_bar

@@ -16,7 +16,6 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 		super().__init__(parent)
 		self._selected_path = None
 
-		# self._selection_pixmap = PySide6.QtWidgets.QStyle.SP_ArrowRight #Right arrow
 		self._selection_pixmap = PySide6.QtWidgets.QStyle.SP_DialogApplyButton #Checkmark
 		self._selection_icon = PySide6.QtWidgets.QApplication.style().standardIcon(self._selection_pixmap)
 		self._prev_selection = None

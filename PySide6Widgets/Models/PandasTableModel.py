@@ -28,7 +28,8 @@ class PandasTableModel(QAbstractTableModel):
 				if data is None or pd.isnull(data):
 					return ""
 			except:
-				pass			
+				pass	
+			#TODO: Convert item to qt-equivalent instead of string? 	
 			return str(data)
 		elif role == Qt.EditRole:
 			return self._dataframe.iloc[index.row(), index.column()]

@@ -79,12 +79,14 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 						editor.setMaximum(9999999)
 						pass
 					elif isinstance(the_constraint, Interval):
-						if isinstance(the_constraint.type, Integral):
+						if issubclass(the_constraint.type, Integral):
 							editor = QtWidgets.QSpinBox(parent)
 						else:
 							editor = QtWidgets.QDoubleSpinBox(parent)
-						editor.setMaximum(the_constraint.right)
-						editor.setMinimum(the_constraint.left)
+						if the_constraint.right:
+							editor.setMaximum(the_constraint.right)
+						if the_constraint.left:
+							editor.setMinimum(the_constraint.left)
 						
 						self.editor_list.append(editor)
 						return editor
