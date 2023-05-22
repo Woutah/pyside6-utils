@@ -54,23 +54,7 @@
        <string/>
       </property>
      </widget>
-     <widget class="QTreeView" name="fileSelectionTreeView">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="iconSize">
-       <size>
-        <width>15</width>
-        <height>15</height>
-       </size>
-      </property>
-      <property name="rootIsDecorated">
-       <bool>false</bool>
-      </property>
-     </widget>
+     <widget class="QTableView" name="fileSelectionTableView"/>
     </widget>
    </item>
   </layout>

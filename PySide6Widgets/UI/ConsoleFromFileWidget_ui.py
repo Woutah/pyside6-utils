@@ -16,7 +16,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QHeaderView, QPlainTextEdit, QSizePolicy,
-    QSplitter, QTreeView, QVBoxLayout, QWidget)
+    QSplitter, QTableView, QVBoxLayout, QWidget)
 import app_resources_rc
 
 class Ui_ConsoleFromFileWidget(object):
@@ -42,13 +42,9 @@ class Ui_ConsoleFromFileWidget(object):
         self.consoleTextEdit.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.consoleTextEdit.setLineWrapMode(QPlainTextEdit.NoWrap)
         self.splitter.addWidget(self.consoleTextEdit)
-        self.fileSelectionTreeView = QTreeView(self.splitter)
-        self.fileSelectionTreeView.setObjectName(u"fileSelectionTreeView")
-        sizePolicy.setHeightForWidth(self.fileSelectionTreeView.sizePolicy().hasHeightForWidth())
-        self.fileSelectionTreeView.setSizePolicy(sizePolicy)
-        self.fileSelectionTreeView.setIconSize(QSize(15, 15))
-        self.fileSelectionTreeView.setRootIsDecorated(False)
-        self.splitter.addWidget(self.fileSelectionTreeView)
+        self.fileSelectionTableView = QTableView(self.splitter)
+        self.fileSelectionTableView.setObjectName(u"fileSelectionTableView")
+        self.splitter.addWidget(self.fileSelectionTableView)
 
         self.verticalLayout.addWidget(self.splitter)
 
