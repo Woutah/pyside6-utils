@@ -268,8 +268,17 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		# 	return None
 		# elif role == QtCore.Qt.SizeHintRole:
 		# 	return None
-		# elif role == QtCore.Qt.FontRole:
-		# 	return None
+		elif role == QtCore.Qt.FontRole: 
+			try:
+				default_val = name_field_dict[node.name].default 
+			except: #E.g. if item is a header so it has no field
+				return None
+			#If current value is not equal to the default value, make the font bold
+			if self._data_class.__dict__.get(node.name, None) != default_val:
+				font = QtGui.QFont()
+				font.setBold(True)
+				return font
+
 		# elif role == QtCore.Qt.InitialSortOrderRole:
 		# 	return None
 		# elif role == QtCore.Qt.UserRole:

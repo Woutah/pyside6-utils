@@ -25,7 +25,8 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 		self.icon_size = QtWidgets.QApplication.style().pixelMetric(QtWidgets.QStyle.PM_LargeIconSize)
 
 		#Create pixmap from ":/Icons/places/user-trash.png"
-		self.trash_icon_pixmap = QtWidgets.QApplication.style().standardPixmap(QtWidgets.QStyle.SP_DialogCancelButton)
+		self.trash_icon = QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.SP_TitleBarCloseButton)
+		# self.trash_icon_pixmap = QtWidgets.QStyle.SP_TitleBarMaxButton
 
 		# self.trash_icon_pixmap = QtGui.QPixmap(":/Icons/places/user-trash.png")
 		self.hovering_del_btn = False 
@@ -38,7 +39,7 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 		#Set icon size based on the height of the item
 		self.icon_size = option.rect.height() - 10 #10 is the padding on both top and bottom
 
-		if option.state & (QtWidgets.QStyle.State_MouseOver | QtWidgets.QStyle.State_Selected): #If mouse-over event is detected or part of selection
+		if option.state & (QtWidgets.QStyle.State_MouseOver | (QtWidgets.QStyle.State_Selected)): #If mouse-over event is detected or part of selection #TODO: active? 
 			painter.save()
 			#Get the rect of the first column
 			rect = option.rect
@@ -53,7 +54,10 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 			#Get the icon rect
 			# icon_rect = QtCore.QRect(rect.right() - self.icon_size, rect.top(), self.icon_size, self.icon_size)
 			#Draw the icon
-			painter.drawPixmap(icon_rect, self.trash_icon_pixmap)
+			# painter.drawPixmap(icon_rect, self.trash_icon_pixmap)
+			# painter.paint
+			QtGui.QIcon.paint(self.trash_icon, painter, icon_rect, mode=QtGui.QIcon.Normal, state=QtGui.QIcon.On)
+
 
 			#Restore the painter state
 			painter.restore()
