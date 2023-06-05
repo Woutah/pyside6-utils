@@ -32,7 +32,7 @@ class OverlayWidget(QtWidgets.QWidget):
 
 		self._cur_background_color = None
 		self.setOverlayMouseBlock(True)
-		self.setBackgroundColor(QtGui.QColor(0, 0, 0, 100))
+		self.setBackgroundColor(QtGui.QColor(200, 200, 200, 150))
 
 
 	def setOverlayMouseBlock(self, block: bool) -> None:
@@ -53,7 +53,6 @@ class OverlayWidget(QtWidgets.QWidget):
 		self._overlay_widget = widget
 		self._overlay_widget_container.setLayout(QtWidgets.QVBoxLayout()) #Reset the layout to remove any previous
 		self._overlay_widget_container.layout().addWidget(widget)
-		self._overlay_widget_container.layout().addWidget(QtWidgets.QLabel("Overlayed"))
 		self._overlay_widget_container.resize(self.size())
 		# self._overlay_widget_container.move(0, 0)
 		self._overlay_widget_container.layout().setAlignment(Qt.AlignCenter)
@@ -122,6 +121,7 @@ if __name__ == "__main__":
 	# #Centering the overlay
 	overlay.setFixedSize(300, 100)
 	overlay.setLayout(QtWidgets.QVBoxLayout())
+	
 	overlay.layout().addWidget(QtWidgets.QLabel("Widget itself"))
 	btn = QtWidgets.QPushButton("Hide overlay")
 	btn.clicked.connect(lambda: widget.setOverlayHidden(True))
