@@ -19,4 +19,4 @@ if __name__ == "__main__":
 	app = QtWidgets.QApplication(sys.argv)
 	widget = SquareFrame()
 	widget.show()
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

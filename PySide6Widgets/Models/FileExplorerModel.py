@@ -69,3 +69,30 @@ class FileExplorerModel(PySide6.QtWidgets.QFileSystemModel):
 			return self._selection_icon
 
 		return super().data(index, role)
+	
+
+
+if __name__ == "__main__":
+	print("Testing FileExplorerModel")
+	app = PySide6.QtWidgets.QApplication([])
+	# model = FileExplorerModel()
+	model = PySide6.QtWidgets.QFileSystemModel()
+
+	#Get the current path
+	current_path = os.path.dirname(os.path.realpath(__file__))
+	
+	#Set editable
+	model.setReadOnly(False)
+	print(current_path)
+	model.setRootPath(current_path)
+	
+
+	view = PySide6.QtWidgets.QTreeView()
+	view.setModel(model)
+	view.setRootIndex(model.index(current_path))
+	view.show()
+
+	app.exec()
+	
+
+	print("Done testing FileExplorerModel")

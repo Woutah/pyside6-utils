@@ -1,5 +1,7 @@
+from typing import Optional
 from PySide6 import QtCore, QtGui, QtWidgets
 from datetime import datetime
+import PySide6.QtCore
 import typing_inspect
 import typing
 from numbers import Number, Real, Integral
@@ -13,7 +15,41 @@ from PySide6Widgets.Utility.sklearn_param_validation import Interval, StrOptions
 
 class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	#Custom delegate that allows for editing of different data types of DataClassModel
-	
+	# def __init__(self, parent: QtCore.QObject | None = ...) -> None:
+	# 	super().__init__(parent)
+
+	# 	self.restore_default_icon = QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.SP_DockWidgetCloseButton)
+
+
+	# def paint(self, painter : QtGui.QPainter, option : QtWidgets.QStyleOptionViewItem, index : QtCore.QModelIndex) -> None:
+	# 	#First draw the default item
+	# 	super().paint(painter, option, index)
+
+	# 	if index.column() == 0: #If first column
+	# 		return
+
+	# 	if option.state & (QtWidgets.QStyle.State_MouseOver | (QtWidgets.QStyle.State_Selected)): #If mouse-over event is detected or part of selection #TODO: active? 
+	# 		painter.save()
+	# 		#Get the rect of the first column
+	# 		rect = option.rect
+	# 		icon_rect = QtCore.QRect(rect.right() - self.icon_size, rect.top() + (rect.height()-self.icon_size)/2, self.icon_size, self.icon_size)
+
+	# 		mouse_pos =  option.widget.mapFromGlobal(QtGui.QCursor.pos())
+	# 		if icon_rect.contains(mouse_pos):
+	# 			painter.fillRect(icon_rect, QtGui.QColor(0, 0, 0, 150))
+	# 		# if self.hovering_del_btn: #If hovering over -> create grey background
+	# 		# 	painter.fillRect(icon_rect, QtGui.QColor(0, 0, 0, 150))
+
+	# 		#Get the icon rect
+	# 		# icon_rect = QtCore.QRect(rect.right() - self.icon_size, rect.top(), self.icon_size, self.icon_size)
+	# 		#Draw the icon
+	# 		# painter.drawPixmap(icon_rect, self.trash_icon_pixmap)
+	# 		# painter.paint
+	# 		QtGui.QIcon.paint(self.trash_icon, painter, icon_rect, mode=QtGui.QIcon.Normal, state=QtGui.QIcon.On)
+
+
+	# 		#Restore the painter state
+	# 		painter.restore()
 
 	def createEditor(self, parent, option, index):
 		#NOTE: we first used index.internalPointer==DateTime (or some other type) --> this goes wrong when using a proxy model, instead, it is probably best to define custom roles to get the field type

@@ -45,8 +45,8 @@ class ExampleDataClass:
 												))
 	
 
-	test_float_property: float = field(default=0.001, metadata=dict(
-												display_name="Test float property",
+	test_float_range_0_1_property: float = field(default=0.001, metadata=dict(
+												display_name="Test float range 0-1 property",
 												help= "This is a test property (float)",
 												changed=True,		
 												constraints = [Interval(float, 0,1, closed='both'), None]

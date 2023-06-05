@@ -403,6 +403,6 @@ if __name__ == "__main__":
 	#Place windows next to each other
 	view1.move(1000, 400)
 	view2.move(1400, 400)
-	app.exec_()
+	app.exec()
 	print(data)
 	sys.exit()
