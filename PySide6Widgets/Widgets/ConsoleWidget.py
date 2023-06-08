@@ -4,14 +4,18 @@ from PySide6 import QtCore, QtWidgets
 # from logging.handlers import QueueHandler, QueueListener
 from PySide6 import QtCore, QtWidgets, QtGui
 import PySide6.QtCore
+import PySide6.QtGui
 from PySide6Widgets.UI.ConsoleFromFileWidget_ui import Ui_ConsoleFromFileWidget
+from PySide6Widgets.Models.ExtendedSortFilterProxyModel import ExtendedSortFilterProxyModel
 import os
 import logging
 log = logging.getLogger(__name__)
 import typing
 import time
 
-class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
+class ConsoleWidgetDelegate(QtWidgets.QStyledItemDelegate):
+	"""Custom delegate that implements an "x" button 
+	"""
 
 	deleteHoverItem = QtCore.Signal(QtCore.QModelIndex) #Emitted index when the "delete" button is clicked on an item
 	
@@ -32,7 +36,11 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 		self.hovering_del_btn = False 
 		
 
-	def paint(self, painter : QtGui.QPainter, option : QtWidgets.QStyleOptionViewItem, index : QtCore.QModelIndex) -> None:
+	def paint(self, 
+	   		painter : QtGui.QPainter, 
+			option : QtWidgets.QStyleOptionViewItem, 
+			index : QtCore.QModelIndex
+		) -> None:
 		#First draw the default item
 		super().paint(painter, option, index)
 
@@ -63,9 +71,17 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 			painter.restore()
 
 
-	def editorEvent(self, event : QtCore.QEvent, model : QtCore.QAbstractItemModel, option : QtWidgets.QStyleOptionViewItem, index : QtCore.QModelIndex) -> bool:
+	def editorEvent(self, 
+			event : QtCore.QEvent,
+			model : QtCore.QAbstractItemModel,
+			option : QtWidgets.QStyleOptionViewItem,
+			index : QtCore.QModelIndex) -> bool:
+		
 		p = event.position() #Local position
 		globalPos = p.toPoint()
+
+
+
 
 		#Check if the user clicked on the icon
 		if event.type() == QtCore.QEvent.MouseButtonPress:
@@ -77,8 +93,10 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 			if icon_rect.contains(globalPos):
 				#Emit the delete signal
 				self.deleteHoverItem.emit(index)
+				#Block event propagation
+				event.setAccepted(True)
 				return True
-		
+	
 		elif event.type() == QtCore.QEvent.MouseMove:
 			#Get the rect of the first column
 			rect = option.rect
@@ -89,6 +107,7 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 				if self.hovering_del_btn == False: #Only update view if state changed	
 					self.hovering_del_btn = True
 					option.widget.viewport().update()
+				return True #Make sure that mousemove does not selet the underlying item
 			elif self.hovering_del_btn:
 				self.hovering_del_btn = False
 				option.widget.viewport().update()
@@ -96,158 +115,28 @@ class ConsoleFileSelectorWidgetDelegate(QtWidgets.QStyledItemDelegate):
 		return super().editorEvent(event, model, option, index)
 
 
-class FileCheckerWorker(QtCore.QObject):
-	"""A class that continuously checks a file path for changes in file size, if so, it emits a simple signal, indicating that the file has changed
-	"""
-	fileChanged = QtCore.Signal() #Emitted when the file has changed
 
-	def __init__(self, path, polling_interval : float = 0.2, *args, **kwargs) -> None:
-		super().__init__(*args, **kwargs)
-		self._path = path
-		self.run_flag = True #Keep track of whether the thread should keep running
-		self._polling_interval = polling_interval #The interval in seconds to check the file for changes #TODO: make parameter
-		self._last_size = 0
-
-	def doWork(self):
-		self._last_size = -1 #File doesnt exist
-		while(self.run_flag):
-			time.sleep(self._polling_interval)
-
-			if not os.path.exists(self._path): #If file does not exist, clear the text edit
-				if self._last_size != -1:
-					self._last_size = -1
-					self.fileChanged.emit()
-				continue
-			
-			cur_size = os.path.getsize(self._path)
-
-			if cur_size != self._last_size:
-				self._last_size = cur_size
-				self.fileChanged.emit()
-
-# class ConsoleItem(QtWidgets.QTableWidgetItem):
-class ConsoleItem(QtCore.QObject):
+class BaseConsoleItem(QtCore.QObject):
 	currentTextChanged = QtCore.Signal(str) #Emitted when the text in the file changes
-	emitDataChanged = QtCore.Signal() #Emitted when the data of the item changes
+	dataChanged = QtCore.Signal() #When the metadata of the item changes (e.g. last-edit-date, name, running-state)
 
-	def __init__(self, name : str, path : str = None, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self._console_pixmap = QtWidgets.QStyle.SP_TitleBarMaxButton
-		self._console_icon = QtWidgets.QApplication.style().standardIcon(self._console_pixmap)
+	def data(self, role : QtCore.Qt.DisplayRole, column : int = 0):
+		"Get the data for the passed role at the passed column"
+		raise NotImplementedError()
 
-		self._name = name
-		self._path = path
-
-		self._current_text : str = "" #The current text in the file
-		self._last_edited = QtCore.QDateTime.fromSecsSinceEpoch(0) #Set to 0 so that it is always updated on first change
-		self._current_seek : int = 0 #The current seek position in the current file
-
-
-		#Check if file exists
-		if self._path is None or not os.path.exists(self._path):
-			raise ValueError(f"File {self._path} does not exist - Console Item will not be able to initiate a file-watcher so updates will not be shown.")
-
-		# class FileWatcherHandler(watchdog.events.FileSystemEventHandler):
-		# 	def __init__(self, item : ConsoleItem):
-		# 		super().__init__()
-		# 		self.item = item
-
-		# 	def on_modified(self, event):
-		# 		# print(f'event type: {event.event_type}  path : {event.src_path}')
-		# 		if event.src_path == self.item._path:
-		# 		# print("kaas")
-		# 			self.item._on_content_changes_selected_file()
-
-		#Align contents bottom
-		# self._file_watcher = watchdog.observers.Observer()
-		self._polling_interval = 0.2 #The interval in seconds to poll the file for changes #TODO: make parameter
-
-		# self._file_watcher : QtCore.QFileSystemWatcher = QtCore.QFileSystemWatcher()
-		# self._file_watcher.fileChanged.connect(self._on_content_changes_selected_file)
-		# self._file_watcher.addPath(self._path)
-		self._current_seek : int = 0 #The current seek position in the current file
-		self._on_content_changes_selected_file() #Call this method once to get the initial text
-		# self._file_monitor_thread = threading.Thread(target = self.fileCheckerWorker) #TODO: move to separate class so that the thread can be stopped when the item is deleted
-		# self._file_monitor_thread.start()
-
-		self._file_monitor_worker = FileCheckerWorker(self._path)
-		self._worker_thread = QtCore.QThread()
-		self._worker_thread.started.connect(self._file_monitor_worker.doWork)
-		self._file_monitor_worker.moveToThread(self._worker_thread)
-		#Connect deleteLater to the finished signal of the thread
-		# self._worker_thread.finished.connect(self._file_monitor_worker.deleteLater)
-		self._file_monitor_worker.fileChanged.connect(self._on_content_changes_selected_file)
-		#Connect doWork to the started signal of the thread
-		self._worker_thread.start()
-
-
-
-	#IF class is destroyed, stop the file watcher
-	# def __del__(self):
-	# 	self._worker_thread.run_flag = False
-	# 	self._worker_thread.quit()
-
-
-	# def fileCheckerWorker(self) -> None:
-	# 	while(True):
-	# 		time.sleep(self._polling_interval)
-	# 		self._on_content_changes_selected_file()
 
 	def getCurrentText(self) -> str:
-		return self._current_text
-
-
-	def data(self, role : int = 0):
-		if role == 0 : return self._name
-		elif role == 1 : return self._last_edited
-		elif role == 2 : return self._path
-		raise ValueError(f"Invalid role for ConsoleStandardItem: {role}")
-		# return super().data(role)
-	
-	def _on_content_changes_selected_file(self) -> None:
+		"""Get the current text (str) of this console-item
 		"""
-		When the contents of selected file changes, this method is called
-		"""
-
-		if not os.path.exists(self._path): #If file does not exist, clear the text edit
-			self._current_text = ""
-			self._current_seek = 0
-			self.currentTextChanged.emit("")
-			return
-		
-		cur_size = os.path.getsize(self._path)
-
-		#First check is size is lower than the current seek position, if so, reset the seek position
-		if cur_size < self._current_seek:
-			# self.ui.consoleTextEdit.clear() #Also clear the text edit
-			self._current_seek = 0
-			self._current_text = "" #Reset the current text
-		
-		if cur_size <= self._current_seek: #If file size is equal to the current seek position, do nothing
-			return
-
-		#Open the file and seek to the current seek position
-		with open(self._path, "r") as f:
-			f.seek(self._current_seek)
-			newcontent = f.read()  #Read to end of file
-			self._current_seek = f.tell() #Make the current seek position the end of the file
-			self._current_text += newcontent #Add the new content to the current text
-			# self.ui.consoleTextEdit.insertPlainText(newcontent) #Insert the new content into the text edit
-			# self.ui.consoleTextEdit.moveCursor(QtGui.QTextCursor.End) #Move the cursor to the end of the text edit
-
-		#Retrieve the last edit date
-		time = os.path.getmtime(self._path)
-		# self._last_edited = QtCore.QDateTime.fromSecsSinceEpoch(time
-		self._last_edited = time
-		# self.emitDataChanged.emit() #Emit the data changed signal (as self._last_edited has changed)
-		# print("New file contents for file ", self._path)
-		self.currentTextChanged.emit(self._current_text) #Emit the current text
+		raise NotImplementedError()
 
 # class ConsoleStandardItemModel(QtGui.QStandardItemModel):
-class ConsoleStandardItemModel(QtCore.QAbstractItemModel):
+class BaseConsoleStandardItemModel(QtCore.QAbstractItemModel):
 	"""Small class to overload data-representation of the file-selection treeview based on recency
 	and to add icons to the first column 
 
+	Is compatible with ConsoleFromFileItems
+	
 	NOTE: this model does not seem to work with treeviews, only tableviews
 	"""
 	def __init__(self, *args, **kwargs):
@@ -272,22 +161,12 @@ class ConsoleStandardItemModel(QtCore.QAbstractItemModel):
 		else:  #If one of the sub-items
 			return 0 
 
-	def addPath(self, name : str, path : str): 
-		"""Add a path to the model to be displayed in the listview (name is the name of the file, path is the full path to the file)
-		This class will then monitor the file as to update the last edit date in the listview 
-		
-		Args:
-			name (str): The name of the file
-			path (str): The full path to the file
-		"""
-		newitem = ConsoleItem(name, path)
-		self.appendRow(newitem)
-
 	def parent(self, index : QtCore.QModelIndex) -> QtCore.QModelIndex:
-		if not index.isValid():
-			return QtCore.QModelIndex()
-		else:
-			return self.createIndex(0, 0, None)
+		return QtCore.QModelIndex() #No parents
+		# if not index.isValid():
+		# 	return QtCore.QModelIndex()
+		# else:
+		# 	return self.createIndex(0, 0, None)
 
 
 	def index(self, row : int, column : int, parent : QtCore.QModelIndex = QtCore.QModelIndex()) -> QtCore.QModelIndex:
@@ -308,17 +187,17 @@ class ConsoleStandardItemModel(QtCore.QAbstractItemModel):
 
 
 
-	def appendRow(self, item : ConsoleItem):
+	def appendRow(self, item : BaseConsoleItem):
 		"""Append a row to the model - consisting of a single ConsoleStandardItem
 		
 		"""
 		self.beginInsertRows(QtCore.QModelIndex(), self.rowCount(), self.rowCount())
 		self._item_list.append(item)
-		item.emitDataChanged.connect(lambda *_ : self.dataChanged.emit(self.index(self.rowCount()-1, 0), self.index(self.rowCount()-1, 2)))
+		item.dataChanged.connect(lambda *_ : self.dataChanged.emit(self.index(self.rowCount()-1, 0), self.index(self.rowCount()-1, 2)))
 		
 		self.endInsertRows()
 
-	def addItem (self, item : ConsoleItem):
+	def addItem (self, item : BaseConsoleItem):
 		"""Add an item to the model
 		
 		Args:
@@ -346,8 +225,10 @@ class ConsoleStandardItemModel(QtCore.QAbstractItemModel):
 		# return super().data(index, role)
 
 
-class ConsoleFromFileWidget(QtWidgets.QWidget):
-	DESCRIPTION = "Widget that displays dynamically displays the text contents of a file - watches the selected file for changes and updates the widget accordingly. Mainly intended for use with a file to which stdout/stderr can be redirected to."
+class ConsoleWidget(QtWidgets.QWidget):
+	DESCRIPTION = """Widget that displays dynamically displayes multiple console - \ 
+	E.g. in the case of ConsoleFromFileModel : watches the selected file for changes and updates the widget accordingly. 
+	Mainly intended for use with a file to which stdout/stderr can be redirected to."""
 
 	def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None, display_max_chars = 200_000) -> None:
 		"""
@@ -361,13 +242,21 @@ class ConsoleFromFileWidget(QtWidgets.QWidget):
 
 		self._display_max_chars = display_max_chars #The maximum number of characters to display in the text edit
 
-		self._files_proxy_model = QtCore.QSortFilterProxyModel()
+		self._files_proxy_model = ExtendedSortFilterProxyModel(self) #TODO: this doesn't really seem to work yet
+		# self._files_proxy_model = QtCore.QSortFilterProxyModel(self)
 		# self._files_proxy_model.setSourceModel(name_date_path_model)
 		self.ui.fileSelectionTableView.setModel(self._files_proxy_model)
 		# self.ui.fileSelectionTableView.setSortingEnabled(True)
 
 		#==============Treeview ==============
-		self.ui.fileSelectionTableView.sortByColumn(1, QtCore.Qt.DescendingOrder) #Sort by date in descending order
+		#Sort first by date, then by name
+		self.ui.fileSelectionTableView.sortByColumn(1, QtCore.Qt.AscendingOrder) 
+		self._files_proxy_model.sortByColumns([1, 0], [QtCore.Qt.DescendingOrder, QtCore.Qt.AscendingOrder]) #Sort by 
+			# Datetime, then by name
+
+		# self._files_proxy_model.sortByColumn(1, QtCore.Qt.DescendingOrder) #Sort by date in descending order
+		#Then sort by name in ascending order
+		
 		#Hide the third column (path) and the second column (date) from the view
 		# self.ui.fileSelectionTableView.setColumnWidth(1, 0)
 		# self.ui.fileSelectionTableView.setColumnWidth(2, 0)
@@ -395,11 +284,18 @@ class ConsoleFromFileWidget(QtWidgets.QWidget):
 		self.ui.consoleTextEdit.setReadOnly(True)
 
 		#Make tree view non-editable
-		self.ui.fileSelectionTableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+		# self.ui.fileSelectionTableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+		self.ui.fileSelectionTableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
 		self.ui.fileSelectionTableView.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+		self.ui.fileSelectionTableView.mouseReleaseEvent = self.mouseReleaseEvent
+		# self.ui.fileSelectionTableView.dragMoveEvent = self.dragMoveEvent
+		# # self.ui.fileSelectionTableView.dragEnabled = False
+		# self.ui.fileSelectionTableView.dragEnterEvent = self.dragMoveEvent
+		# self.ui.fileSelectionTableView.dragLeaveEvent = self.dragMoveEvent
+		# self.ui.fileSelectionTableView.setDragEnabled(False)
 		
 		#Set the delegate for the first column to the custom delegate
-		self.fileSelectionDelegate = ConsoleFileSelectorWidgetDelegate(self.ui.fileSelectionTableView)
+		self.fileSelectionDelegate = ConsoleWidgetDelegate(self.ui.fileSelectionTableView)
 		self.ui.fileSelectionTableView.setItemDelegateForColumn(0, self.fileSelectionDelegate)
 		self.fileSelectionDelegate.deleteHoverItem.connect(self.deleteFileSelectorHoverItem)
 		
@@ -438,20 +334,110 @@ class ConsoleFromFileWidget(QtWidgets.QWidget):
 			# self._on_current_text_changed(item.getCurrentText())
 
 	def _on_current_text_changed(self, newtext : str):
+		at_end = self.ui.consoleTextEdit.verticalScrollBar().value() == self.ui.consoleTextEdit.verticalScrollBar().maximum()
+
 		if len(newtext) > self._display_max_chars:
 			newtext = newtext[-self._display_max_chars:]
 
 		self.ui.consoleTextEdit.setPlainText(newtext[-self._display_max_chars:])
-		self.ui.consoleTextEdit.moveCursor(QtGui.QTextCursor.End) #Move the cursor to the end of the text edit
-		self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum())
+		
+		#If cursor was at the end -> scroll to the end
+		if at_end:
+			self.ui.consoleTextEdit.moveCursor(QtGui.QTextCursor.End) #Move the cursor to the end of the text edit
+			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum())
 
+
+	def dragMoveEvent(self, event) -> None:
+		"""Block dragmove events from re-selecting deleted items in the treeview.
+		"""
+		event.setAccepted(True)
+		return True
+
+	def mouseReleaseEvent(self, event) -> None:
+		"""NOTE: we use this function to block mouse-release events from re-selecting deleted items in the treeview.
+		This seems to be a bug with editorEvent in QStyledItemDelegate - we can't intercept the mouse-release event.
+		"""
+		#If release of left mouse button, accept the event
+		if event.button() == QtCore.Qt.LeftButton:
+			event.setAccepted(True) 
+			return True
+		#Otherwise propagate
+		return super().mouseReleaseEvent(event)
 
 	def deleteFileSelectorHoverItem(self, index : QtCore.QModelIndex):
 		#Remove the row from the model
 		# print("Trying to remove row")
 		original_index = self._files_proxy_model.mapToSource(index)
 		#Check if that index is the currently selected index
-		self._files_proxy_model.sourceModel().removeRow(original_index.row(), original_index.parent())
+		selected_indexes = self.ui.fileSelectionTableView.selectionModel().selectedIndexes()
+		print(f"Deleting item at index {original_index.row()} - selection is { selected_indexes}")
+		print(f"Len is {len(selected_indexes)}")
+
+		#Disable mouse-tracking temporarily to prevent the selection from changing
+
+		# if len(selected_indexes) > 0: #Check if any selected items
+		# 	 #NOTE: the X signal does not intercept the user-click and thus the same item is selected again -> this doesnt work
+		# 	selected_index = selected_indexes[0]
+		# 	# print(f"Currently selected row is {selected_index.row()}")
+			
+
+		row = original_index.row()
+		self._files_proxy_model.sourceModel().removeRow(original_index.row(), original_index.parent()) #TODO: parent?
+
+		selected_row = selected_indexes[0].row() if len(selected_indexes) > 0 else -1
+		deleted_row = index.row()
+		new_selected_row = selected_row
+
+		print(f"Deleted row is {deleted_row}, selected row is {selected_row}")
+		if selected_row == deleted_row: #If the selected index is the same as the index to be deleted
+			if deleted_row < self._files_proxy_model.rowCount():
+				print(f"Selecting row {deleted_row}")
+				# self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(deleted_row, 0))
+				# self.ui.fileSelectionTableView.selectionModel().selectedRows(deleted_row)
+				new_selected_row = deleted_row
+			elif deleted_row - 1 >= 0 and deleted_row-1 < self._files_proxy_model.rowCount():
+				
+				print(f"Selecting row {deleted_row-1}")
+				# self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(deleted_row-1, 0))
+				# new_selected_row = deleted_row-1
+				# self.ui.fileSelectionTableView.selectionModel().selectedRows(deleted_row-1)
+				new_selected_row = deleted_row-1
+			else:
+				new_selected_row = -1
+		elif selected_row > 0: #If a selection exists
+			if deleted_row < selected_row:
+				new_selected_row = selected_row-1
+				# self.ui.fileSelectionTableView.selectionModel().selectedRows(selected_row-1)
+			else:
+				new_selected_row = selected_row
+				# self.ui.fileSelectionTableView.selectionModel().selectedRows(selected_row)
+
+		if new_selected_row >= 0:
+			print(f"Now seleting row {new_selected_row}")
+			self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(new_selected_row, 0))
+			# self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.mapToSource(self._files_proxy_model.index(new_selected_row, 0)), QtCore.QItemSelectionModel.Rows)
+		else:
+			print("Clearing selection")
+			# self.ui.fileSelectionTableView.setCurrentIndex(QtCore.QModelIndex())
+			self.ui.fileSelectionTableView.selectionModel().clearSelection()
+			self.selectionChanged(self.ui.fileSelectionTableView.selectionModel().selection())
+
+		# 	if index.row()+1 < self._files_proxy_model.rowCount():
+		# 		# self.ui.fileSelectionTableView.selectRow(index.row()+1)
+		# 		# self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(index.row()+1, 0))
+		# 		self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.mapToSource(self._files_proxy_model.index(index.row()+1, 0)), QtCore.QItemSelectionModel.Rows)
+		# 		# print(f"Selecting row {index.row()+1}")
+		# 	elif self._files_proxy_model.rowCount() > 0:
+				
+		# 		self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(index.row()-1, 0))
+		# 		self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.mapToSource(self._files_proxy_model.index(index.row()-1, 0)), QtCore.QItemSelectionModel.Rows)
+		# 		# self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.index(index.row()-1, 0), QtCore.QItemSelectionModel.SelectCurrent)
+		# 		# print(f"Selecting row {index.row()-1}")
+		# 	else:
+		# 		print("Clearing selection")
+		# 		self.ui.fileSelectionTableView.selectionModel().clearSelection()
+		# 	#Also update the view-selection color, otherwise the color will remain on the deleted item
+
 
 	@staticmethod
 	def get_file_name_path_dict_in_edit_order(path : str, only_extensions : list = None):
@@ -482,29 +468,6 @@ class ConsoleFromFileWidget(QtWidgets.QWidget):
 		}
 
 
-	def _on_selected_path_change(self, new_path : str):
-		raise NotImplementedError()
-		# if new_path is None:
-		# 	self.ui.consoleTextEdit.clear()
-		# 	return
-		# if new_path == self._current_file_path: #Skip if no change
-		# 	return
-		# if self._current_file_path is not None:
-		# 	self._current_file_watcher.removePath(self._current_file_path) #Remove the old path from the watcher
-		# log.debug(f"New path: {new_path}")
-
-		# self._current_file_path = new_path
-		# self._current_file_watcher.addPath(new_path) #Add the new path to the watcher
-		# self.ui.consoleTextEdit.clear() #Clear the text edit
-		# #Open file and read completely
-		# with open(new_path, "r") as f:
-		# 	self.ui.consoleTextEdit.insertPlainText(f.read())
-		# 	self.ui.consoleTextEdit.moveCursor(QtGui.QTextCursor.End) #Move the cursor to the end of the text edit
-		# 	self._current_seek = f.tell() #Set the current seek position to end of what was read
-			
-		# #Scroll all the way to the bottom
-		# self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum())
-
 	def setModel(self, model : QtCore.QAbstractTableModel):
 		self._files_proxy_model.setSourceModel(model)
 		self.ui.fileSelectionTableView.hideColumn(1) 
@@ -532,7 +495,7 @@ class ConsoleFromFileWidget(QtWidgets.QWidget):
 
 if __name__ == "__main__":
 	app = QtWidgets.QApplication([])
-	ConsoleModel = ConsoleStandardItemModel()
+	ConsoleModel = BaseConsoleStandardItemModel()
 	# newitem = QtGui.QStandardItem()
 	# newitem.setData(QtCore.QDateTime.currentDateTime(), QtCore.Qt.DisplayRole)
 
@@ -556,8 +519,8 @@ if __name__ == "__main__":
 	# 	ConsoleItem("file3", r"C:\Users\user\Documents\radial_drilling\test2.txt")
 	# )
 
-	ConsoleModel.addPath("file1", r"C:\Users\user\Documents\radial_drilling\test1.txt")
-	ConsoleModel.addPath("file2", r"C:\Users\user\Documents\radial_drilling\test2.txt")
+	# ConsoleModel.addPath("file1", r"C:\Users\user\Documents\radial_drilling\test1.txt")
+	# ConsoleModel.addPath("file2", r"C:\Users\user\Documents\radial_drilling\test2.txt")
 
 	# defaulttableview = QtWidgets.QTreeView()
 	# # defaulttableview = QtWidgets.QTableView()
@@ -569,7 +532,7 @@ if __name__ == "__main__":
 	# defaulttableview.show()
 
 
-	console_widget = ConsoleFromFileWidget()
+	console_widget = ConsoleWidget()
 	console_widget.setModel(ConsoleModel)
 	window = QtWidgets.QMainWindow()
 	#Set size to 1000
