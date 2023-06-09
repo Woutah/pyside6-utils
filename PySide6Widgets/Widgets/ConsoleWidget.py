@@ -365,21 +365,10 @@ class ConsoleWidget(QtWidgets.QWidget):
 		return super().mouseReleaseEvent(event)
 
 	def deleteFileSelectorHoverItem(self, index : QtCore.QModelIndex):
-		#Remove the row from the model
-		# print("Trying to remove row")
 		original_index = self._files_proxy_model.mapToSource(index)
 		#Check if that index is the currently selected index
 		selected_indexes = self.ui.fileSelectionTableView.selectionModel().selectedIndexes()
-		print(f"Deleting item at index {original_index.row()} - selection is { selected_indexes}")
-		print(f"Len is {len(selected_indexes)}")
 
-		#Disable mouse-tracking temporarily to prevent the selection from changing
-
-		# if len(selected_indexes) > 0: #Check if any selected items
-		# 	 #NOTE: the X signal does not intercept the user-click and thus the same item is selected again -> this doesnt work
-		# 	selected_index = selected_indexes[0]
-		# 	# print(f"Currently selected row is {selected_index.row()}")
-			
 
 		row = original_index.row()
 		self._files_proxy_model.sourceModel().removeRow(original_index.row(), original_index.parent()) #TODO: parent?
@@ -388,55 +377,23 @@ class ConsoleWidget(QtWidgets.QWidget):
 		deleted_row = index.row()
 		new_selected_row = selected_row
 
-		print(f"Deleted row is {deleted_row}, selected row is {selected_row}")
 		if selected_row == deleted_row: #If the selected index is the same as the index to be deleted
 			if deleted_row < self._files_proxy_model.rowCount():
-				print(f"Selecting row {deleted_row}")
-				# self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(deleted_row, 0))
-				# self.ui.fileSelectionTableView.selectionModel().selectedRows(deleted_row)
 				new_selected_row = deleted_row
 			elif deleted_row - 1 >= 0 and deleted_row-1 < self._files_proxy_model.rowCount():
-				
-				print(f"Selecting row {deleted_row-1}")
-				# self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(deleted_row-1, 0))
-				# new_selected_row = deleted_row-1
-				# self.ui.fileSelectionTableView.selectionModel().selectedRows(deleted_row-1)
 				new_selected_row = deleted_row-1
 			else:
 				new_selected_row = -1
 		elif selected_row > 0: #If a selection exists
 			if deleted_row < selected_row:
 				new_selected_row = selected_row-1
-				# self.ui.fileSelectionTableView.selectionModel().selectedRows(selected_row-1)
 			else:
 				new_selected_row = selected_row
-				# self.ui.fileSelectionTableView.selectionModel().selectedRows(selected_row)
-
 		if new_selected_row >= 0:
-			print(f"Now seleting row {new_selected_row}")
 			self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(new_selected_row, 0))
-			# self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.mapToSource(self._files_proxy_model.index(new_selected_row, 0)), QtCore.QItemSelectionModel.Rows)
 		else:
-			print("Clearing selection")
-			# self.ui.fileSelectionTableView.setCurrentIndex(QtCore.QModelIndex())
 			self.ui.fileSelectionTableView.selectionModel().clearSelection()
 			self.selectionChanged(self.ui.fileSelectionTableView.selectionModel().selection())
-
-		# 	if index.row()+1 < self._files_proxy_model.rowCount():
-		# 		# self.ui.fileSelectionTableView.selectRow(index.row()+1)
-		# 		# self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(index.row()+1, 0))
-		# 		self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.mapToSource(self._files_proxy_model.index(index.row()+1, 0)), QtCore.QItemSelectionModel.Rows)
-		# 		# print(f"Selecting row {index.row()+1}")
-		# 	elif self._files_proxy_model.rowCount() > 0:
-				
-		# 		self.ui.fileSelectionTableView.setCurrentIndex(self._files_proxy_model.index(index.row()-1, 0))
-		# 		self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.mapToSource(self._files_proxy_model.index(index.row()-1, 0)), QtCore.QItemSelectionModel.Rows)
-		# 		# self.ui.fileSelectionTableView.selectionModel().select(self._files_proxy_model.index(index.row()-1, 0), QtCore.QItemSelectionModel.SelectCurrent)
-		# 		# print(f"Selecting row {index.row()-1}")
-		# 	else:
-		# 		print("Clearing selection")
-		# 		self.ui.fileSelectionTableView.selectionModel().clearSelection()
-		# 	#Also update the view-selection color, otherwise the color will remain on the deleted item
 
 
 	@staticmethod
