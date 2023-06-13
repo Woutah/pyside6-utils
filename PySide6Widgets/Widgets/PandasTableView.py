@@ -13,7 +13,7 @@ from enum import Enum
 from numbers import Number
 
 class TableViewRoles(Enum):
-	headerRole = Qt.UserRole + 1
+	headerRole = Qt.ItemDataRole.UserRole + 1
 
 # class FilterSortHeaderView(QHeaderView):
 # 	def __init__(self, orientation: QtCore.Qt.Orientation, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
@@ -24,16 +24,16 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 		super().__init__(parent)
 
 		self._sort_columns = [] #List of column names to sort by
-		self._sort_order = [] #Qt.DescendingOrder or Qt.AscendingOrder
+		self._sort_order = [] #Qt.DescendingOrder or Qt.SortOrder.AscendingOrder
 		self._filter_columns = [] #List of column names to filter by
 		self._filter_strings = [] #List of strings to filter by
-		# self.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
+		# self.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 
 	
 	def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = None) -> any:
 		if role == TableViewRoles.headerRole.value:
-			default_data = self.sourceModel().headerData(section, orientation, Qt.DisplayRole)
-			sort_by = None #None=not sorted, Qt.AscendingOrder=ascending, Qt.DescendingOrder=descending
+			default_data = self.sourceModel().headerData(section, orientation, Qt.ItemDataRole.DisplayRole)
+			sort_by = None #None=not sorted, Qt.SortOrder.AscendingOrder=ascending, Qt.DescendingOrder=descending
 			#Check if this column is sorted
 			for i, col in enumerate(self._sort_columns):
 				if col == default_data:
@@ -46,8 +46,8 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 	
 	def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
 		"""Sort by the edit role (so that we can sort by the value in the cell, not the display role)"""
-		ldata = self.sourceModel().data(left, Qt.EditRole)
-		rdata = self.sourceModel().data(right, Qt.EditRole)
+		ldata = self.sourceModel().data(left, Qt.ItemDataRole.EditRole)
+		rdata = self.sourceModel().data(right, Qt.ItemDataRole.EditRole)
 		lnone = ldata is None or pd.isnull(ldata)
 		rnone = rdata is None or pd.isnull(rdata)
 		if lnone:
@@ -76,9 +76,9 @@ class PandasTableView(QTableView):
 		self.Proxy_Model = PandasTableProxyModel(self)
 		self.Proxy_Model.setDynamicSortFilter(True)
 		self.Proxy_Model.setSourceModel(None)
-		# self._proxy_model.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
+		# self._proxy_model.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 		super().setModel(self.Proxy_Model)
-		# self.Proxy_Model.setSortRole(QtCore.Qt.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
+		# self.Proxy_Model.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 
 		self.selectionModel().selectionChanged.connect(self.displaySelectionStats) #TODO: 
 
@@ -118,7 +118,7 @@ class PandasTableView(QTableView):
 				clip_data += sep
 				index = self.model().index(row, column)
 				sep = "\t"
-				clip_data += str(self.model().data(index, Qt.EditRole))
+				clip_data += str(self.model().data(index, Qt.ItemDataRole.EditRole))
 			clip_data += os.linesep
 
 		clipboard = QApplication.clipboard()
@@ -137,11 +137,11 @@ class PandasTableView(QTableView):
 		"""Return a list of the selected data"""
 		data = []
 		for index in self.selectedIndexes():
-			if discard_empty and self.model().data(index, Qt.DisplayRole) == "":
+			if discard_empty and self.model().data(index, Qt.ItemDataRole.DisplayRole) == "":
 				continue
-			if discard_nan and self.model().data(index, Qt.EditRole) is None or pd.isnull(self.model().data(index, Qt.EditRole)):
+			if discard_nan and self.model().data(index, Qt.ItemDataRole.EditRole) is None or pd.isnull(self.model().data(index, Qt.ItemDataRole.EditRole)):
 				continue
-			data.append(self.model().data(index, Qt.EditRole))
+			data.append(self.model().data(index, Qt.ItemDataRole.EditRole))
 		return data
 	
 

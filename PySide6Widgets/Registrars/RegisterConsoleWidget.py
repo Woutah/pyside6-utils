@@ -1,7 +1,9 @@
-from PySide6Widgets.Widgets.ConsoleWidget import ConsoleWidget
-from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
-from PySide6Widgets.constants import Paths
 import os
+
+from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
+
+from PySide6Widgets.constants import Paths
+from PySide6Widgets.Widgets.ConsoleWidget import ConsoleWidget
 
 base_name = ConsoleWidget.__name__[0].lower() #lowercase first letter
 base_name += ConsoleWidget.__name__[1:]
@@ -22,10 +24,10 @@ DOM_XML = f"""
 """
 
 module = ""
-if len(Paths.package_name) > 0:
-      module+= f"{Paths.package_name}."
-if len(Paths.widgets_subpath) > 0:
-      module+= f"{Paths.widgets_subpath.replace(os.sep, '.')}." #NOTE: assumes the file-name is the same as the class-name
+if len(Paths.PACKAGE_NAME) > 0:
+	MODULE+= f"{Paths.PACKAGE_NAME}."
+if len(Paths.WIDGETS_SUBPATH) > 0:
+	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}." #NOTE: assumes the file-name is the same as the class-name
 module+= f"{ConsoleWidget.__name__}"
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(ConsoleWidget, 

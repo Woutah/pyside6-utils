@@ -1,12 +1,16 @@
-from typing import Optional
-from PySide6 import QtCore, QtGui, QtWidgets
+import typing
 from datetime import datetime
+from enum import Enum
+from numbers import Integral, Number, Real
+from typing import Optional
+
 import PySide6.QtCore
 import typing_inspect
-import typing
-from numbers import Number, Real, Integral
-from enum import Enum
-from PySide6Widgets.Utility.sklearn_param_validation import Interval, StrOptions
+from PySide6 import QtCore, QtGui, QtWidgets
+
+from PySide6Widgets.Utility.sklearn_param_validation import (Interval,
+                                                             StrOptions)
+
 # from PySide6Widgets.Models.DataClassModel import DataClassRoles
 
 # #Get pixmap of sp_DialogOkButton
@@ -14,6 +18,10 @@ from PySide6Widgets.Utility.sklearn_param_validation import Interval, StrOptions
 # dialog_default_icon = QtGui.QIcon(dialog_default_pixmap)
 
 class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
+	"""
+	Custom delegate made especially for the DataClassModel. This delegate allows for editing of various datatypes.
+	TODO: maybe use a factory instead?
+	"""
 	#Custom delegate that allows for editing of different data types of DataClassModel
 	# def __init__(self, parent: QtCore.QObject | None = ...) -> None:
 	# 	super().__init__(parent)
@@ -28,7 +36,7 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	# 	if index.column() == 0: #If first column
 	# 		return
 
-	# 	if option.state & (QtWidgets.QStyle.State_MouseOver | (QtWidgets.QStyle.State_Selected)): #If mouse-over event is detected or part of selection #TODO: active? 
+	# 	if option.state & (QtWidgets.QStyle.State_MouseOver | (QtWidgets.QStyle.State_Selected)): #If mouse-over event is detected or part of selection #TODO: active?
 	# 		painter.save()
 	# 		#Get the rect of the first column
 	# 		rect = option.rect
@@ -56,8 +64,8 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		# index = index.model().mapToSource(index)
 		# kaas = DataClassRoles.dataclassFieldTypeRole
 		# entry_type = index.data(DataClassRoles.dataclassFieldTypeRole)
-		# entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role? 
-		field = index.data(QtCore.Qt.UserRole + 1) #TODO: maybe create a more descriptive role?
+		# entry_type = index.data(QtCore.Qt.ItemDataRole.UserRole) #TODO: maybe create a more descriptive role?
+		field = index.data(QtCore.Qt.ItemDataRole.UserRole + 1) #TODO: maybe create a more descriptive role?
 		etry_type = field.metadata.get("type", None) if field else None
 
 		self.editor_list = [] #List of the editor types that are created
@@ -70,21 +78,21 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			metadata = field.metadata
 			entry_type = field.type
 			constraints = metadata.get("constraints", None)
-		
+
 		if constraints: #First try to get editor based off of constraints
 			if len(constraints) == 0: #If no constraints are defined, use default editor
 				pass
 			elif "array-like" in constraints: #for now use text-editor for lists
-				pass 
+				pass
 			elif len(constraints) <= 2:
 				if len(constraints) == 1 and None in constraints: #If only none:
 					pass
-				else:					
+				else:
 					if None in constraints:
 						the_constraint = constraints[0] if constraints[0] is not None else constraints[1]
 					else:
 						the_constraint = constraints[0]
-				#The possible constraints are: 
+				#The possible constraints are:
 					# "array-like":
 					# "sparse matrix"
 					# "random_state"
@@ -123,7 +131,7 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 							editor.setMaximum(the_constraint.right)
 						if the_constraint.left:
 							editor.setMinimum(the_constraint.left)
-						
+
 						self.editor_list.append(editor)
 						return editor
 					elif isinstance(the_constraint, StrOptions):
@@ -138,16 +146,16 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 							constraints_help_dict = metadata["constraints_help"]
 							for i, option in enumerate(all_options):
 								if option in constraints_help_dict: #If key-help is defined, add it as tooltip
-									editor.setItemData(i, constraints_help_dict[option], QtCore.Qt.ToolTipRole)
+									editor.setItemData(i, constraints_help_dict[option], QtCore.Qt.ItemDataRole.ToolTipRole)
 						except KeyError:
 							pass
 						return editor
 			elif len(constraints) >= 3:
-				pass #For now too complex -> skip, TODO: but create a user-selectable editor for this? 
-		
-		
+				pass #For now too complex -> skip, TODO: but create a user-selectable editor for this?
+
+
 		elif entry_type: #if no constraints -> try to get editor based off of type-hint instead
-			if entry_type == datetime: 
+			if entry_type == datetime:
 				editor = QtWidgets.QDateTimeEdit(parent)
 				editor.setCalendarPopup(True)
 				self.editor_list.append(editor)
@@ -168,17 +176,17 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				editor.setMaximum(9999999)
 				self.editor_list.append(editor)
 				return editor
-			
+
 		editor = super().createEditor(parent, option, index) #If no custom editor is created, use the default editor
 		self.editor_list.append(editor)
 
 		return editor
-		
+
 
 	def setEditorData(self, editor, index):
-		value = index.data(QtCore.Qt.EditRole)
-		entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role?
-		# field = index.data(QtCore.Qt.UserRole + 1) #TODO: maybe create a more descriptive role?
+		value = index.data(QtCore.Qt.ItemDataRole.EditRole)
+		entry_type = index.data(QtCore.Qt.ItemDataRole.UserRole) #TODO: maybe create a more descriptive role?
+		# field = index.data(QtCore.Qt.ItemDataRole.UserRole + 1) #TODO: maybe create a more descriptive role?
 
 		if entry_type == datetime:
 			# value = QtCore.QDateTime(value)
@@ -191,17 +199,16 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		# 		constraints_help_dict = field.metadata.get('constraints_help', {})
 		# 		for i, entry in enumerate(entry_type.__args__):
 		# 			if entry in constraints_help_dict:
-		# 				editor.setItemData(i, constraints_help_dict[entry], QtCore.Qt.ToolTipRole)
+		# 				editor.setItemData(i, constraints_help_dict[entry], QtCore.Qt.ItemDataRole.ToolTipRole)
 		# 	editor.setToolTip(field.constraints_help)
 		# else:
 		super().setEditorData(editor, index)
 
 	def setModelData(self, editor, model, index):
-		
-		entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role? 
+		entry_type = index.data(QtCore.Qt.ItemDataRole.UserRole) #TODO: maybe create a more descriptive role?
 		if entry_type == datetime:
 			value = editor.dateTime()
-			model.setData(index, value, QtCore.Qt.EditRole)
+			model.setData(index, value, QtCore.Qt.ItemDataRole.EditRole)
 		else:
 			super().setModelData(editor, model, index)
 
@@ -212,10 +219,10 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 	def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionViewItem', index: QtCore.QModelIndex) -> None:
 
-		entry_type = index.data(QtCore.Qt.UserRole) #TODO: maybe create a more descriptive role? 
+		entry_type = index.data(QtCore.Qt.ItemDataRole.UserRole) #TODO: maybe create a more descriptive role?
 		if entry_type:
 			if entry_type == datetime:
-				value = index.data(QtCore.Qt.DisplayRole)
+				value = index.data(QtCore.Qt.ItemDataRole.DisplayRole)
 				try:
 					#Format date according to local format settings
 					locale = QtCore.QLocale()

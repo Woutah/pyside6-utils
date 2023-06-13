@@ -6,7 +6,8 @@ import typing
 
 
 class IntRangeSelector(QtWidgets.QSlider):
-	
+	"""A Qt-Style slider with 2 handles that can be used to select a range of (int) values"""
+
 	DESCRIPTION = "A Qt-Style slider with 2 handles that can be used to select a range of values."
 
 	valuesChanged = QtCore.Signal(int, int) #Min, max
@@ -14,7 +15,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 	def __init__(self, parent=None, *args):
 		super().__init__(parent, *args)
 		self._span_thickness_percentage = 100 #Percentage of the slider height that the span should take up (0-100)
-		self._values = [20, 80] # min/max 
+		self._values = [20, 80] # min/max
 		self._hovering_on_control = [False, False] #Control = min/max handle
 		self._dragging_control = [False, False]
 		self._span_on_groove = False
@@ -31,26 +32,27 @@ class IntRangeSelector(QtWidgets.QSlider):
 		self._original_cursor = self.cursor() #Save the original cursor so we can restore it when not hovering over the handles
 		#Track mouse position
 		self.setMouseTracking(True)
-		
 
-	def _getSliderStyleOptions(self, handle_idx : bool, draw_groove : bool):
-		style_options = QtWidgets.QStyleOptionSlider()
+
+	def _get_slider_style_options(self, handle_idx : bool, draw_groove : bool):
+		#type: ignore
+		style_options : QtWidgets.QStyle = QtWidgets.QStyleOptionSlider()
 		self.initStyleOption(style_options) #Init style options according to QSlider
-		style_options.subControls = QtWidgets.QStyle.SC_SliderHandle #Draw sliderhandle
-		if draw_groove:	
-			style_options.subControls |= QtWidgets.QStyle.SC_SliderGroove #Also draw slidergroove
+		style_options.subControls = QtWidgets.QStyle.SubControl.SC_SliderHandle #Draw sliderhandle
+		if draw_groove:
+			style_options.subControls |= QtWidgets.QStyle.SubControl.SC_SliderGroove #Also draw slidergroove
 			if self.tickPosition() != QtWidgets.QSlider.NoTicks: #If draw ticks
-				style_options.subControls |= QtWidgets.QStyle.SC_SliderTickmarks
+				style_options.subControls |= QtWidgets.QStyle.SubControl.SC_SliderTickmarks
 
-		style_options.activeSubControls = QtWidgets.QStyle.SC_None #No active subcontrols
+		style_options.activeSubControls = QtWidgets.QStyle.SubControl.SC_None #No active subcontrols
 		if self._dragging_control[handle_idx]: #If hovering on handle
-			style_options.activeSubControls = QtWidgets.QStyle.SC_SliderHandle
+			style_options.activeSubControls = QtWidgets.QStyle.SubControl.SC_SliderHandle
 			if self._dragging_control[1-handle_idx] and draw_groove:
-				style_options.activeSubControls |= QtWidgets.QStyle.SC_SliderGroove #Also mark groove as active if dragging both handles
+				style_options.activeSubControls |= QtWidgets.QStyle.SubControl.SC_SliderGroove #Also mark groove as active if dragging both handles
 		elif self._hovering_on_control[handle_idx]: #If hovering on handle
-			style_options.activeSubControls = QtWidgets.QStyle.SC_SliderHandle
+			style_options.activeSubControls = QtWidgets.QStyle.SubControl.SC_SliderHandle
 			if self._hovering_on_control[1- handle_idx]: #If also hovering on other handle -> so hovering over middle
-				style_options.activeSubControls |= QtWidgets.QStyle.SC_SliderGroove #Also mark groove as active if hovering both handles (middle)
+				style_options.activeSubControls |= QtWidgets.QStyle.SubControl.SC_SliderGroove #Also mark groove as active if hovering both handles (middle)
 		style_options.sliderPosition = self._values[handle_idx]
 		return style_options
 
@@ -60,17 +62,28 @@ class IntRangeSelector(QtWidgets.QSlider):
 		style = QtWidgets.QApplication.style()
 
 		#Draw groove + ticks (if any) + first handle
-		draw_options = self._getSliderStyleOptions(False, True)
-		style.drawComplexControl(QtWidgets.QStyle.CC_Slider, draw_options, painter, self)
-		self._groove_rect = style.subControlRect(QtWidgets.QStyle.CC_Slider, draw_options, QtWidgets.QStyle.SC_SliderGroove, self) #Save the groove rectangle for later use
-		self._handle_rects[0] = style.subControlRect(QtWidgets.QStyle.CC_Slider, draw_options, QtWidgets.QStyle.SC_SliderHandle, self) #Save the min-handle rectangle for later use
-
-
+		draw_options = self._get_slider_style_options(False, True)
+		style.drawComplexControl(QtWidgets.QStyle.ComplexControl.CC_Slider, draw_options, painter, self)
+		self._groove_rect = style.subControlRect(
+			QtWidgets.QStyle.ComplexControl.CC_Slider, 
+			draw_options, #type: ignore
+			QtWidgets.QStyle.SubControl.SC_SliderGroove,
+			self
+		) #Save the groove rectangle for later use
+		self._handle_rects[0] = style.subControlRect(QtWidgets.QStyle.ComplexControl.CC_Slider,
+			draw_options, #type: ignore
+			QtWidgets.QStyle.SubControl.SC_SliderHandle,
+			self
+		) #Save the min-handle rectangle for later use
 
 		#Draw max handle
-		draw_options = self._getSliderStyleOptions(True, False)
-		style.drawComplexControl(QtWidgets.QStyle.CC_Slider, draw_options, painter, self)
-		self._handle_rects[1] = style.subControlRect(QtWidgets.QStyle.CC_Slider, draw_options, QtWidgets.QStyle.SC_SliderHandle, self) #Save the max-handle rectangle for later use
+		draw_options = self._get_slider_style_options(True, False)
+		style.drawComplexControl(QtWidgets.QStyle.ComplexControl.CC_Slider, draw_options, painter, self)
+		self._handle_rects[1] = style.subControlRect(QtWidgets.QStyle.ComplexControl.CC_Slider,
+			draw_options, #type: ignore
+			QtWidgets.QStyle.SubControl.SC_SliderHandle,
+			self
+		) #Save the max-handle rectangle for later use
 
 		#Get painter style from draw_options we just used, as if we are coloring a slider
 		# painter.setPen(draw_options.palette.color(QtGui.QPalette.Text))
@@ -82,18 +95,20 @@ class IntRangeSelector(QtWidgets.QSlider):
 		painter.drawRect(self._span_rect)
 
 		#Make sure no border is drawn when calling drawRect
-		
+
 		span_rect=None
 
 		#Also manage ticks here #TODO: is this platform specific?
 		tick_offset = 0
-		if self.tickPosition() == QtWidgets.QSlider.TicksAbove or self.tickPosition() == QtWidgets.QSlider.TicksLeft:
+		if self.tickPosition() == QtWidgets.QSlider.TickPosition.TicksAbove or\
+				self.tickPosition() == QtWidgets.QSlider.TickPosition.TicksLeft:
 			tick_offset = 4
-		elif self.tickPosition() == QtWidgets.QSlider.TicksBelow or self.tickPosition() == QtWidgets.QSlider.TicksRight:
+		elif self.tickPosition() == QtWidgets.QSlider.TickPosition.TicksBelow or\
+				self.tickPosition() == QtWidgets.QSlider.TickPosition.TicksRight:
 			tick_offset = -4
 
 		span_rect = QtCore.QRect()
-		if self.orientation() == QtCore.Qt.Horizontal:
+		if self.orientation() == QtCore.Qt.Orientation.Horizontal:
 			if (self._handle_rects[1].left() - self._handle_rects[0].right()) <= 0: #If span is too small to draw
 				pass #Continue without setting span_rect
 			elif self._span_on_groove:
@@ -105,9 +120,9 @@ class IntRangeSelector(QtWidgets.QSlider):
 				)
 			else:
 				span_rect = QtCore.QRect(
-					self._handle_rects[0].right(), 
-					(self._handle_rects[0].top() - self._groove_rect.center().y()) * (self._span_thickness_percentage * 0.01) + self._groove_rect.center().y() + tick_offset, 
-					self._handle_rects[1].left() - self._handle_rects[0].right(), 
+					self._handle_rects[0].right(),
+					(self._handle_rects[0].top() - self._groove_rect.center().y()) * (self._span_thickness_percentage * 0.01) + self._groove_rect.center().y() + tick_offset,
+					self._handle_rects[1].left() - self._handle_rects[0].right(),
 					self._handle_rects[0].height() * round(self._span_thickness_percentage * 0.01) - 2 - abs(tick_offset) #TODO: not sure why the -2 is needed -> maybe the rectangle has a border?
 				)
 		else: #Vertical
@@ -122,12 +137,12 @@ class IntRangeSelector(QtWidgets.QSlider):
 				)
 			else:
 				span_rect = QtCore.QRect(
-					(self._handle_rects[1].left() - self._groove_rect.center().x()) * (self._span_thickness_percentage * 0.01) + self._groove_rect.center().x() + tick_offset, 
-					self._handle_rects[1].bottom(), 
-					self._handle_rects[0].width() * round(self._span_thickness_percentage * 0.01) - 2 - abs(tick_offset), 
+					(self._handle_rects[1].left() - self._groove_rect.center().x()) * (self._span_thickness_percentage * 0.01) + self._groove_rect.center().x() + tick_offset,
+					self._handle_rects[1].bottom(),
+					self._handle_rects[0].width() * round(self._span_thickness_percentage * 0.01) - 2 - abs(tick_offset),
 					self._handle_rects[0].top() - self._handle_rects[1].bottom()
 				)
-			
+
 
 		self._span_rect = span_rect
 		painter.drawRect(span_rect)
@@ -141,7 +156,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 			self._dragging_control[0] = True
 		elif self._handle_rects[1].contains(pos):
 			self._dragging_control[1] = True
-		elif self._span_rect.contains(pos): 
+		elif self._span_rect.contains(pos):
 			self._dragging_control = (True, True)
 		self._drag_start_mouse_pos = pos
 		self._drag_start_values = self._values.copy()
@@ -152,11 +167,11 @@ class IntRangeSelector(QtWidgets.QSlider):
 		self._dragging_control = [False, False]
 
 	def _getMouseOffsetFactor(self, pos : QtCore.QPoint):
-		if self.orientation() == QtCore.Qt.Horizontal:
+		if self.orientation() == QtCore.Qt.Orientation.Horizontal:
 			return (pos.x() - self._drag_start_mouse_pos.x()) / self._groove_rect.width()
 		else:
 			return (self._drag_start_mouse_pos.y() - pos.y()) / self._groove_rect.height()
-		
+
 
 
 	def mouseMoveEvent(self, ev: QtGui.QMouseEvent) -> None:
@@ -167,7 +182,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 			self._hovering_on_control = [self._handle_rects[0].contains(pos), self._handle_rects[1].contains(pos)] #Check if hovering on either handle
 			if self._hovering_on_control[0] or self._hovering_on_control[1]:
 				#If horizontal
-				if self.orientation() == QtCore.Qt.Horizontal:
+				if self.orientation() == QtCore.Qt.Orientation.Horizontal:
 					self.setCursor(QtCore.Qt.SizeHorCursor)
 				else:
 					self.setCursor(QtCore.Qt.SizeVerCursor)
@@ -185,7 +200,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 			self._drag_start_mouse_pos = pos
 			self._drag_start_values = self._values.copy()
 			return
-		
+
 
 		for i in range(2):
 			offset_factor = self._getMouseOffsetFactor(pos)
@@ -195,14 +210,14 @@ class IntRangeSelector(QtWidgets.QSlider):
 				new_value = min(self.maximum(), max(self.minimum(), new_value))
 			self._values[i] = new_value
 
-		
+
 		self._values = self._clamp(self._values, respect_min_handle_difference=True, prefer_change_idx=self._dragging_control[1])
 
 		if self._values[0] > self._values[1]: #If the handles have overtaken each other during dragging, swap them
-			self._values = [self._values[1], self._values[0]] 
+			self._values = [self._values[1], self._values[0]]
 			self._dragging_control = [self._dragging_control[1], self._dragging_control[0]] #Swap the dragging flags
 			self._drag_start_values = [self._drag_start_values[1], self._drag_start_values[0]] #Swap the start values (otherwise calculations will fail)
-		
+
 		self.valuesChanged.emit(self._values[0], self._values[1])
 		self.update() #Update the slider to show the new position of the handles
 
@@ -221,7 +236,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 		values = [min(slider_max, max(slider_min, value)) for value in values]
 
 
-		span_diff = self._min_handle_difference - abs(values[0] - values[1]) 
+		span_diff = self._min_handle_difference - abs(values[0] - values[1])
 		if respect_min_handle_difference and (span_diff > 0): #If values too close together
 			if values[prefer_change_idx] >= values[1-prefer_change_idx]:
 				if (values[prefer_change_idx] + span_diff) < slider_max: #Check that we don't go over the max value when moving the value that should be changed
@@ -229,7 +244,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 				else:
 					values[1-prefer_change_idx] = slider_max
 					values[prefer_change_idx] = slider_max - self._min_handle_difference
-			elif values[prefer_change_idx] < values[1-prefer_change_idx]: 
+			elif values[prefer_change_idx] < values[1-prefer_change_idx]:
 				if (values[prefer_change_idx] - span_diff) > slider_min:
 					values[prefer_change_idx] -= span_diff
 				else:
@@ -256,7 +271,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 		self.update()
 
 	def setSliderPositionMin(self, value): #TODO: make it so there is always 1 step space between handles (or not?)
-		if value == self._values[0]: 
+		if value == self._values[0]:
 			return
 		new_vals = self._clamp([value, self._values[1]], prefer_change_idx = 1)
 		self._values = sorted(new_vals)
@@ -275,7 +290,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 	def setSpanHeightPercentage(self, value):
 		self._span_thickness_percentage = min(100, max(0, value))
 		self.update()
-	
+
 	def getSpanHeightPercentage(self):
 		return self._span_thickness_percentage
 
@@ -290,13 +305,13 @@ class IntRangeSelector(QtWidgets.QSlider):
 	#Properties
 	# value = None #Disabled these
 	# sliderPosition = None #Disabled these
-	
+
 	spanOnGroove = QtCore.Property(bool, lambda self: self._span_on_groove, setSpanOnGroove)
 	spanThicknessPercentage = QtCore.Property(int, getSpanHeightPercentage, setSpanHeightPercentage)
 	sliderPositionMin = QtCore.Property(int, lambda self: self._values[0], setSliderPositionMin)
 	sliderPositionMax = QtCore.Property(int, lambda self: self._values[1], setSliderPositionMax)
 	minHandleDifference = QtCore.Property(int, lambda self: self._min_handle_difference, setminSpanWidth)
-	
+
 
 class RangeSelector(IntRangeSelector):
 
@@ -321,19 +336,19 @@ class RangeSelector(IntRangeSelector):
 		self._enforce_minimum = False
 		self._enforce_maximum = False
 
-		
+
 	def minimum(self) -> any:
 		return self._minimum
 
 	def maximum(self) -> any:
 		return self._maximum
-	
+
 	def setMinimum(self, value : SUPPORTED_TYPES):
 		self._minimum = value
 		# self._value_boxes[0].setMinimum(value)
 		# self._value_boxes[1].setMinimum(value)
 		self.update()
-	
+
 	def setMaximum(self, value : SUPPORTED_TYPES):
 		self._maximum = value
 		# self._value_boxes[0].setMaximum(value)
@@ -356,13 +371,13 @@ class RangeSelector(IntRangeSelector):
 		if type(self._minimum) not in self.SUPPORTED_TYPES or type(self._maximum) not in self.SUPPORTED_TYPES or type(self._min_value) not in self.SUPPORTED_TYPES or type(self._max_value) not in self.SUPPORTED_TYPES:
 			self.setEnabled(False)
 			raise TypeError(f"One of the values (min/max minval/maxval) of type {type(self._minimum)} is not a supported type for RangeSelector. Supported types are: {self.SUPPORTED_TYPES}")
-		
+
 		#Check if all types are the same
 		if type(self._minimum) != type(self._maximum) or type(self._minimum) != type(self._min_value) or type(self._minimum) != type(self._max_value):
 			self.setEnabled(False)
 			raise TypeError(f"Types of min/max minval/maxval are not the same. Types are: {type(self._minimum)}, {type(self._maximum)}, {type(self._min_value)}, {type(self._max_value)}")
-		
-		
+
+
 
 		super().update()
 
@@ -381,12 +396,12 @@ class RangeSelector(IntRangeSelector):
 	def setEnforceMinimum(self, value):
 		self._enforce_minimum = value
 		self.update()
-	
+
 	def setEnforceMaximum(self, value):
 		self._enforce_maximum = value
 		self.update()
-	
-		 
+
+
 
 
 	#QAbstractSlider properties
@@ -404,7 +419,7 @@ if __name__ == "__main__":
 	window = QtWidgets.QMainWindow()
 
 	range_selector = RangeSelector()
-	range_selector.setOrientation(QtCore.Qt.Horizontal)
+	range_selector.setOrientation(QtCore.Qt.Orientation.Horizontal)
 	window.setCentralWidget(range_selector)
 	window.show()
 	sys.exit(app.exec())

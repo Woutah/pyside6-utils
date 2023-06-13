@@ -1,14 +1,20 @@
-from PySide6Widgets.Widgets.FileExplorerView import FileExplorerView
-from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
-from PySide6Widgets.constants import Paths
+"""For use by QtDesigner. If this folder is passed to Qt-Designer by using the environment variable
+PYSIDE_DESIGNER_PLUGINS=<this_folder> when launching designer, the registered widget will appear and 
+will be usable in Qt-Designer.
+"""
 import os
 
-base_name = FileExplorerView.__name__[0].lower() #lowercase first letter
-base_name += FileExplorerView.__name__[1:]
+from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
+
+from PySide6Widgets.constants import Paths
+from PySide6Widgets.Widgets.FileExplorerView import FileExplorerView
+
+BASE_NAME = FileExplorerView.__name__[0].lower() #lowercase first letter
+BASE_NAME += FileExplorerView.__name__[1:]
 
 DOM_XML = f"""
 	<ui language='c++'>
-		<widget class='{FileExplorerView.__name__}' name='{base_name}'>
+		<widget class='{FileExplorerView.__name__}' name='{BASE_NAME}'>
 			<property name='geometry'>
 				<rect>
 					<x>0</x>
@@ -22,17 +28,16 @@ DOM_XML = f"""
 
 """
 
-module = ""
-if len(Paths.package_name) > 0:
-      module+= f"{Paths.package_name}."
-if len(Paths.widgets_subpath) > 0:
-      module+= f"{Paths.widgets_subpath.replace(os.sep, '.')}."
-module+= f"{FileExplorerView.__name__}"
+MODULE = ""
+if len(Paths.PACKAGE_NAME) > 0:
+	MODULE+= f"{Paths.PACKAGE_NAME}."
+if len(Paths.WIDGETS_SUBPATH) > 0:
+	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}."
+MODULE+= f"{FileExplorerView.__name__}"
 
-QPyDesignerCustomWidgetCollection.registerCustomWidget(FileExplorerView, 
-                                                    	module=module,#f"Widgets.{FileExplorerView.__name__}",
-                                                       	tool_tip=FileExplorerView.DESCRIPTION, 
-                                                        xml=DOM_XML,
-                                                        container=False,
-                                                        group="Item Views (Custom)")
-                                                        
+QPyDesignerCustomWidgetCollection.registerCustomWidget(FileExplorerView,
+														module=MODULE,#f"Widgets.{FileExplorerView.__name__}",
+													   	tool_tip=FileExplorerView.DESCRIPTION,
+														xml=DOM_XML,
+														container=False,
+														group="Item Views (Custom)")

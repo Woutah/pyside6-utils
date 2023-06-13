@@ -25,7 +25,7 @@ class OverlayWidget(QtWidgets.QWidget):
 
 		self._overlay_widget_container: QtWidgets.QWidget | None = QtWidgets.QWidget(self)
 		self._overlay_widget_container.setParent(self)
-		self._overlay_widget_container.setWindowFlags(Qt.Widget | Qt.FramelessWindowHint)
+		self._overlay_widget_container.setWindowFlags(Qt.Widget | Qt.WindowType.FramelessWindowHint)
 		self._overlay_widget_container.setAutoFillBackground(True)
 		self._overlay_widget_container.setContentsMargins(0, 0, 0, 0)
 		self._overlay_widget_container.raise_()

@@ -1,16 +1,15 @@
-
-from PySide6 import QtCore, QtGui, QtWidgets
+"""Implements a wrapper that forces the inside widget to remain square"""
+from PySide6 import QtCore, QtWidgets
 
 class SquareFrame(QtWidgets.QFrame):
-	DESCRIPTION = "Small wrapper to QFrame which enforces a widget to remain square"
+	"""Wrapper to QFrame which enforces a widget to remain square"""
+	DESCRIPTION = "Simple wrapper to QFrame which enforces a widget to remain square"
 	def __init__(self, parent=None):
 		super().__init__(parent)
-		#Set the layout to a vertical layout
-		# self.setLayout(QtWidgets.QVBoxLayout())
 
 	def resizeEvent(self, event):
 		new_size = QtCore.QSize(10, 10)
-		new_size.scale(event.size(), QtCore.Qt.KeepAspectRatio)
+		new_size.scale(event.size(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
 		self.resize(new_size)
 
 

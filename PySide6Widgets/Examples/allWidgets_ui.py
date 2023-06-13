@@ -58,10 +58,10 @@ class Ui_MainWindow(object):
 
         self.rangeSelector = RangeSelector(self.centralwidget)
         self.rangeSelector.setObjectName(u"rangeSelector")
-        self.rangeSelector.setOrientation(Qt.Horizontal)
+        self.rangeSelector.setOrientation(Qt.Orientation.Horizontal)
         self.rangeSelector.setInvertedAppearance(False)
         self.rangeSelector.setInvertedControls(False)
-        self.rangeSelector.setTickPosition(QSlider.TicksAbove)
+        self.rangeSelector.setTickPosition(QSlider.TickPosition.TicksAbove)
         self.rangeSelector.setProperty("spanOnGroove", False)
 
         self.verticalLayout.addWidget(self.rangeSelector)

@@ -1,8 +1,16 @@
+import logging
+
 import pandas as pd
-from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
+
+log = logging.getLogger(__name__)
+from numbers import Number
 
 
 class PandasTableModel(QAbstractTableModel):
+	""" A model-wrapper around a pandas dataframe to use with a QTableView
+	NOTE: editing is not supported (yet)
+	"""
 
 	def __init__(self, dataframe: pd.DataFrame, parent=None):
 		QAbstractTableModel.__init__(self, parent)
@@ -22,18 +30,15 @@ class PandasTableModel(QAbstractTableModel):
 		if not index.isValid():
 			return None
 
-		if role == Qt.DisplayRole:
+		if role == Qt.ItemDataRole.DisplayRole:
 			data = self._dataframe.iloc[index.row(), index.column()]
-			try:
-				if data is None or pd.isnull(data):
-					return ""
-			except:
-				pass	
-			#TODO: Convert item to qt-equivalent instead of string? 	
+			if data is None or (isinstance(data, Number) and pd.isnull(data)):
+				return ""
+			#TODO: Convert item to qt-equivalent instead of string?
 			return str(data)
-		elif role == Qt.EditRole:
+		elif role == Qt.ItemDataRole.EditRole:
 			return self._dataframe.iloc[index.row(), index.column()]
-		elif role == Qt.BackgroundRole:
+		elif role == Qt.ItemDataRole.BackgroundRole:
 			return None
 
 		return None
@@ -42,11 +47,10 @@ class PandasTableModel(QAbstractTableModel):
 	def headerData(
 		self, section: int, orientation: Qt.Orientation, role: Qt.ItemDataRole
 	):
-		if role == Qt.DisplayRole:
-			if orientation == Qt.Horizontal:
+		if role == Qt.ItemDataRole.DisplayRole:
+			if orientation == Qt.Orientation.Horizontal:
 				return str(self._dataframe.columns[section])
 
-			if orientation == Qt.Vertical:
+			if orientation == Qt.Orientation.Vertical:
 				return str(self._dataframe.index[section])
 		return None
-	

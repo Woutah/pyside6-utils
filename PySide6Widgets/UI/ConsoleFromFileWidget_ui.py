@@ -30,7 +30,7 @@ class Ui_ConsoleFromFileWidget(object):
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.splitter = QSplitter(ConsoleFromFileWidget)
         self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Horizontal)
+        self.splitter.setOrientation(Qt.Orientation.Horizontal)
         self.splitter.setHandleWidth(5)
         self.consoleTextEdit = QPlainTextEdit(self.splitter)
         self.consoleTextEdit.setObjectName(u"consoleTextEdit")

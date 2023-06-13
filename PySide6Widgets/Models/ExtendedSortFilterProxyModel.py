@@ -1,25 +1,9 @@
-from typing import Optional
-from PySide6 import QtCore, QtWidgets, QtGui
-import PySide6.QtCore
+"""Implements and extended version of QSortFIlterProxyModel with extra functionality (see class docstring)"""
+
 import math
 import numbers
 
-	# def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
-	# 	"""Sort by the edit role (so that we can sort by the value in the cell, not the display role)"""
-	# 	ldata = self.sourceModel().data(left, Qt.EditRole)
-	# 	rdata = self.sourceModel().data(right, Qt.EditRole)
-	# 	lnone = ldata is None or pd.isnull(ldata)
-	# 	rnone = rdata is None or pd.isnull(rdata)
-	# 	if lnone:
-	# 		if rnone:
-	# 			return False
-	# 		return True
-	# 	try:
-	# 		val = ldata < rdata
-	# 		return val
-	# 	except Exception as e:
-	# 		return super().lessThan(left, right)
-
+from PySide6 import QtCore
 
 
 class ExtendedSortFilterProxyModel(QtCore.QSortFilterProxyModel):
@@ -33,13 +17,12 @@ class ExtendedSortFilterProxyModel(QtCore.QSortFilterProxyModel):
 		self._sort_orders : list[QtCore.Qt.SortOrder] = []
 
 
-	def _valLessThan(self, leftval, rightval):
-		if leftval is None or (isinstance(leftval, numbers.Number) and math.isnan(leftval)):
+	def _val_less_than(self, leftval, rightval):
+		if leftval is None or (isinstance(leftval, numbers.Number) and math.isnan(leftval)): #type: ignore
 			return True
-		elif rightval is None or (isinstance(rightval, numbers.Number) and math.isnan(rightval)):
+		elif rightval is None or (isinstance(rightval, numbers.Number) and math.isnan(rightval)): #type: ignore
 			return False
-		
-		return leftval < rightval
+		return leftval < rightval #type: ignore
 
 	def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
 		"""
@@ -48,31 +31,31 @@ class ExtendedSortFilterProxyModel(QtCore.QSortFilterProxyModel):
 
 		if len(self._sort_columns) == 0: #If using default behaviour, use the default implementation
 			return super().lessThan(left, right)
-		else: 
+		else:
 			for column, order in zip(self._sort_columns, self._sort_orders):
 				left = self.sourceModel().index(left.row(), column)
 				right = self.sourceModel().index(right.row(), column)
-				leftval = left.data(role=QtCore.Qt.EditRole)
-				rightval = right.data(role=QtCore.Qt.EditRole)
-				# print(f"{leftval} < {rightval} = {self._valLessThan(leftval, rightval)} -> other way around : {self._valLessThan(rightval, leftval)}")
-				if self._valLessThan(leftval, rightval) == self._valLessThan(rightval, leftval): #If the values are equal, continue to the next column
+				leftval = left.data(role=QtCore.Qt.ItemDataRole.EditRole)
+				rightval = right.data(role=QtCore.Qt.ItemDataRole.EditRole)
+				if self._val_less_than(leftval, rightval) == self._val_less_than(leftval=rightval, rightval=leftval): 
+					#If the values are equal, continue to the next column
 					continue
 				else:
-					return self._valLessThan(leftval, rightval) if order == QtCore.Qt.AscendingOrder else self._valLessThan(rightval, leftval)
+					return self._val_less_than(leftval, rightval) if \
+						order == QtCore.Qt.SortOrder.AscendingOrder else self._val_less_than(leftval, rightval)
 
 		return False #If we can't differentiate the rows, return False (i.e. don't swap them)
 
 
-	def sortByColumns(self, columns: list[int], orders: list[QtCore.Qt.SortOrder] = None) -> None:
+	def sort_by_columns(self, columns: list[int], orders: list[QtCore.Qt.SortOrder] = []) -> None:
 		"""
 		Sets the sort-columns and their respective sort-orders.
-		
+
 		:param columns: The columns to sort by.
 		:param orders: The sort-orders to use for the columns. If None, the default sort-order is used.
 		"""
-		if orders is None:
-			orders = [QtCore.Qt.AscendingOrder] * len(columns)
+		if orders is None or orders == []: #If no orders are specified, use the default order
+			orders = [QtCore.Qt.SortOrder.AscendingOrder] * len(columns)
 		self._sort_columns = columns
 		self._sort_orders = orders
 		self.invalidate()
-

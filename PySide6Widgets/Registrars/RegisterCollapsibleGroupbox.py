@@ -23,10 +23,10 @@ DOM_XML = f"""
 
 """
 module = ""
-if len(Paths.package_name) > 0:
-      module+= f"{Paths.package_name}."
-if len(Paths.widgets_subpath) > 0:
-      module+= f"{Paths.widgets_subpath.replace(os.sep, '.')}."
+if len(Paths.PACKAGE_NAME) > 0:
+	MODULE+= f"{Paths.PACKAGE_NAME}."
+if len(Paths.WIDGETS_SUBPATH) > 0:
+	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}."
 module+= f"{CollapsibleGroupBox.__name__}"
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(CollapsibleGroupBox, 
