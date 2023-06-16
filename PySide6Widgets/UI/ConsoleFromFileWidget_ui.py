@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'ConsoleFromFileWidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.5.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -17,7 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QHeaderView, QPlainTextEdit, QSizePolicy,
     QSplitter, QTableView, QVBoxLayout, QWidget)
-import app_resources_rc
+import PySide6Widgets.Icons.app_resources_rc
 
 class Ui_ConsoleFromFileWidget(object):
     def setupUi(self, ConsoleFromFileWidget):
@@ -30,7 +30,7 @@ class Ui_ConsoleFromFileWidget(object):
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.splitter = QSplitter(ConsoleFromFileWidget)
         self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Orientation.Horizontal)
+        self.splitter.setOrientation(Qt.Horizontal)
         self.splitter.setHandleWidth(5)
         self.consoleTextEdit = QPlainTextEdit(self.splitter)
         self.consoleTextEdit.setObjectName(u"consoleTextEdit")

@@ -1,8 +1,8 @@
 <RCC>
   <qresource prefix="Icons">
     <file>actions/address-book-new.png</file>
-    <file>actions/appointment-new.png</file>
     <file>actions/bookmark-new.png</file>
+    <file>actions/appointment-new.png</file>
     <file>actions/contact-new.png</file>
     <file>actions/document-new.png</file>
     <file>actions/document-open.png</file>
