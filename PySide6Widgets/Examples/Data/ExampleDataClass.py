@@ -15,7 +15,7 @@ class ExampleDataClass:
 												display_name="Test parent with property (uneditable)",
 												help= "This is a test property (str)",
 												display_path="test_parent", #Always from base
-												editable=False)) #TODO: changed? 
+												editable=False)) #TODO: changed?
 
 	test_str_property: str = field(default="teststr", metadata=dict(
 												display_name="Test str property",
@@ -23,7 +23,7 @@ class ExampleDataClass:
 												display_path="test_parent/test_parent_with_property", #Always from base
 												changed=True))
 
-	test_int_property: int = field(default=None, metadata=dict(
+	test_int_property: int | None = field(default=None, metadata=dict(
 												display_name="Test int/none property",
 												help= "This is a test property (int) that can also be none",
 												changed=True,
@@ -31,28 +31,28 @@ class ExampleDataClass:
 
 												))
 
-	test_literal_property: LITERAL_EXAMPLE = field(default="testliteral", metadata=dict(
+	test_literal_property: LITERAL_EXAMPLE = field(default="testliteral1", metadata=dict(
 												display_name="Test literal property",
 												help= "This is a test property (literal)",
 												changed=True))
-	
-	test_stroptions_property : typing.Literal["Option1/10", "Option2/10"] = field(default="None", metadata=dict( 
+
+	test_stroptions_property : typing.Literal["Option1/10", "Option2/10"] = field(default="Option1/10", metadata=dict(
 												display_name="Test stroptions property",
 												help= "This is a test property (stroptions)",
-												changed=True,					
+												changed=True,
 												constraints = [StrOptions({f"Option{i}/10" for i in range(10)}), None], #Similar to literal, but we can create additional options dynamically using constraints
 												constraints_help= { f"Option{i}/10" : f"This is help for option{i}/10" for i in range(10) } #This option allows us to add a "help" popup when hovering over individual options in a combobox
 												))
-	
+
 
 	test_float_range_0_1_property: float = field(default=0.001, metadata=dict(
 												display_name="Test float range 0-1 property",
 												help= "This is a test property (float)",
-												changed=True,		
+												changed=True,
 												constraints = [Interval(float, 0,1, closed='both'), None]
-												
+
 												))
-	
+
 	test_bool_property: bool = field(default=False, metadata=dict(
 												display_name="Test bool property",
 												help= "This is a test property (bool)",
