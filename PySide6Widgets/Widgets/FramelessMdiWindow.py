@@ -199,6 +199,9 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 		"""
 		parent = self.mdiArea()
 		if isinstance(parent, ExtendedMdiArea.ExtendedMdiArea): #If parent is an extended mdi area, show context menu
+			#convert pos to parent
+			pos = self.ui.titleBar.mapToGlobal(pos)
+			pos = parent.mapFromGlobal(pos)
 			parent.context_menu_requested(pos)
 
 	def resizeEvent(self, resizeEvent: QtGui.QResizeEvent) -> None:
@@ -241,7 +244,7 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 	def setWidget(self, widget: QtWidgets.QWidget) -> None:
 		if self._widget is not None: #Set new content
 			self.ui.contentLayout.removeWidget(self._widget)
-		self.ui.contentLayout.addWidget(widget)
+		self.ui.contentLayout.insertWidget(0, widget) #Always insert at 0, so we can add a spacer to the bottom
 		self._widget = widget
 		self._widget.lower()
 		# self._widget.setParent(self)
