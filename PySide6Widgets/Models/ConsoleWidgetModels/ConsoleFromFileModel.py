@@ -1,4 +1,4 @@
-
+"""Implements the model needed to sync to a file and dynamically display the contents to a widget"""
 import os
 import time
 
@@ -79,7 +79,7 @@ class FileConsoleItem(BaseConsoleItem):
 		self._worker_thread.start()
 
 
-	def getCurrentText(self) -> str: #pylint: disable=invalid-name
+	def get_current_text(self) -> str: #pylint: disable=invalid-name
 		"""Retrieves the current text in the watched file - as currently known to the item."""
 		return self._current_text
 

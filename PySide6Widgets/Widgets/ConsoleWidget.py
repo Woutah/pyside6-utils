@@ -116,12 +116,9 @@ class ConsoleWidget(QtWidgets.QWidget):
 			index = selection.indexes()[0]
 			item = self._files_proxy_model.data(index, role = QtCore.Qt.ItemDataRole.UserRole + 1)
 			assert isinstance(item, BaseConsoleItem), "Item is not of type BaseConsoleStandardItemModel"
-			# test = self._files_proxy_model.data(index)
 			item.currentTextChanged.connect(self._on_current_text_changed)
 			self._current_text_connect = item.currentTextChanged
-			# self.ui.consoleTextEdit.setPlainText(item.getCurrentText())
 			self._on_current_text_changed(item.get_current_text())
-			# self._on_current_text_changed(item.getCurrentText())
 
 	def _on_current_text_changed(self, newtext : str):
 		at_end = self.ui.consoleTextEdit.verticalScrollBar().value() == self.ui.consoleTextEdit.verticalScrollBar().maximum()
@@ -262,42 +259,6 @@ class ConsoleWidget(QtWidgets.QWidget):
 if __name__ == "__main__":
 	app = QtWidgets.QApplication([])
 	ConsoleModel = BaseConsoleStandardItemModel()
-	# newitem = QtGui.QStandardItem()
-	# newitem.setData(QtCore.QDateTime.currentDateTime(), QtCore.Qt.ItemDataRole.DisplayRole)
-
-	# ConsoleModel.appendRow([
-	# 	QtGui.QStandardItem("file1"),
-	# 	newitem,
-	# 	QtGui.QStandardItem(r"C:\Users\user\Documents\radial_drilling\test1.txt")
-	# ])
-	# ConsoleModel.appendRow([
-	# 	QtGui.QStandardItem("file2"),
-	# 	newitem,
-	# 	QtGui.QStandardItem(r"C:\Users\user\Documents\radial_drilling\test2.txt")
-	# ])
-	# ConsoleModel.appendRow(
-	# 	ConsoleItem("file1", r"C:\Users\user\Documents\radial_drilling\test1.txt")
-	# )
-	# ConsoleModel.appendRow(
-	# 	ConsoleItem("file2", r"C:\Users\user\Documents\radial_drilling\test2.txt")
-	# )
-	# ConsoleModel.appendRow(
-	# 	ConsoleItem("file3", r"C:\Users\user\Documents\radial_drilling\test2.txt")
-	# )
-
-	# ConsoleModel.addPath("file1", r"C:\Users\user\Documents\radial_drilling\test1.txt")
-	# ConsoleModel.addPath("file2", r"C:\Users\user\Documents\radial_drilling\test2.txt")
-
-	# defaulttableview = QtWidgets.QTreeView()
-	# # defaulttableview = QtWidgets.QTableView()
-	# proxy_model = QtCore.QSortFilterProxyModel()
-	# proxy_model.setSourceModel(ConsoleModel)
-	# defaulttableview.setModel(ConsoleModel)
-	# defaulttableview.setSortingEnabled(True)
-	# # defaulttableview.setModel(ConsoleModel)
-	# defaulttableview.show()
-
-
 	console_widget = ConsoleWidget()
 	console_widget.set_model(ConsoleModel)
 	window = QtWidgets.QMainWindow()
@@ -305,14 +266,11 @@ if __name__ == "__main__":
 	window.resize(1200, 500)
 	console_widget.set_console_width_percentage(20)
 
-	# console_widget.fileSelectionDelegate.deleteHoverItem.connect(lambda index: ConsoleModel.removeRow(index.row()))
-
 	layout = QtWidgets.QVBoxLayout()
 	layout.addWidget(console_widget)
 
 	dockable_window = QtWidgets.QDockWidget("Console", window)
 	dockable_window.setWidget(console_widget)
-	# dockable_window.setWidget(defaulttableview)
 
 	console_widget.set_console_width_percentage(20)
 
