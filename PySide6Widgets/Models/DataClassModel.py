@@ -2,66 +2,12 @@
 Defines a model that can be used to display a dataclass as a tree view. See the class doc for more information.
 """
 
+import dataclasses
 import typing
-from dataclasses import Field, fields
+from dataclasses import fields, is_dataclass
+
 from PySide6 import QtCore, QtGui, QtWidgets
-
-
-
-
-#Create TreeItem class for dataclass tree view
-class DataClassTreeItem(object):
-	"""
-	This class represents a single item in a tree.
-	"""
-	def __init__(self,
-	      		name : str,
-				dataclass_instance: typing.Any,
-				field : Field | None,
-				parent: typing.Optional["DataClassTreeItem"] = None
-			) -> None:
-		self.name = name
-		self.item_dataclass = dataclass_instance
-		self.field = field
-		self.parent_item = parent
-		self.child_items = []
-
-	def append_child(self, item: "DataClassTreeItem") -> None:
-		"""Appends a child to this item (of same type)."""
-		self.child_items.append(item)
-
-	def child(self, row: int) -> "DataClassTreeItem":
-		"""Returns the child at the given row."""
-		return self.child_items[row]
-
-	def child_count(self) -> int:
-		"""Returns the number of children."""
-		return len(self.child_items)
-
-	def column_count(self) -> int:
-		"""Returns the number of columns."""
-		return 2
-
-	def data(self) -> typing.Any:
-		"""Returns the data stored in this item."""
-		return self.item_dataclass
-
-	def parent(self) -> "DataClassTreeItem | None":
-		"""Returns the parent of this item."""
-		return self.parent_item
-
-	def row(self) -> int:
-		"""Returns the row of this item."""
-		if self.parent_item:
-			return self.parent_item.child_items.index(self)
-		return 0
-
-	def print(self, indent: int = 0) -> None:
-		"""Prints the tree to the console."""
-		print("-" * indent, self.item_dataclass)
-		for child in self.child_items:
-			assert isinstance(child, DataClassTreeItem)
-			child.print(indent + 1)
+from PySide6Widgets.Models.DataClassTreeItem import DataClassTreeItem
 
 
 class SetDataCommand(QtGui.QUndoCommand):
@@ -112,39 +58,66 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		- constraints: A list of constraints that are displayed in the tooltip. Defaults to None.
 
 	"""
-
+	FIELD_ROLE = QtCore.Qt.ItemDataRole.UserRole + 1 #Role for the field
+	TYPE_ROLE = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
 
 	def __init__(self, dataclass_instance : object,
 					parent: typing.Optional[QtCore.QObject] = None,
-					undo_stack : QtGui.QUndoStack | None = None) -> None:
+					undo_stack : QtGui.QUndoStack | None = None,
+					allow_non_field_attrs : bool = False	
+				) -> None:
 		"""
 		Args:
 			datatclass_instance (dataclasses.dataclass): The dataclass that is to be displayed.
 			parent (typing.Optional[QtCore.QObject], optional): The parent of this model. Defaults to None.
 			undo_stack (QtGui.QUndoStack, optional): The undo stack that is used to undo and redo changes.
 				Defaults to None, in which case no undo stack will be created/used.
+			allow_non_field_attrs (bool, optional): Whether to allow attributes that are not fields of the dataclass.
+				Normally, we go over all attributes and check that all attributes are fields of the dataclass, if not,
+				an error is raised. If this is set to True, attributes that are not fields of the dataclass are ignored.
+				This is mainly intended for when we forget the @dataclass decorator on a class that inherits from another
+				dataclass. If this happens, the new class attributes won't be fields and won't appear in the tree view.
 		"""
 		super().__init__(parent)
+		self._allow_non_field_attrs = allow_non_field_attrs
 		self._undo_stack = undo_stack
 		self.set_dataclass_instance(dataclass_instance)
 
 
-	def set_dataclass_instance(self, data: typing.Any) -> None:
+	def set_dataclass_instance(self, dataclass_instance: typing.Any) -> None:
 		"""
 		Sets the dataclass that is used to display data.
 		"""
+		#Check if dataclass_instance is a dataclass
+		if not is_dataclass(dataclass_instance):
+			raise TypeError(f"Expected a dataclass instance, got {type(dataclass_instance)} - make sure @dataclass is"
+		   		"used on the class definition")
+
+		#Check if dataclass has static attributes, if so, they were probably meant to be fields and the user
+		# forgot to add the @dataclass decorator
+		# the_dir = dir(dataclass_instance)
+		dataclass_fields = dataclasses.fields(dataclass_instance)
+		dataclass_field_names = [field.name for field in dataclass_fields]
+		if not self._allow_non_field_attrs:
+			for attr in dir(dataclass_instance):
+				if not attr.startswith("__"):
+					if attr not in dataclass_field_names and not callable(getattr(dataclass_instance, attr)): 
+						raise AttributeError(f"Attribute {attr} is not a field of the dataclass. "
+			   				"This most likely happened because "
+							" @dataclass decorator to the class definition")
+		
 		self.beginResetModel()
 		# if self._undo_stack:
 		# 	self._undo_stack.clear() #Reset undo stack NOTE: if we do this, this seemingly causes some issues with the
 		# 	undo stack if we're combining multiple dataclassmodels using a single undo stack
-		self._dataclass = data
+		self._dataclass = dataclass_instance
 		self._root_node = DataClassTreeItem("Root", None, None, None)
 
 
 		#Build a dictionary with a path structure using dataclass.fields["metadata"]["display_path"] as key, split by "/"
 		self.data_hierachy = {}
 
-		if data is None:
+		if dataclass_instance is None:
 			self.modelReset.emit()
 			self.endResetModel()
 			return
@@ -193,7 +166,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 				item_data = data.__dict__[key]
 
 
-			item = DataClassTreeItem(name=key, dataclass_instance=item_data, field=name_field_dict.get(key, None), parent=parent)
+			item = DataClassTreeItem(name=key, item_data=item_data, field=name_field_dict.get(key, None), parent=parent)
 			parent.append_child(item)
 			if isinstance(value, dict) and len(value) > 0:
 				self._build_tree(data, value, item)
@@ -254,6 +227,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		node : DataClassTreeItem = index.internalPointer() #type: ignore
 		name_field_dict = {field.name: field for field in fields(self._dataclass)}
 
+
 		if role == QtCore.Qt.ItemDataRole.DisplayRole:
 			if index.column() == 0: #If retrieving the name of the property
 				try:
@@ -274,7 +248,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			if hasattr(name_field_dict[node.name], "default"):
 				result_str += f" (default: {str(name_field_dict[node.name].default)[:20]})"
 			return result_str
-		elif role == QtCore.Qt.ItemDataRole.UserRole: #Get type role #TODO: maybe create Enum with more descriptive names.
+		elif role == DataclassModel.TYPE_ROLE: #Get type role #TODO: maybe create Enum with more descriptive names.
 				#NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance
 				# of Qt.ItemDataRole.DisplayRole
 			result = name_field_dict.get(node.name, None) #Get field
@@ -282,7 +256,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 				return result.type #If field is available -> return type
 			else:
 				return None
-		elif role == QtCore.Qt.ItemDataRole.UserRole+1: #Field role
+		elif role == DataclassModel.FIELD_ROLE: #Field role
 			result = name_field_dict.get(node.name, None) #Get field
 			return result
 		elif role == QtCore.Qt.ItemDataRole.FontRole:
@@ -352,6 +326,29 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					return flags
 			return QtCore.Qt.ItemFlag.ItemIsEnabled
 
+	def set_to_default(self, index: QtCore.QModelIndex) -> None:
+		"""Sets the data at the given index to the default value"""
+		if not index.isValid():
+			return
+		tree_item = index.internalPointer()
+		assert isinstance(tree_item, DataClassTreeItem)
+		field = tree_item.field
+		if field is None:
+			return
+		if hasattr(field, "default"):
+			default_value = field.default
+			self.setData(index, default_value, QtCore.Qt.ItemDataRole.EditRole)
+
+	def has_default(self, index: QtCore.QModelIndex) -> bool:
+		"""Returns whether the given index has a default value"""
+		if not index.isValid():
+			return False
+		tree_item = index.internalPointer()
+		assert isinstance(tree_item, DataClassTreeItem)
+		field = tree_item.field
+		if field is None:
+			return False
+		return hasattr(field, "default")
 
 	def redo(self):
 		"""Trigger redo on undo stack"""
@@ -389,10 +386,6 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			return QtCore.QModelIndex()
 
 
-
-
-
-
 if __name__ == "__main__":
 
 	import sys
@@ -400,17 +393,16 @@ if __name__ == "__main__":
 	from PySide6Widgets.Examples.Data.ExampleDataClass import ExampleDataClass
 	from PySide6Widgets.Utility.DataClassEditorsDelegate import \
 	    DataClassEditorsDelegate
+	from PySide6Widgets.Widgets.DataClassTreeView import DataClassTreeView
+
+	
 
 	app = QtWidgets.QApplication(sys.argv)
-
 	test_data = ExampleDataClass()
-
 	model = DataclassModel(test_data)
-
-	view1 = QtWidgets.QTreeView()
+	view1 = DataClassTreeView()
 	view2= QtWidgets.QTableView()
 
-	#table_view.show()
 	view1.setModel(model)
 	view1.setItemDelegate(DataClassEditorsDelegate())
 	view2.setModel(model)
@@ -418,16 +410,14 @@ if __name__ == "__main__":
 	#adjust treeview to fit contents, but allow user to resize
 	#Fit header of view 1 to contents, then allow user to resize
 	view1.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-	# view2.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 	view1.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
-	# view2.header().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
 	view1.show()
 	view2.show()
 
 	#Set window size to 400 and display
 	view1.resize(400, 400)
 	view2.resize(400, 400)
-	#table_view.resize(400, 400)
+
 	#Place windows next to each other
 	view1.move(1000, 400)
 	view2.move(1400, 400)
