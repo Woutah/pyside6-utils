@@ -16,8 +16,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel,
-    QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout,
-    QWidget)
+    QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 import PySide6Widgets.Icons.app_resources_rc
 
 class Ui_FramelessMidiWindow(object):
@@ -26,6 +25,7 @@ class Ui_FramelessMidiWindow(object):
             FramelessMidiWindow.setObjectName(u"FramelessMidiWindow")
         FramelessMidiWindow.resize(424, 463)
         FramelessMidiWindow.setMinimumSize(QSize(60, 60))
+        FramelessMidiWindow.setAutoFillBackground(False)
         self.verticalLayout_4 = QVBoxLayout(FramelessMidiWindow)
         self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
@@ -35,9 +35,10 @@ class Ui_FramelessMidiWindow(object):
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.frame = QFrame(FramelessMidiWindow)
         self.frame.setObjectName(u"frame")
+        self.frame.setAutoFillBackground(True)
         self.frame.setFrameShape(QFrame.StyledPanel)
         self.frame.setFrameShadow(QFrame.Plain)
-        self.frame.setLineWidth(3)
+        self.frame.setLineWidth(2)
         self.verticalLayout_2 = QVBoxLayout(self.frame)
         self.verticalLayout_2.setSpacing(0)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
@@ -98,10 +99,6 @@ class Ui_FramelessMidiWindow(object):
         self.contentLayout.setObjectName(u"contentLayout")
 
         self.verticalLayout_2.addLayout(self.contentLayout)
-
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-        self.verticalLayout_2.addItem(self.verticalSpacer)
 
         self.verticalLayout_2.setStretch(1, 1)
 

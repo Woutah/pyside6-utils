@@ -6,15 +6,14 @@ import logging
 import os
 import typing
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets
 
 log = logging.getLogger(__name__)
 
 class FileExplorerModel(QtWidgets.QFileSystemModel):
 	"""A QFileSystemModel that also allows for hightlighting of a single file, for example when selecting a file for
-	 editing pruposes
+	editing purposes.
 	"""
-
 	highlightPathChanged = QtCore.Signal(str)
 
 	def __init__(self, parent: typing.Optional[QtCore.QObject] = None, allow_select_files_only=True) -> None:
@@ -42,7 +41,7 @@ class FileExplorerModel(QtWidgets.QFileSystemModel):
 
 	def set_hightlight_using_path(self, path: str | None) -> None:
 		"""Set the current highlight to the given path
-		
+
 		Args:
 			path (str | None): The path to highlight (or None to reset)
 		"""
