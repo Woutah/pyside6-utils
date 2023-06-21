@@ -10,7 +10,7 @@ from PySide6Widgets.models.console_widget_models.console_standard_item_model imp
     BaseConsoleItem, ConsoleModel)
 from PySide6Widgets.models.extended_sort_filter_proxy_model import \
     ExtendedSortFilterProxyModel
-from PySide6Widgets.ui.ConsoleFromFileWidget_ui import Ui_ConsoleFromFileWidget
+from PySide6Widgets.ui.ConsoleWidget_ui import Ui_ConsoleFromFileWidget
 from PySide6Widgets.widgets.delegates.console_widget_delegate import ConsoleWidgetDelegate
 
 log = logging.getLogger(__name__)

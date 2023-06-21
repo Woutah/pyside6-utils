@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConsoleFromFileWidget</class>
- <widget class="QWidget" name="ConsoleFromFileWidget">
+ <class>ConsoleWidget</class>
+ <widget class="QWidget" name="ConsoleWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

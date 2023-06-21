@@ -42,4 +42,4 @@ QPyDesignerCustomWidgetCollection.registerCustomWidget(PandasTableView,
 													   	tool_tip=PandasTableView.DESCRIPTION,
 														xml=DOM_XML,
 														container=True,
-														group="Item Views (Custom)")
+														group="Item Views (Model-Based)")

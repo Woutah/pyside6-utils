@@ -42,4 +42,4 @@ QPyDesignerCustomWidgetCollection.registerCustomWidget(FileExplorerView,
 													   	tool_tip=FileExplorerView.DESCRIPTION,
 														xml=DOM_XML,
 														container=False,
-														group="Item Views (Custom)")
+														group="Item Views (Model-Based)")

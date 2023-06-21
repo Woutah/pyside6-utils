@@ -40,4 +40,4 @@ QPyDesignerCustomWidgetCollection.registerCustomWidget(ConsoleWidget,
                                                        	tool_tip=ConsoleWidget.DESCRIPTION,
                                                         xml=DOM_XML,
 														container=False,
-                                                        group="Item Views (Custom)")
+                                                        group="Item Views (Model-Based)")

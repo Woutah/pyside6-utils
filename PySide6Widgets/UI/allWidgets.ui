@@ -30,14 +30,14 @@
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
-          <string>Testlabel1</string>
+          <string>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>Testlabel2</string>
+          <string>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</string>
          </property>
         </widget>
        </item>
