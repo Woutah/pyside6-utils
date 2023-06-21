@@ -3,12 +3,13 @@ import os
 import time
 
 from PySide6 import QtCore, QtWidgets
-from PySide6Widgets.Models.ConsoleWidgetModels.ConsoleStandardItemModel import BaseConsoleItem
-
+from PySide6Widgets.models.console_widget_models.console_standard_item_model import BaseConsoleItem
 
 class FileCheckerWorker(QtCore.QObject):
 	"""A class that continuously checks a file path for changes in file size, if so, it emits a simple signal,
-	indicating that the file has changed
+	indicating that the file has changed, used by ConsoleFromFileItem to check for changes in the file.
+
+	TODO: file polling might not be the best approach, especially when using multiple files.
 	"""
 	fileChanged = QtCore.Signal() #Emitted when the file has changed
 
@@ -37,10 +38,18 @@ class FileCheckerWorker(QtCore.QObject):
 			if cur_size != self._last_size:
 				self._last_size = cur_size
 				self.fileChanged.emit()
+				print("File changed!")
 
 
-class FileConsoleItem(BaseConsoleItem):
-	"""An item that represents a single row in the console widget."""
+class ConsoleFromFileItem(BaseConsoleItem):
+	"""An item that represents a single row in the console widget.
+	Continually monitors the passed path for changes, and emits the current text when the file changes.
+	E.g. we can monitor the output of a running program by calling:
+	sys.stdout = LoggerWriter(log.info)
+	Inside of a running process. Where LoggerWriter is an object that outputs to a file monitored by a ConsoleFromFileItem.
+	
+	TODO: file polling might not be the best approach, especially when using a lot of files.
+	"""
 	currentTextChanged = QtCore.Signal(str) #Emitted when the text in the file changes
 	emitDataChanged = QtCore.Signal() #Emitted when the data of the item changes
 

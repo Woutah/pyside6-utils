@@ -10,7 +10,7 @@ from dataclasses import fields, is_dataclass
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from PySide6Widgets.Models.DataClassTreeItem import DataClassTreeItem
+from PySide6Widgets.models.dataclass_tree_item import DataclassTreeItem
 
 log = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		# 	self._undo_stack.clear() #Reset undo stack NOTE: if we do this, this seemingly causes some issues with the
 		# 	undo stack if we're combining multiple dataclassmodels using a single undo stack
 		self._dataclass = dataclass_instance
-		self._root_node = DataClassTreeItem("Root", None, None, None)
+		self._root_node = DataclassTreeItem("Root", None, None, None)
 
 
 		#Build a dictionary with a path structure using dataclass.fields["metadata"]["display_path"] as key, split by "/"
@@ -154,7 +154,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 	def _build_tree(self,
 		 		data : 'DataclassInstance', #type:ignore
 				data_hierarchy: typing.Dict,
-				parent: DataClassTreeItem
+				parent: DataclassTreeItem
 			) -> None:
 		"""Recursively builds the tree from a hierachy dictionary. Keys must be strings, if they exist in the dataclass,
 		their data will be added.
@@ -170,7 +170,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 				item_data = data.__dict__[key]
 
 
-			item = DataClassTreeItem(name=key, item_data=item_data, field=name_field_dict.get(key, None), parent=parent)
+			item = DataclassTreeItem(name=key, item_data=item_data, field=name_field_dict.get(key, None), parent=parent)
 			parent.append_child(item)
 			if isinstance(value, dict) and len(value) > 0:
 				self._build_tree(data, value, item)
@@ -180,7 +180,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			return QtCore.QModelIndex()
 
 		item = index.internalPointer() #Get TreeItem from index
-		assert isinstance(item, DataClassTreeItem)
+		assert isinstance(item, DataclassTreeItem)
 		parent_item = item.parent()
 
 		if parent_item == self._root_node or parent_item is None:
@@ -194,7 +194,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			parent_item = self._root_node
 		else:
 			parent_item = parent.internalPointer()
-		assert isinstance(parent_item, DataClassTreeItem)
+		assert isinstance(parent_item, DataclassTreeItem)
 		return parent_item.child_count()
 
 
@@ -229,7 +229,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			if not index.isValid():
 				return None
 
-			node : DataClassTreeItem = index.internalPointer() #type: ignore
+			node : DataclassTreeItem = index.internalPointer() #type: ignore
 			name_field_dict = {field.name: field for field in fields(self._dataclass)}
 
 
@@ -297,7 +297,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		"""
 		if role == QtCore.Qt.ItemDataRole.EditRole:
 			tree_item = index.internalPointer()
-			assert isinstance(tree_item, DataClassTreeItem)
+			assert isinstance(tree_item, DataclassTreeItem)
 			self._dataclass.__dict__[tree_item.name] = value
 			self.dataChanged.emit(index, index)
 			return True
@@ -321,7 +321,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 
 		if role == QtCore.Qt.ItemDataRole.EditRole:
 			dataclass_item = index.internalPointer()
-			assert isinstance(dataclass_item, DataClassTreeItem)
+			assert isinstance(dataclass_item, DataclassTreeItem)
 			if self._dataclass.__dict__[dataclass_item.name] == value: #If the value is different from the current value
 				return False #Do nothing
 			self._undo_stack.push(SetDataCommand(self, index, value, role)) #Push the command to the undo-stack
@@ -334,7 +334,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		else:
 			if index.internalPointer():
 				node = index.internalPointer()
-				assert isinstance(node, DataClassTreeItem)
+				assert isinstance(node, DataclassTreeItem)
 				if node.field: #TODO: this assumes nodes without fields are not part of the dataclass -> not editable
 					flags = QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsSelectable
 					if node.field.metadata.get("editable", True):
@@ -347,7 +347,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		if not index.isValid():
 			return
 		tree_item = index.internalPointer()
-		assert isinstance(tree_item, DataClassTreeItem)
+		assert isinstance(tree_item, DataclassTreeItem)
 		field = tree_item.field
 		if field is None:
 			return
@@ -360,7 +360,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		if not index.isValid():
 			return False
 		tree_item = index.internalPointer()
-		assert isinstance(tree_item, DataClassTreeItem)
+		assert isinstance(tree_item, DataclassTreeItem)
 		field = tree_item.field
 		if field is None:
 			return False
@@ -393,7 +393,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			parent_item = self._root_node #If the parent is invalid, then the parent is the root
 		else:
 			parent_item = parent.internalPointer()
-		assert isinstance(parent_item, DataClassTreeItem)
+		assert isinstance(parent_item, DataclassTreeItem)
 		child_item =  parent_item.child(row)
 
 		if child_item:
@@ -406,10 +406,9 @@ if __name__ == "__main__":
 
 	import sys
 
-	from PySide6Widgets.Examples.Data.ExampleDataClass import ExampleDataClass
-	from PySide6Widgets.Utility.DataClassEditorsDelegate import \
-	    DataClassEditorsDelegate
-	from PySide6Widgets.Widgets.DataClassTreeView import DataClassTreeView
+	from PySide6Widgets.examples.example_dataclass import ExampleDataClass
+	from PySide6Widgets.widgets.delegates.dataclass_editors_delegate import DataclassEditorsDelegate
+	from PySide6Widgets.widgets.dataclass_tree_view import DataClassTreeView
 
 
 	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
@@ -426,9 +425,9 @@ if __name__ == "__main__":
 	view2= QtWidgets.QTableView()
 
 	view1.setModel(model)
-	view1.setItemDelegate(DataClassEditorsDelegate())
+	view1.setItemDelegate(DataclassEditorsDelegate())
 	view2.setModel(model)
-	view2.setItemDelegate(DataClassEditorsDelegate())
+	view2.setItemDelegate(DataclassEditorsDelegate())
 	#adjust treeview to fit contents, but allow user to resize
 	#Fit header of view 1 to contents, then allow user to resize
 	view1.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)

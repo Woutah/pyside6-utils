@@ -11,8 +11,13 @@ class CollapsibleGroupBox(QtWidgets.QGroupBox):
 	DESCRIPTION = "A collapsible QGroupBox (using checkmark to toggle)"
 
 	#Use C++ style method names for functions to match Qt's naming convention
-	def __init__(self, *args, title : str | None = None, **kwargs):
-		super().__init__(title, *args, **kwargs)
+	def __init__(self,
+				parent : QtWidgets.QWidget | None = None,
+				title : str | None = None,
+				*args,
+				**kwargs
+			): #pylint: disable=keyword-arg-before-vararg
+		super().__init__(parent=parent, *args, **kwargs)
 		self.setCheckable(True)
 		self._original_size_policy = self.sizePolicy()
 		self._original_min_size = self.minimumSize()
@@ -128,10 +133,11 @@ if __name__ == "__main__":
 
 	app = QtWidgets.QApplication([])
 	window = QtWidgets.QWidget()
-	widget = CollapsibleGroupBox("Test")
+	widget = CollapsibleGroupBox(title="Test")
 	widget.setLayout(QtWidgets.QVBoxLayout())
 	widget.layout().addWidget(QtWidgets.QLabel("Test label1"))
 	widget.layout().addWidget(QtWidgets.QLabel("Test label2"))
+	widget.setTitle("Test title")
 	window.setLayout(QtWidgets.QVBoxLayout())
 	window.layout().addWidget(widget)
 	widget.show()

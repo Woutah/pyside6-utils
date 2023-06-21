@@ -1,13 +1,15 @@
 """Run a window with examples for the widgets in this package."""
 
 import pandas as pd
+import sys
 from PySide6.QtWidgets import QApplication, QMainWindow
 
-from PySide6Widgets.Models.PandasTableModel import PandasTableModel
-from PySide6Widgets.UI.allWidgets_ui import Ui_MainWindow
+from PySide6Widgets.models.pandas_table_model import PandasTableModel
+from PySide6Widgets.ui.allWidgets_ui import Ui_MainWindow
 
-if __name__ == "__main__":
-	import sys
+
+def run_widgets_example_app():
+	"""Creates a qt app and shows a window with all (small) widgets in this package."""
 	app = QApplication(sys.argv)
 	MainWindow = QMainWindow()
 	ui = Ui_MainWindow()
@@ -27,3 +29,7 @@ if __name__ == "__main__":
 
 	MainWindow.show()
 	sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+	run_widgets_example_app()

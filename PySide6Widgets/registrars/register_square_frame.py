@@ -5,12 +5,14 @@ will be usable in Qt-Designer.
 import os
 
 from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
+from PySide6Widgets.utility.utility_functions import snakecase
+
 
 from PySide6Widgets.constants import Paths
-from PySide6Widgets.Widgets.SquareFrame import SquareFrame
+from PySide6Widgets.widgets.square_frame import SquareFrame
 
-BASE_NAME = SquareFrame.__name__[0].lower() #lowercase first letter
-BASE_NAME += SquareFrame.__name__[1:]
+
+BASE_NAME = SquareFrame.__name__[0].lower() + SquareFrame.__name__[1:]
 
 DOM_XML = f"""
 	<ui language='c++'>
@@ -24,7 +26,7 @@ if len(Paths.PACKAGE_NAME) > 0:
 	MODULE+= f"{Paths.PACKAGE_NAME}."
 if len(Paths.WIDGETS_SUBPATH) > 0:
 	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}."
-MODULE+= f"{SquareFrame.__name__}"
+MODULE += snakecase(SquareFrame.__name__) #Uses snakecase
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(SquareFrame,
 														module=MODULE,

@@ -17,7 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QHeaderView, QPlainTextEdit, QSizePolicy,
     QSplitter, QTableView, QVBoxLayout, QWidget)
-import PySide6Widgets.Icons.app_resources_rc
+import PySide6Widgets.icons.app_resources_rc
 
 class Ui_ConsoleFromFileWidget(object):
     def setupUi(self, ConsoleFromFileWidget):

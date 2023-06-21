@@ -19,9 +19,10 @@ from PySide6.QtWidgets import (QApplication, QHeaderView, QLabel, QMainWindow,
     QMenuBar, QSizePolicy, QSlider, QSpacerItem,
     QStatusBar, QVBoxLayout, QWidget)
 
-from PySide6Widgets.Widgets.PandasTableView import PandasTableView
-from PySide6Widgets.Widgets.RangeSelector import RangeSelector
-from Widgets.CollapsibleGroupBox import CollapsibleGroupBox
+from PySide6Widgets.widgets.collapsible_group_box import CollapsibleGroupBox
+from PySide6Widgets.widgets.pandas_table_view import PandasTableView
+from PySide6Widgets.widgets.range_selector import RangeSelector
+import PySide6Widgets.icons.app_resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -71,6 +72,7 @@ class Ui_MainWindow(object):
         self.rangeSelector.setInvertedControls(False)
         self.rangeSelector.setTickPosition(QSlider.TicksAbove)
         self.rangeSelector.setProperty("spanOnGroove", False)
+        self.rangeSelector.setProperty("hasValueBoxes", True)
 
         self.verticalLayout.addWidget(self.rangeSelector)
 

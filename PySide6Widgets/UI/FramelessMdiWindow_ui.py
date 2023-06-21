@@ -17,7 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLabel,
     QPushButton, QSizePolicy, QVBoxLayout, QWidget)
-import PySide6Widgets.Icons.app_resources_rc
+import PySide6Widgets.icons.app_resources_rc
 
 class Ui_FramelessMidiWindow(object):
     def setupUi(self, FramelessMidiWindow):

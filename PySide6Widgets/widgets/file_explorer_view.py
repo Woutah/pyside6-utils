@@ -12,7 +12,7 @@ from abc import abstractmethod
 import winshell
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from PySide6Widgets.Models.FileExplorerModel import FileExplorerModel
+from PySide6Widgets.models.file_explorer_model import FileExplorerModel
 
 log = logging.getLogger(__name__)
 

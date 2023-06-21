@@ -4,7 +4,7 @@ from typing import List
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-import PySide6Widgets.Widgets.FramelessMdiWindow as FramelessMdiWindow
+import PySide6Widgets.widgets.frameless_mdi_window as frameless_mdi_window
 
 
 class ExtendedMdiArea(QtWidgets.QMdiArea):
@@ -102,7 +102,7 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 			self.setViewMode(QtWidgets.QMdiArea.ViewMode.SubWindowView)
 
 		for window in self._subwindows:
-			if isinstance(window, FramelessMdiWindow.FramelessMdiWindow):
+			if isinstance(window, frameless_mdi_window.FramelessMdiWindow):
 				window.set_tabbed_mode(tabbified)
 
 	def is_tabbified(self)-> bool:
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 	mdi_windows = []
 
 	for i in range(6):
-		mdi_window = FramelessMdiWindow.FramelessMdiWindow()
+		mdi_window = frameless_mdi_window.FramelessMdiWindow()
 		mdi_window.setWindowTitle(f"Test Window {i+1}")
 		label = QtWidgets.QLabel(f"Test Window {i+1}")
 		label.setFont(QtGui.QFont("Arial", 20))

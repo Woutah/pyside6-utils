@@ -25,7 +25,7 @@ class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 		raise NotImplementedError()
 
 
-class BaseConsoleStandardItemModel(QtCore.QAbstractItemModel):
+class ConsoleModel(QtCore.QAbstractItemModel):
 	"""Small class to overload data-representation of the file-selection treeview based on recency
 	and to add icons to the first column
 

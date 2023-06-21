@@ -5,16 +5,18 @@ will be usable in Qt-Designer.
 import os
 
 from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
+from PySide6Widgets.utility.utility_functions import snakecase
+
 
 from PySide6Widgets.constants import Paths
-from PySide6Widgets.Widgets.FileExplorerView import FileExplorerView
+from PySide6Widgets.widgets.pandas_table_view import PandasTableView
 
-BASE_NAME = FileExplorerView.__name__[0].lower() #lowercase first letter
-BASE_NAME += FileExplorerView.__name__[1:]
+
+BASE_NAME = PandasTableView.__name__[0].lower() + PandasTableView.__name__[1:]
 
 DOM_XML = f"""
 	<ui language='c++'>
-		<widget class='{FileExplorerView.__name__}' name='{BASE_NAME}'>
+		<widget class='{PandasTableView.__name__}' name='{BASE_NAME}'>
 			<property name='geometry'>
 				<rect>
 					<x>0</x>
@@ -33,11 +35,11 @@ if len(Paths.PACKAGE_NAME) > 0:
 	MODULE+= f"{Paths.PACKAGE_NAME}."
 if len(Paths.WIDGETS_SUBPATH) > 0:
 	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}."
-MODULE+= f"{FileExplorerView.__name__}"
+MODULE += snakecase(PandasTableView.__name__) #Uses snakecase
 
-QPyDesignerCustomWidgetCollection.registerCustomWidget(FileExplorerView,
-														module=MODULE,#f"Widgets.{FileExplorerView.__name__}",
-													   	tool_tip=FileExplorerView.DESCRIPTION,
+QPyDesignerCustomWidgetCollection.registerCustomWidget(PandasTableView,
+														module=MODULE,
+													   	tool_tip=PandasTableView.DESCRIPTION,
 														xml=DOM_XML,
-														container=False,
+														container=True,
 														group="Item Views (Custom)")

@@ -6,12 +6,12 @@ import os
 import typing
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6Widgets.Models.ConsoleWidgetModels.ConsoleStandardItemModel import (
-    BaseConsoleItem, BaseConsoleStandardItemModel)
-from PySide6Widgets.Models.ExtendedSortFilterProxyModel import \
+from PySide6Widgets.models.console_widget_models.console_standard_item_model import (
+    BaseConsoleItem, ConsoleModel)
+from PySide6Widgets.models.extended_sort_filter_proxy_model import \
     ExtendedSortFilterProxyModel
-from PySide6Widgets.UI.ConsoleFromFileWidget_ui import Ui_ConsoleFromFileWidget
-from PySide6Widgets.Utility.ConsoleWidgetDelegate import ConsoleWidgetDelegate
+from PySide6Widgets.ui.ConsoleFromFileWidget_ui import Ui_ConsoleFromFileWidget
+from PySide6Widgets.widgets.delegates.console_widget_delegate import ConsoleWidgetDelegate
 
 log = logging.getLogger(__name__)
 
@@ -20,8 +20,9 @@ log = logging.getLogger(__name__)
 
 class ConsoleWidget(QtWidgets.QWidget):
 	"""Widget that dynamically displayes multiple console -
-	E.g. in the case of ConsoleFromFileModel : watches the selected file for changes and updates the widget accordingly.
-	Mainly intended for use with a file to which stdout/stderr can be redirected to."""
+	E.g. in the case of ConsoleModle + ConsoleFromFileItems : watches the selected file for changes and updates the 
+	widget accordingly.	Mainly intended for use with a file to which stdout/stderr can be redirected to.
+	"""
 
 	DESCRIPTION = """Widget that dynamically displayes the output of multiple console instances - \
 	E.g. in the case of ConsoleFromFileModel : watches the selected file for changes and updates the widget accordingly.
@@ -257,14 +258,32 @@ class ConsoleWidget(QtWidgets.QWidget):
 
 
 if __name__ == "__main__":
+	#Creates a temp file and mirrors the output to the "console", then deletes the temp file afterwards
+	from PySide6Widgets.models.console_widget_models.console_from_file_item import ConsoleFromFileItem
+	import tempfile
+	import threading
+	import time
+	print("Now running an example using console from file items, the console should print a number every second")
+	temp_dir = tempfile.gettempdir()
+	temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, mode='w', delete=False, suffix=".txt") #Delete temporary 
+		# file afterwards
+
 	app = QtWidgets.QApplication([])
-	ConsoleModel = BaseConsoleStandardItemModel()
+	test_console_model = ConsoleModel()
 	console_widget = ConsoleWidget()
-	console_widget.set_model(ConsoleModel)
+	console_widget.set_model(test_console_model)
+
+
+	test_console_model.add_item(
+		ConsoleFromFileItem(
+			name=temp_file.name,
+			path = temp_file.name,
+		)
+	)
 	window = QtWidgets.QMainWindow()
 	#Set size to 1000
 	window.resize(1200, 500)
-	console_widget.set_console_width_percentage(20)
+	console_widget.set_console_width_percentage(80)
 
 	layout = QtWidgets.QVBoxLayout()
 	layout.addWidget(console_widget)
@@ -272,8 +291,20 @@ if __name__ == "__main__":
 	dockable_window = QtWidgets.QDockWidget("Console", window)
 	dockable_window.setWidget(console_widget)
 
-	console_widget.set_console_width_percentage(20)
+	console_widget.set_console_width_percentage(80)
+
+	#Create thread that 
+	def log_to_file():
+		"""logs integer to file every seconds for 10 seconds"""
+		for i in range(20):
+			temp_file.write(f"Wrote line {i} to file {temp_file.name}\n")
+			temp_file.flush()
+			time.sleep(1)
+	thread = threading.Thread(target=log_to_file)
+	thread.start()
+
 
 	window.setCentralWidget(dockable_window)
 	window.show()
 	app.exec()
+	temp_file.close()

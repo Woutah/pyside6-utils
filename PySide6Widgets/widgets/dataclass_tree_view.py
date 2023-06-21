@@ -9,7 +9,7 @@ from dataclasses import Field
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from PySide6Widgets.Models.DataClassModel import DataclassModel
+from PySide6Widgets.models.dataclass_model import DataclassModel
 
 log = logging.getLogger(__name__)
 

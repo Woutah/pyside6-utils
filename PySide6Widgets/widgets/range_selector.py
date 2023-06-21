@@ -4,7 +4,8 @@ import typing
 
 import PySide6
 from PySide6 import QtCore, QtGui, QtWidgets
-
+import logging
+log = logging.getLogger(__name__)
 
 class IntRangeSelector(QtWidgets.QSlider):
 	"""A Qt-Style slider with 2 handles that can be used to select a range of (int) values"""
@@ -380,19 +381,23 @@ class RangeSelector(IntRangeSelector):
 
 	def update(self):
 		#Check if type of min/max is in SUPPORTED_TYPES
-		if type(self._minimum) not in self.SUPPORTED_TYPES\
-				or type(self._maximum) not in self.SUPPORTED_TYPES\
-				or type(self._min_value) not in self.SUPPORTED_TYPES\
-				or type(self._max_value) not in self.SUPPORTED_TYPES:
+		supported_types = typing.get_args(self.SUPPORTED_TYPES)
+		if type(self._minimum) not in supported_types\
+				or type(self._maximum) not in supported_types\
+				or type(self._min_value) not in supported_types\
+				or type(self._max_value) not in supported_types:
 			self.setEnabled(False)
-			raise TypeError(f"One of the values (min/max minval/maxval) of type {type(self._minimum)} is not a supported type for RangeSelector. Supported types are: {self.SUPPORTED_TYPES}")
+			msg = (f"One of the values (min/max minval/maxval) of type {type(self._minimum)} is not a supported type for"
+				f"RangeSelector. Supported types are: {self.SUPPORTED_TYPES}")
+			log.warning(msg)
+			raise TypeError()
 
 		#Check if all types are the same
-		if type(self._minimum) != type(self._maximum) or type(self._minimum) != type(self._min_value) or type(self._minimum) != type(self._max_value):
+		if type(self._minimum) != type(self._maximum) or\
+				type(self._minimum) != type(self._min_value) or\
+				type(self._minimum) != type(self._max_value):
 			self.setEnabled(False)
 			raise TypeError(f"Types of min/max minval/maxval are not the same. Types are: {type(self._minimum)}, {type(self._maximum)}, {type(self._min_value)}, {type(self._max_value)}")
-
-
 
 		super().update()
 

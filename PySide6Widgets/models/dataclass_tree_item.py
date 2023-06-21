@@ -3,7 +3,7 @@ import typing
 from dataclasses import Field
 
 
-class DataClassTreeItem(object):
+class DataclassTreeItem(object):
 	"""
 	This class represents a single item in a dataclass-tree (attribute).
 	"""
@@ -11,7 +11,7 @@ class DataClassTreeItem(object):
 	      		name : str,
 				item_data: typing.Any,
 				field : Field | None,
-				parent: typing.Optional["DataClassTreeItem"] = None
+				parent: typing.Optional["DataclassTreeItem"] = None
 			) -> None:
 		self.name = name
 		self.item_data = item_data
@@ -19,11 +19,11 @@ class DataClassTreeItem(object):
 		self.parent_item = parent
 		self.child_items = []
 
-	def append_child(self, item: "DataClassTreeItem") -> None:
+	def append_child(self, item: "DataclassTreeItem") -> None:
 		"""Appends a child to this item (of same type)."""
 		self.child_items.append(item)
 
-	def child(self, row: int) -> "DataClassTreeItem":
+	def child(self, row: int) -> "DataclassTreeItem":
 		"""Returns the child at the given row."""
 		return self.child_items[row]
 
@@ -43,7 +43,7 @@ class DataClassTreeItem(object):
 		"""Returns the field associated with this item."""
 		return self.field
 
-	def parent(self) -> "DataClassTreeItem | None":
+	def parent(self) -> "DataclassTreeItem | None":
 		"""Returns the parent of this item."""
 		return self.parent_item
 
@@ -57,6 +57,6 @@ class DataClassTreeItem(object):
 		"""Prints the tree to the console."""
 		print("-" * indent, self.item_data)
 		for child in self.child_items:
-			assert isinstance(child, DataClassTreeItem)
+			assert isinstance(child, DataclassTreeItem)
 			child.print(indent + 1)
 		

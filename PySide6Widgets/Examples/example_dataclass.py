@@ -1,9 +1,10 @@
 """An example dataclass to show functionality of automatic GUI generation."""
+
 import typing
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from PySide6Widgets.Utility.sklearn_param_validation import (Interval,
+from PySide6Widgets.utility.sklearn_param_validation import (Interval,
                                                              StrOptions)
 
 LITERAL_EXAMPLE = typing.Literal["testliteral1", "testliteral2", "testliteral3"] #pylint: disable=invalid-name

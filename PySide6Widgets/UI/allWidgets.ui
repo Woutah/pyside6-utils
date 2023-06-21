@@ -76,6 +76,9 @@
       <property name="spanOnGroove" stdset="0">
        <bool>false</bool>
       </property>
+      <property name="hasValueBoxes" stdset="0">
+       <bool>true</bool>
+      </property>
      </widget>
     </item>
     <item>
@@ -110,23 +113,25 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>CollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>PySide6Widgets.widgets.collapsible_group_box</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>PandasTableView</class>
    <extends>QTableView</extends>
-   <header>PySide6Widgets.Widgets.PandasTableView</header>
+   <header>PySide6Widgets.widgets.pandas_table_view</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>RangeSelector</class>
    <extends>QSlider</extends>
-   <header>PySide6Widgets.Widgets.RangeSelector</header>
-  </customwidget>
-  <customwidget>
-   <class>CollapsibleGroupBox</class>
-   <extends>QGroupBox</extends>
-   <header>Widgets.CollapsibleGroupBox</header>
-   <container>1</container>
+   <header>PySide6Widgets.widgets.range_selector</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../icons/app_resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

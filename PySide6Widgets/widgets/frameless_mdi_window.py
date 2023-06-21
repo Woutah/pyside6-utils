@@ -5,9 +5,9 @@ import enum
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from PySide6Widgets.UI.FramelessMdiWindow_ui import Ui_FramelessMidiWindow
+from PySide6Widgets.ui.FramelessMdiWindow_ui import Ui_FramelessMidiWindow
 
-import PySide6Widgets.Widgets.ExtendedMdiArea as ExtendedMdiArea #Circular import, use this to avoid it
+import PySide6Widgets.widgets.extended_mdi_area as extended_mdi_area #Circular import, use this to avoid it
 
 class SideGrip(QtWidgets.QWidget):
 	""" Implements a grip for the sides of a window/mdi-window. Based on:
@@ -198,7 +198,7 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 		"""Shows a context menu with options to sort the subwindows.
 		"""
 		parent = self.mdiArea()
-		if isinstance(parent, ExtendedMdiArea.ExtendedMdiArea): #If parent is an extended mdi area, show context menu
+		if isinstance(parent, extended_mdi_area.ExtendedMdiArea): #If parent is an extended mdi area, show context menu
 			#convert pos to parent
 			pos = self.ui.titleBar.mapToGlobal(pos)
 			pos = parent.mapFromGlobal(pos)

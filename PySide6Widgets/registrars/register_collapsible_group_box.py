@@ -6,13 +6,13 @@ will be usable in Qt-Designer.
 import os
 
 from PySide6.QtDesigner import QPyDesignerCustomWidgetCollection
+from PySide6Widgets.utility.utility_functions import snakecase
 
 from PySide6Widgets.constants import Paths
-from PySide6Widgets.Widgets.CollapsibleGroupBox import CollapsibleGroupBox
+from PySide6Widgets.widgets.collapsible_group_box import CollapsibleGroupBox
 
-BASE_NAME = CollapsibleGroupBox.__name__[0].lower() #lowercase first letter
-BASE_NAME += CollapsibleGroupBox.__name__[1:]
-
+BASE_NAME = CollapsibleGroupBox.__name__[0].lower() + CollapsibleGroupBox.__name__[1:]
+print(BASE_NAME)
 DOM_XML = f"""
 	<ui language='c++'>
 		<widget class='{CollapsibleGroupBox.__name__}' name='{BASE_NAME}'>
@@ -26,7 +26,6 @@ DOM_XML = f"""
 			</property>
 		</widget>
 	</ui>
-
 """
 MODULE = ""
 
@@ -34,7 +33,8 @@ if len(Paths.PACKAGE_NAME) > 0:
 	MODULE+= f"{Paths.PACKAGE_NAME}."
 if len(Paths.WIDGETS_SUBPATH) > 0:
 	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}."
-MODULE+= f"{CollapsibleGroupBox.__name__}"
+MODULE += snakecase(CollapsibleGroupBox.__name__) #Uses snakecase
+
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(CollapsibleGroupBox,
                                                     	module=MODULE,

@@ -9,13 +9,13 @@ from numbers import Integral, Real
 import typing_inspect
 from PySide6 import QtCore, QtWidgets
 
-from PySide6Widgets.Utility.sklearn_param_validation import (Interval,
+from PySide6Widgets.utility.sklearn_param_validation import (Interval,
                                                              StrOptions,
 															 Options)
 
 log = logging.getLogger(__name__)
 
-class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
+class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	"""
 	Custom delegate made especially for the DataClassModel. This delegate allows for editing of various datatypes.
 	TODO: maybe use a factory instead for the editors
@@ -122,7 +122,7 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			type_list = list(typing_inspect.get_args(typehint))
 			constraints = []
 			for cur_type in type_list:
-				new_constraint = DataClassEditorsDelegate.get_constraints_from_typehint(cur_type)
+				new_constraint = DataclassEditorsDelegate.get_constraints_from_typehint(cur_type)
 				if new_constraint:
 					constraints.extend(new_constraint)
 		elif typing_inspect.get_origin(typehint) == typing.Literal: #pylint: disable=comparison-with-callable
@@ -149,7 +149,7 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			# typing.Callable, typing.Optional, typing.Any, typing.ClassVar, typing.Final, typing.TypeVar,
 			# typing.Generic, typing.Protocol)
 			try:
-				constraints = DataClassEditorsDelegate.get_constraints_from_typehint(entry_type)
+				constraints = DataclassEditorsDelegate.get_constraints_from_typehint(entry_type)
 			except Exception as exception: #pylint: disable=broad-except
 				log.warning(f"Could not get constraints from typehint {entry_type} - {exception}")
 				constraints = None
