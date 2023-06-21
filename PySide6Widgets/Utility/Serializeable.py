@@ -2,7 +2,7 @@ import json
 
 class Serializable():
 	"""Generic class to serialize and deserialize objects to/from files"""
-	def to_file(self, path : str, filetype = "json", ignore_private = True, use_encoding="utf-8"):
+	def to_file(self, path : str, filetype = "json", ignore_private = False, use_encoding="utf-8"):
 		"""Trioes to find the correct function to save this object to a file, then saves it to the passed path
 
 		Args:
@@ -36,9 +36,9 @@ class Serializable():
 			raise NotImplementedError(f"Could not save to passed filetype ({filetype}), this filetype is not implemented")
 		else:
 			with open(path, "r") as file:
-				dict = func(file.read())
+				func(file.read())
 
-		self.copy_from_dict(dict)
+		# self.copy_from_dict(dict)
 
 
 	def copy_from_dict(self, copy_from_dict : dict, ignore_new_attributes = False):
