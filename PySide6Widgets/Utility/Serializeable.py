@@ -22,9 +22,13 @@ class Serializable():
 			with open(path, "w", encoding=use_encoding) as file:
 				file.write(output)
 
-	def from_file(self, path : str, filetype = "json"):
+	def from_file(self, path : str, filetype = "json", use_encoding="utf-8"):
 		"""
-		
+		Load this class from a file
+		Args:
+			path (str): The path to load the file from
+			filetype (str, optional): What filetype to load from. Defaults to "json".
+			use_encoding (str, optional): What encoding to use - if applicable. Defaults to "utf-8".
 		"""
 		# if filetype == "json":
 		# 	with open(path, "w") as file:
@@ -35,7 +39,7 @@ class Serializable():
 		if func is None or filetype == "to_":
 			raise NotImplementedError(f"Could not save to passed filetype ({filetype}), this filetype is not implemented")
 		else:
-			with open(path, "r") as file:
+			with open(path, "r", encoding=use_encoding) as file:
 				func(file.read())
 
 		# self.copy_from_dict(dict)
