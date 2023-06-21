@@ -9,9 +9,7 @@ from numbers import Integral, Real
 import typing_inspect
 from PySide6 import QtCore, QtWidgets
 
-from PySide6Widgets.utility.sklearn_param_validation import (Interval,
-                                                             StrOptions,
-															 Options)
+from PySide6Widgets.utility.constraints import Interval, Options, StrOptions
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +51,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		elif constraint == datetime:
 			editor = QtWidgets.QDateTimeEdit(parent)
 			editor.setCalendarPopup(True)
-			return editor
+			return editor 
 		elif isinstance(constraint, type) and issubclass(constraint, Integral): #If int or (other subclass of) integral
 			editor = QtWidgets.QSpinBox(parent)
 			editor.setMaximum(9999999)

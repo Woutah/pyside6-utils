@@ -4,7 +4,7 @@ import typing
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from PySide6Widgets.utility.sklearn_param_validation import (Interval,
+from PySide6Widgets.utility.constraints import (Interval,
                                                              StrOptions)
 
 LITERAL_EXAMPLE = typing.Literal["testliteral1", "testliteral2", "testliteral3"] #pylint: disable=invalid-name
