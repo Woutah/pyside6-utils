@@ -52,6 +52,25 @@ class ExampleDataClass:
 		)
 	)
 
+	test_int_literal_property : typing.Literal[1, 2, 3] = field(
+		default=1,
+		metadata=dict(
+			display_name="Test int literal property",
+			help= "This is a test property (int literal)",
+			changed=True
+		)
+	)
+
+	test_int_options_property : int = field(
+		default=1,
+		metadata=dict(
+			display_name="Test int options property",
+			help= "This is a test property (int options)",
+			changed=True,
+			constraints = [Interval(int, 0,10, closed='both'), None]
+		)
+	)
+
 	test_stroptions_property : typing.Literal["Option1/10", "Option2/10"] = field(
 		default="Option1/10",
 		metadata=dict(
@@ -67,7 +86,7 @@ class ExampleDataClass:
 
 
 	test_float_range_0_1_property: float = field(
-		default=0.001, 
+		default=0.001,
 		metadata=dict(
 			display_name="Test float range 0-1 property",
 			help= "This is a test property (float)",
@@ -77,7 +96,7 @@ class ExampleDataClass:
 	)
 
 	test_bool_property: bool = field(
-		default=False, 
+		default=False,
 		metadata=dict(
 			display_name="Test bool property",
 			help= "This is a test property (bool)",
@@ -86,7 +105,7 @@ class ExampleDataClass:
 	)
 
 	test_datetime_property: datetime = field(
-		default=datetime(2050,1,1), 
+		default=datetime(2050,1,1),
 		metadata=dict(
 			display_name="Test datetime property",
 			help= "This is a test property (datetime)",

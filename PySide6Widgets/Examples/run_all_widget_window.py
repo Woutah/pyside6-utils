@@ -1,9 +1,10 @@
+"""Run a window with examples for the widgets in this package."""
 
-
-from PySide6.QtWidgets import QApplication, QMainWindow
-from allWidgets_ui import Ui_MainWindow
 import pandas as pd
+from PySide6.QtWidgets import QApplication, QMainWindow
+
 from PySide6Widgets.Models.PandasTableModel import PandasTableModel
+from PySide6Widgets.UI.allWidgets_ui import Ui_MainWindow
 
 if __name__ == "__main__":
 	import sys

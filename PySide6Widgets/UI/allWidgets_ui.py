@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'allWidgets.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.4.2
+## Created by: Qt User Interface Compiler version 6.5.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -19,9 +19,9 @@ from PySide6.QtWidgets import (QApplication, QHeaderView, QLabel, QMainWindow,
     QMenuBar, QSizePolicy, QSlider, QSpacerItem,
     QStatusBar, QVBoxLayout, QWidget)
 
-from PySide6Widgets.Widgets.CollapsibleGroupBox import CollapsibleGroupBox
 from PySide6Widgets.Widgets.PandasTableView import PandasTableView
 from PySide6Widgets.Widgets.RangeSelector import RangeSelector
+from Widgets.CollapsibleGroupBox import CollapsibleGroupBox
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -58,10 +58,10 @@ class Ui_MainWindow(object):
 
         self.rangeSelector = RangeSelector(self.centralwidget)
         self.rangeSelector.setObjectName(u"rangeSelector")
-        self.rangeSelector.setOrientation(Qt.Orientation.Horizontal)
+        self.rangeSelector.setOrientation(Qt.Horizontal)
         self.rangeSelector.setInvertedAppearance(False)
         self.rangeSelector.setInvertedControls(False)
-        self.rangeSelector.setTickPosition(QSlider.TickPosition.TicksAbove)
+        self.rangeSelector.setTickPosition(QSlider.TicksAbove)
         self.rangeSelector.setProperty("spanOnGroove", False)
 
         self.verticalLayout.addWidget(self.rangeSelector)

@@ -2,8 +2,10 @@
 We can then choose to implement custom sub-class of this model.
 """
 
-from PySide6 import QtCore, QtWidgets
 from abc import abstractmethod
+
+from PySide6 import QtCore, QtWidgets
+
 
 class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 	"""Base-class for console items. All user-defined console items should inherit from this class.
@@ -37,7 +39,7 @@ class BaseConsoleStandardItemModel(QtCore.QAbstractItemModel):
 		self._console_icon = QtWidgets.QApplication.style().standardIcon(self._console_pixmap)
 		self._item_list = [] #List of ConsoleStandardItem's
 
-	def columnCount(self, parent : QtCore.QModelIndex = QtCore.QModelIndex()) -> int:
+	def columnCount(self, parent : QtCore.QModelIndex = QtCore.QModelIndex()) -> int: #pylint: disable=unused-argument
 		return 3
 
 	def removeRow(self, row: int, parent : QtCore.QModelIndex) -> bool:

@@ -1,9 +1,8 @@
-
+"""Implements a single item in a dataclass-tree, representing a variable with its value"""
 import typing
 from dataclasses import Field
 
 
-#Create TreeItem class for dataclass tree view
 class DataClassTreeItem(object):
 	"""
 	This class represents a single item in a dataclass-tree (attribute).

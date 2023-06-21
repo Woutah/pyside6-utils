@@ -59,7 +59,8 @@ class FileConsoleItem(BaseConsoleItem):
 
 		#Check if file exists
 		if self._path is None or not os.path.exists(self._path):
-			raise ValueError(f"File {self._path} does not exist - Console Item will not be able to initiate a file-watcher so updates will not be shown.")
+			raise ValueError(f"File {self._path} does not exist - Console Item will not be able to initiate a"
+		    	"file-watcher so updates will not be shown.")
 
 
 		#Align contents bottom
@@ -79,7 +80,7 @@ class FileConsoleItem(BaseConsoleItem):
 		self._worker_thread.start()
 
 
-	def get_current_text(self) -> str: #pylint: disable=invalid-name
+	def get_current_text(self) -> str:
 		"""Retrieves the current text in the watched file - as currently known to the item."""
 		return self._current_text
 
@@ -118,10 +119,10 @@ class FileConsoleItem(BaseConsoleItem):
 			return
 
 		#Open the file and seek to the current seek position
-		with open(self._path, "r", encoding=encoding) as f:
-			f.seek(self._current_seek)
-			newcontent = f.read()  #Read to end of file
-			self._current_seek = f.tell() #Make the current seek position the end of the file
+		with open(self._path, "r", encoding=encoding) as in_file:
+			in_file.seek(self._current_seek)
+			newcontent = in_file.read()  #Read to end of file
+			self._current_seek = in_file.tell() #Make the current seek position the end of the file
 			self._current_text += newcontent #Add the new content to the current text
 			# self.ui.consoleTextEdit.insertPlainText(newcontent) #Insert the new content into the text edit
 			# self.ui.consoleTextEdit.moveCursor(QtGui.QTextCursor.End) #Move the cursor to the end of the text edit

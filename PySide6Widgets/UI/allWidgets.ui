@@ -98,21 +98,21 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CollapsibleGroupBox</class>
-   <extends>QGroupBox</extends>
-   <header>Widgets.CollapsibleGroupBox</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>PandasTableView</class>
    <extends>QTableView</extends>
-   <header>Widgets.PandasTableView</header>
+   <header>PySide6Widgets.Widgets.PandasTableView</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>RangeSelector</class>
    <extends>QSlider</extends>
-   <header>Widgets.RangeSelector</header>
+   <header>PySide6Widgets.Widgets.RangeSelector</header>
+  </customwidget>
+  <customwidget>
+   <class>CollapsibleGroupBox</class>
+   <extends>QGroupBox</extends>
+   <header>Widgets.CollapsibleGroupBox</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

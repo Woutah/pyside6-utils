@@ -4,11 +4,13 @@ NOTE: since this wrapper is VERY simple, it is not included in the registrars
 """
 
 
-from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6Widgets.Models.DataClassTreeItem import DataClassTreeItem
-from PySide6Widgets.Models.DataClassModel import DataclassModel
-from dataclasses import Field
 import logging
+from dataclasses import Field
+
+from PySide6 import QtCore, QtGui, QtWidgets
+
+from PySide6Widgets.Models.DataClassModel import DataclassModel
+
 log = logging.getLogger(__name__)
 
 class DataClassTreeView(QtWidgets.QTreeView):
@@ -36,19 +38,6 @@ class DataClassTreeView(QtWidgets.QTreeView):
 		return self._try_context_menu_event(pos)
 
 
-	# 	return super().mousePressEvent(event)
-	
-	# def contextMenuEvent(self, pos : QtCore.QPoint) -> None:
-	# 	# return
-	# 	if not self._try_context_menu_event(pos):
-	# 		parent = self.parent()
-	# 		parent_pos = self.mapToParent(pos)
-	# 		parent.contextMenuEvent(parent_pos)
-	# 		# super().contextMenuEvent(parent_pos) #If the event is not handled, call the base class
-	# 		# parent.contextMenuEvent(parent_pos)
-	# 	return
-
-
 	def _try_context_menu_event(self, pos : QtCore.QPoint) -> bool:
 		"""Overridden context menu event to add a custom context menu"""
 		menu = QtWidgets.QMenu(self)
@@ -71,7 +60,6 @@ class DataClassTreeView(QtWidgets.QTreeView):
 				menu.addAction(f"Set to default ({default_val})", lambda x=index: self.set_index_to_default(index))
 			else:
 				menu.addAction("Set to default (unchanged)", None)
-				pass
 
 		menu.exec(self.mapToGlobal(pos))
 		return True
@@ -93,9 +81,9 @@ class DataClassTreeView(QtWidgets.QTreeView):
 
 		if not hasattr(cur_field, "default"):
 			return
-		
+
 		default_val = cur_field.default
 		if default_val == cur_data: #if the default value is the same as the current value, no change
 			return
-		model = self.model()	
+		model = self.model()
 		model.setData(index, default_val, QtCore.Qt.ItemDataRole.EditRole)

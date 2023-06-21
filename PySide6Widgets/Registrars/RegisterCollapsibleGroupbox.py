@@ -22,15 +22,15 @@ DOM_XML = f"""
 	</ui>
 
 """
-module = ""
+MODULE = ""
 if len(Paths.PACKAGE_NAME) > 0:
 	MODULE+= f"{Paths.PACKAGE_NAME}."
 if len(Paths.WIDGETS_SUBPATH) > 0:
 	MODULE+= f"{Paths.WIDGETS_SUBPATH.replace(os.sep, '.')}."
-module+= f"{CollapsibleGroupBox.__name__}"
+MODULE+= f"{CollapsibleGroupBox.__name__}"
 
 QPyDesignerCustomWidgetCollection.registerCustomWidget(CollapsibleGroupBox, 
-                                                    	module=module,
+                                                    	module=MODULE,
                                                        	tool_tip=CollapsibleGroupBox.DESCRIPTION, 
                                                         xml=DOM_XML,
                                                         container=True,

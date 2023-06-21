@@ -3,12 +3,15 @@ Defines a model that can be used to display a dataclass as a tree view. See the 
 """
 
 import dataclasses
+import logging
 import typing
 from dataclasses import fields, is_dataclass
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6Widgets.Models.DataClassTreeItem import DataClassTreeItem
 
+from PySide6Widgets.Models.DataClassTreeItem import DataClassTreeItem
+import datetime
+log = logging.getLogger(__name__)
 
 class SetDataCommand(QtGui.QUndoCommand):
 	"""Used to set data in the model, so that these actions can be undone and redone.
@@ -64,7 +67,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 	def __init__(self, dataclass_instance : object,
 					parent: typing.Optional[QtCore.QObject] = None,
 					undo_stack : QtGui.QUndoStack | None = None,
-					allow_non_field_attrs : bool = False	
+					allow_non_field_attrs : bool = False
 				) -> None:
 		"""
 		Args:
@@ -101,11 +104,11 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		if not self._allow_non_field_attrs:
 			for attr in dir(dataclass_instance):
 				if not attr.startswith("__"):
-					if attr not in dataclass_field_names and not callable(getattr(dataclass_instance, attr)): 
+					if attr not in dataclass_field_names and not callable(getattr(dataclass_instance, attr)):
 						raise AttributeError(f"Attribute {attr} is not a field of the dataclass. "
 			   				"This most likely happened because "
 							" @dataclass decorator to the class definition")
-		
+
 		self.beginResetModel()
 		# if self._undo_stack:
 		# 	self._undo_stack.clear() #Reset undo stack NOTE: if we do this, this seemingly causes some issues with the
@@ -221,55 +224,66 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		"""
 		Returns the data stored under the given role for the item referred to by the index.
 		"""
-		if not index.isValid():
-			return None
-
-		node : DataClassTreeItem = index.internalPointer() #type: ignore
-		name_field_dict = {field.name: field for field in fields(self._dataclass)}
-
-
-		if role == QtCore.Qt.ItemDataRole.DisplayRole:
-			if index.column() == 0: #If retrieving the name of the property
-				try:
-					return name_field_dict[node.name].metadata["display_name"]
-				except (IndexError, KeyError, AttributeError):
-					return node.name
-			else:
-				return self._dataclass.__dict__.get(node.name, None)
-
-		elif role == QtCore.Qt.ItemDataRole.EditRole:
-			return self._dataclass.__dict__.get(node.name, None)
-		elif role == QtCore.Qt.ItemDataRole.ToolTipRole:
-			result_str = ""
-			result_str += name_field_dict[node.name].metadata.get("help", "")
-			item_type_name = name_field_dict[node.name].type.__name__
-			result_str += f" (type: {item_type_name[:20]})"
-
-			if hasattr(name_field_dict[node.name], "default"):
-				result_str += f" (default: {str(name_field_dict[node.name].default)[:20]})"
-			return result_str
-		elif role == DataclassModel.TYPE_ROLE: #Get type role #TODO: maybe create Enum with more descriptive names.
-				#NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance
-				# of Qt.ItemDataRole.DisplayRole
-			result = name_field_dict.get(node.name, None) #Get field
-			if result:
-				return result.type #If field is available -> return type
-			else:
+		try:
+			if not index.isValid():
 				return None
-		elif role == DataclassModel.FIELD_ROLE: #Field role
-			result = name_field_dict.get(node.name, None) #Get field
-			return result
-		elif role == QtCore.Qt.ItemDataRole.FontRole:
-			if name_field_dict.get(node.name, None) is None:
-				return None #If only a header (no data)
-			if hasattr(name_field_dict[node.name], "default"):
-				default_val = name_field_dict[node.name].default
-				#If current value is not equal to the default value, make the font bold
-				if self._dataclass.__dict__.get(node.name, None) != default_val:
-					font = QtGui.QFont()
-					font.setBold(True)
-					return font
-			return None
+
+			node : DataClassTreeItem = index.internalPointer() #type: ignore
+			name_field_dict = {field.name: field for field in fields(self._dataclass)}
+
+
+			if role == QtCore.Qt.ItemDataRole.DisplayRole:
+				if index.column() == 0: #If retrieving the name of the property
+					try:
+						return name_field_dict[node.name].metadata["display_name"]
+					except (IndexError, KeyError, AttributeError):
+						return node.name
+				else:
+					ret_val = self._dataclass.__dict__.get(node.name, None)
+					if ret_val is None:
+						return ""
+					elif isinstance(ret_val, datetime.datetime):
+						return ret_val.strftime("%Y-%m-%d %H:%M:%S")
+					elif isinstance(ret_val, bool):
+						return str(ret_val).capitalize()
+					return ret_val
+
+			elif role == QtCore.Qt.ItemDataRole.EditRole:
+				return self._dataclass.__dict__.get(node.name, None)
+			elif role == QtCore.Qt.ItemDataRole.ToolTipRole:
+				result_str = ""
+				result_str += name_field_dict[node.name].metadata.get("help", "")
+				item_type_name = name_field_dict[node.name].type.__name__
+				result_str += f" (type: {item_type_name[:20]})"
+
+				if hasattr(name_field_dict[node.name], "default"):
+					result_str += f" (default: {str(name_field_dict[node.name].default)[:20]})"
+				return result_str
+			elif role == DataclassModel.TYPE_ROLE: #Get type role #TODO: maybe create Enum with more descriptive names.
+					#NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance
+					# of Qt.ItemDataRole.DisplayRole
+				result = name_field_dict.get(node.name, None) #Get field
+				if result:
+					return result.type #If field is available -> return type
+				else:
+					return None
+			elif role == DataclassModel.FIELD_ROLE: #Field role
+				result = name_field_dict.get(node.name, None) #Get field
+				return result
+			elif role == QtCore.Qt.ItemDataRole.FontRole:
+				if name_field_dict.get(node.name, None) is None:
+					return None #If only a header (no data)
+				if hasattr(name_field_dict[node.name], "default"):
+					default_val = name_field_dict[node.name].default
+					#If current value is not equal to the default value, make the font bold
+					if self._dataclass.__dict__.get(node.name, None) != default_val:
+						font = QtGui.QFont()
+						font.setBold(True)
+						return font
+				return None
+		except Exception as exception: #pylint: disable=broad-except
+			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - " 
+	       		f"{type(exception).__name__} : {exception}")
 
 		return None
 
@@ -278,7 +292,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					value: typing.Any,
 					role: int = QtCore.Qt.ItemDataRole.EditRole) -> bool:
 		"""
-		Sets the role data for the item at index to value.
+		Sets the role data for the item at index to value - without using an undo stack.
 		"""
 		if role == QtCore.Qt.ItemDataRole.EditRole:
 			tree_item = index.internalPointer()
@@ -298,6 +312,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		"""
 		Sets the role data for the item at index to value.
 		"""
+		log.debug(f"Setting data at index {index} to {value} of type {type(value)}")
 
 
 		if not self._undo_stack:
@@ -395,7 +410,13 @@ if __name__ == "__main__":
 	    DataClassEditorsDelegate
 	from PySide6Widgets.Widgets.DataClassTreeView import DataClassTreeView
 
-	
+
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
 
 	app = QtWidgets.QApplication(sys.argv)
 	test_data = ExampleDataClass()
