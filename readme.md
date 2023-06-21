@@ -1,6 +1,6 @@
 # PySide6 Utilities
-This repository was created in tandem with [] - it contains several useful PySide6 widgets, models and delegates as well as some utility functions
-The package contains registrars for each widget, which can be used register the widgets in QtDesigner to quickly build UI's.
+PySide6-utilities implements several useful PySide6 widgets, models and delegates as well as some other utility functions
+The package contains registrars for all new widgets, which can be used register the widgets in QtDesigner to quickly build UI's.
 
 
 A quick list of the main widgets:
@@ -18,7 +18,7 @@ A quick list of the main widgets:
   - Built around the use of a QFileSystemModel - enables right-click operations and undo/redo actions, as well as the possibility to set a "highlighted" file
 - [`OverlayWidget`](#OverlayWidget)
   - Provides a container-widget to which another widget can be provided, when turning the overlay-mode of this widget on, this widget will be overlayed over the contained widget(s)
-
+- [`Square]
 - [`RangeSelector`](#RangeSelector)
   - Widget to select a range of float/int/datetime etc.  *NOTE: work in progress*
 

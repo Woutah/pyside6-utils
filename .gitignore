@@ -4,3 +4,5 @@ __pycache__/
 __init__.*
 PySide6_Widgets.egg-info/
 PySide6Widgets.egg-info/
+*.egg-info/
+*.egg-info/**
