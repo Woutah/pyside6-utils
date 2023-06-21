@@ -1,8 +1,9 @@
 
 # from PySide6.QtWidgets import
-from PySide6 import QtCore, QtWidgets, QtGui
-import PySide6
 import typing
+
+import PySide6
+from PySide6 import QtCore, QtGui, QtWidgets
 
 
 class IntRangeSelector(QtWidgets.QSlider):
@@ -36,7 +37,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 
 	def _get_slider_style_options(self, handle_idx : bool, draw_groove : bool):
 		#type: ignore
-		style_options : QtWidgets.QStyle = QtWidgets.QStyleOptionSlider()
+		style_options : QtWidgets.QStyleOptionSlider = QtWidgets.QStyleOptionSlider()
 		self.initStyleOption(style_options) #Init style options according to QSlider
 		style_options.subControls = QtWidgets.QStyle.SubControl.SC_SliderHandle #Draw sliderhandle
 		if draw_groove:
@@ -65,7 +66,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 		draw_options = self._get_slider_style_options(False, True)
 		style.drawComplexControl(QtWidgets.QStyle.ComplexControl.CC_Slider, draw_options, painter, self)
 		self._groove_rect = style.subControlRect(
-			QtWidgets.QStyle.ComplexControl.CC_Slider, 
+			QtWidgets.QStyle.ComplexControl.CC_Slider,
 			draw_options, #type: ignore
 			QtWidgets.QStyle.SubControl.SC_SliderGroove,
 			self
@@ -90,8 +91,8 @@ class IntRangeSelector(QtWidgets.QSlider):
 		darker = 0
 		if (self._dragging_control[0] and self._dragging_control[1]) or (self._hovering_on_control[0] and self._hovering_on_control[1]):
 			darker = 200
-		painter.setPen(draw_options.palette.color(QtGui.QPalette.Highlight).darker(darker))
-		painter.setBrush(draw_options.palette.color(QtGui.QPalette.Highlight).darker(darker))
+		painter.setPen(draw_options.palette.color(QtGui.QPalette.ColorRole.Highlight).darker(darker))
+		painter.setBrush(draw_options.palette.color(QtGui.QPalette.ColorRole.Highlight).darker(darker))
 		painter.drawRect(self._span_rect)
 
 		#Make sure no border is drawn when calling drawRect
@@ -179,7 +180,8 @@ class IntRangeSelector(QtWidgets.QSlider):
 		ev.accept()
 		if not(self._dragging_control[0] or self._dragging_control[1]): #If dragging neither, check for hover
 			pos = ev.position().toPoint()
-			self._hovering_on_control = [self._handle_rects[0].contains(pos), self._handle_rects[1].contains(pos)] #Check if hovering on either handle
+			self._hovering_on_control = [self._handle_rects[0].contains(pos), self._handle_rects[1].contains(pos)] #Check
+				# if hovering on either handle
 			if self._hovering_on_control[0] or self._hovering_on_control[1]:
 				#If horizontal
 				if self.orientation() == QtCore.Qt.Orientation.Horizontal:
@@ -196,7 +198,8 @@ class IntRangeSelector(QtWidgets.QSlider):
 			return
 
 		pos = ev.position().toPoint()
-		if not self._drag_start_mouse_pos or not self._drag_start_values: #This should not be possible as old mouse pos is set at click but just in case
+		if not self._drag_start_mouse_pos or not self._drag_start_values: #This should not be possible as old mouse pos
+				# is set at click but just in case
 			self._drag_start_mouse_pos = pos
 			self._drag_start_values = self._values.copy()
 			return
@@ -216,18 +219,22 @@ class IntRangeSelector(QtWidgets.QSlider):
 		if self._values[0] > self._values[1]: #If the handles have overtaken each other during dragging, swap them
 			self._values = [self._values[1], self._values[0]]
 			self._dragging_control = [self._dragging_control[1], self._dragging_control[0]] #Swap the dragging flags
-			self._drag_start_values = [self._drag_start_values[1], self._drag_start_values[0]] #Swap the start values (otherwise calculations will fail)
+			self._drag_start_values = [self._drag_start_values[1], self._drag_start_values[0]] #Swap the start values
+				#(otherwise calculations will fail)
 
 		self.valuesChanged.emit(self._values[0], self._values[1])
 		self.update() #Update the slider to show the new position of the handles
 
 	def _clamp(self, values : list[int], respect_min_handle_difference : bool = True, prefer_change_idx : typing.Literal[0, 1] = 0):
-		"""Clamp the values to the allowed range and make sure span width is respected if so desired NOTE: The values are not sorted
+		"""Clamp the values to the allowed range and make sure span width is respected if so desired
+		NOTE: The values are not sorted
 
 		Args:
 			values (list[int]): The values to clamp - does not need to be sorted
-			respect_min_handle_difference (bool, optional): If the values are too close together, should the values be changed to respect the min span width. Defaults to True.
-			prefer_change_idx (typing.Union[0, 1], optional): Which value (min or max) should be changed if the values are too close together. Defaults to 0.
+			respect_min_handle_difference (bool, optional): If the values are too close together, should the values be
+				changed to respect the min span width. Defaults to True.
+			prefer_change_idx (typing.Union[0, 1], optional): Which value (min or max) should be changed if the values
+				are too close together. Defaults to 0.
 
 		Returns:
 			list[int]: The clamped and min-distance-respected values NOTE: The values are not sorted
@@ -239,7 +246,8 @@ class IntRangeSelector(QtWidgets.QSlider):
 		span_diff = self._min_handle_difference - abs(values[0] - values[1])
 		if respect_min_handle_difference and (span_diff > 0): #If values too close together
 			if values[prefer_change_idx] >= values[1-prefer_change_idx]:
-				if (values[prefer_change_idx] + span_diff) < slider_max: #Check that we don't go over the max value when moving the value that should be changed
+				if (values[prefer_change_idx] + span_diff) < slider_max: #Check that we don't go over the max value
+						# when moving the value that should be changed
 					values[prefer_change_idx] += span_diff
 				else:
 					values[1-prefer_change_idx] = slider_max
@@ -259,8 +267,12 @@ class IntRangeSelector(QtWidgets.QSlider):
 
 		Args:
 			values (typing.List[int]): The new desired positions of the handles
-			respect_min_handle_difference(bool, optional): If the handles are too close together (if min_handle_difference has been set), decides which handle should be moved. Defaults to True. NOTE: if this is set to True, the set values might be altered to respect the min span width.
-			change_max_when_too_close (bool, optional): If the handles are too close together (if min_handle_difference has been set and respect flag has been set to true), decides which handle should be moved. Defaults to True.
+			respect_min_handle_difference(bool, optional): If the handles are too close together
+				(if min_handle_difference has been set), decides which handle should be moved. Defaults to True.
+				NOTE: if this is set to True, the set values might be altered to respect the min span width.
+			change_max_when_too_close (bool, optional): If the handles are too close together (if min_handle_difference
+				has been set and respect flag has been set to true), decides which handle should be moved.
+				Defaults to True.
 		"""
 		new_vals = self._clamp(values, respect_min_handle_difference, int(change_max_when_too_close))
 		new_vals = sorted(new_vals) #Make sure the values are sorted
@@ -322,7 +334,7 @@ class RangeSelector(IntRangeSelector):
 
 	SUPPORTED_TYPES = typing.Union[int, float, QtCore.QDate, QtCore.QTime, QtCore.QDateTime]
 
-	def __init__(self, parent: typing.Optional[PySide6.QtWidgets.QWidget] = None) -> None:
+	def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
 		super().__init__(parent)
 		self._layout = QtWidgets.QHBoxLayout()
 		self._layout.setContentsMargins(0, 0, 0, 0)
@@ -368,7 +380,10 @@ class RangeSelector(IntRangeSelector):
 
 	def update(self):
 		#Check if type of min/max is in SUPPORTED_TYPES
-		if type(self._minimum) not in self.SUPPORTED_TYPES or type(self._maximum) not in self.SUPPORTED_TYPES or type(self._min_value) not in self.SUPPORTED_TYPES or type(self._max_value) not in self.SUPPORTED_TYPES:
+		if type(self._minimum) not in self.SUPPORTED_TYPES\
+				or type(self._maximum) not in self.SUPPORTED_TYPES\
+				or type(self._min_value) not in self.SUPPORTED_TYPES\
+				or type(self._max_value) not in self.SUPPORTED_TYPES:
 			self.setEnabled(False)
 			raise TypeError(f"One of the values (min/max minval/maxval) of type {type(self._minimum)} is not a supported type for RangeSelector. Supported types are: {self.SUPPORTED_TYPES}")
 

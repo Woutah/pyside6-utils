@@ -1,9 +1,10 @@
 """Implements a QMdiArea with some extra functionality."""
-from typing import List
-from PySide6 import QtCore, QtGui, QtWidgets
-import PySide6.QtWidgets
-import PySide6Widgets.Widgets.FramelessMdiWindow as FramelessMdiWindow
 import enum
+from typing import List
+
+from PySide6 import QtCore, QtGui, QtWidgets
+
+import PySide6Widgets.Widgets.FramelessMdiWindow as FramelessMdiWindow
 
 
 class ExtendedMdiArea(QtWidgets.QMdiArea):
@@ -29,8 +30,7 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 
 	def __init__(self,
 	    	parent: QtWidgets.QWidget | None = None,
-		    # rescale_on_area_resize: bool = True #Whether to rescale the subwindows when the mdi area is resized
-			re_tile_cascade_on_subwindow_changes : bool = True #Whether to retile the subwindows when a subwindow is added/removed
+			re_tile_cascade_on_subwindow_changes : bool = True #Retile the subwindows when a subwindow is added/removed
 		) -> None:
 		super().__init__(parent)
 		self._subwindows : list[QtWidgets.QMdiSubWindow] = []
@@ -74,7 +74,7 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 		if self._cur_display_method == ExtendedMdiArea.DisplayMode.TILED\
 				and self._re_tile_cascade_on_subwindow_changes: #If tiled -> retile, nothing if tabed/cascaded.
 			self.tileSubWindows()
-		
+
 		return subwindow
 
 	def removeSubWindow(self, widget: QtWidgets.QWidget) -> None:
@@ -82,21 +82,11 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 		if self._cur_display_method == ExtendedMdiArea.DisplayMode.TILED and self._re_tile_cascade_on_subwindow_changes:
 			self.tileSubWindows()
 		return super().removeSubWindow(widget)
-	
-	# def subWindowList(self, 
-	# 			order: QtWidgets.QMdiArea.WindowOrder = QtWidgets.QMdiArea.WindowOrder.CreationOrder
-	# 	   ) -> List[QtWidgets.QMdiSubWindow]:
-	# 	"""Returns the subwindow list, sorted by the given order."""
-	# 	#Create qlist of subwindows
-
-	# 	return self._subwindows()[::-1]
-	# 	# return QtCore.QList
-	# 	return super().subWindowList(order)
 
 
 	def set_tabbified(self, tabbified : bool) -> None:
 		"""Set the tabbified state of the mdi area.
-		Args: 
+		Args:
 			tabbified (bool): Whether the mdi area should be tabbified
 		"""
 		if self.viewMode() == QtWidgets.QMdiArea.ViewMode.TabbedView and tabbified or\
@@ -126,7 +116,7 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 		"""Tiles the subwindows, also untabs windows if current state is tabbed"""
 		self.set_tabbified(False)
 		self._cur_display_method = ExtendedMdiArea.DisplayMode.TILED
-		for i, window in enumerate(self._subwindows[::-1]):
+		for window in self._subwindows[::-1]:
 			#To get the appropriate order, we activate the window, and then tile the subwindows
 			self.setActiveSubWindow(window)
 
@@ -150,7 +140,7 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 				show_hidden.addAction(subwindow.windowTitle(), subwindow.showNormal)
 		if show_hidden.isEmpty():
 			show_hidden.setEnabled(False)
-		
+
 		bring_to_front = menu.addMenu("Bring to front")
 		for subwindow in self._subwindows:
 			bring_to_front.addAction(subwindow.windowTitle(), lambda subwindow=subwindow: self.setActiveSubWindow(subwindow))

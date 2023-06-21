@@ -1,11 +1,13 @@
-
+"""Implements a custom view for a file explorer that adds some shortcuts and the possibility to undo/redo certain
+actions
+"""
 
 # from Models.FileExplorerModel import FileExplorerModel
 import logging
 import os
 import shutil
 import typing
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import winshell
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -53,20 +55,22 @@ class DeleteAction(UndoAbleAction):
 			os.rename(self._deleted_file_path, self._original_file_path) #Restore file
 		else: #TODO: This only support windows or OS'es that return deleted-file-paths when using QFile.moveToTrash
 			# recycled_files = list(winshell.recycle_bin())
-			winshell.undelete(self._original_file_path.replace("/", os.sep)) #Path returned by QFileSystemModel is in 
+			winshell.undelete(self._original_file_path.replace("/", os.sep)) #Path returned by QFileSystemModel is in
 				#unix format, so we need to convert it to windows format
 
 	def redo(self):
-		QtCore.QFile.moveToTrash(self._original_file_path, self._deleted_file_path)
+		QtCore.QFile.moveToTrash(self._original_file_path, self._deleted_file_path) #type: ignore
 		log.info(f"Deleted file: {self._deleted_file_path} - {self._original_file_path}")
 
 
 
 class FileNameLineEdit(QtWidgets.QLineEdit):
 	"""Normally, we would set the selection in the QStyledItemDelegate, but
-	This does not work as QT calls selectAll() after the editor is created,
+	This does not work as QT internally calls selectAll() after the editor is created,
 	so we need to change the selection to not include the file extension
 	after the editor is created and after setEditorData is called.
+
+	This simple wrapper around QLineEdit makes sure only the file name is selected on showEvent.
 	"""
 	def showEvent(self, event) -> None:
 		super().showEvent(event)
@@ -78,7 +82,7 @@ class FileNameLineEdit(QtWidgets.QLineEdit):
 #Delegate class which enabled editing of the file name without also editing the extension
 class FileNameDelegate(QtWidgets.QStyledItemDelegate):
 	"""Delegate class which enabled editing of the file name without also editing the extension
-	
+
 	NOTE: We must implement a custom widget because otherwise QT will call selectAll() after the editor is created,
 	rendering the selection of only the file name in this delegate useless
 	"""
@@ -94,7 +98,7 @@ class FileNameDelegate(QtWidgets.QStyledItemDelegate):
 		if not index.isValid():
 			return None
 
-		if type(index.data(QtCore.Qt.ItemDataRole.EditRole)) == str: #To not-select the file extension when editing
+		if isinstance(index.data(QtCore.Qt.ItemDataRole.EditRole), str): #To not-select the file extension when editing
 			return FileNameLineEdit(parent)
 
 		return super().createEditor(parent, option, index)
@@ -153,7 +157,7 @@ class FileExplorerView(QtWidgets.QTreeView):
 		self._redo_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "Ctrl+Y", None) #type: ignore
 		self._copy_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "Ctrl+C", None) #type: ignore
 		self._cut_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "Ctrl+X", None) #type: ignore
-		self._paste_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "Ctrl+V", None) #type: ignore 
+		self._paste_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "Ctrl+V", None) #type: ignore
 		self._delete_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "Del", None) #type: ignore
 		self._rename_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "F2", None) #type: ignore
 		self._highlight_shortcut = QtCore.QCoreApplication.translate("FileExplorerView", "", None) #type: ignore

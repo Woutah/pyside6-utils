@@ -29,8 +29,12 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 		self._filter_strings = [] #List of strings to filter by
 		# self.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 
-	
-	def headerData(self, section: int, orientation: QtCore.Qt.Orientation, role: int = None) -> any:
+
+	def headerData(self,
+				section: int,
+				orientation: QtCore.Qt.Orientation,
+				role: int = Qt.ItemDataRole.DisplayRole
+			) -> typing.Any:
 		if role == TableViewRoles.headerRole.value:
 			default_data = self.sourceModel().headerData(section, orientation, Qt.ItemDataRole.DisplayRole)
 			sort_by = None #None=not sorted, Qt.SortOrder.AscendingOrder=ascending, Qt.DescendingOrder=descending
@@ -43,7 +47,7 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 			return (*default_data, )
 
 		return super().headerData(section, orientation, role)
-	
+
 	def lessThan(self, left: QtCore.QModelIndex, right: QtCore.QModelIndex) -> bool:
 		"""Sort by the edit role (so that we can sort by the value in the cell, not the display role)"""
 		ldata = self.sourceModel().data(left, Qt.ItemDataRole.EditRole)
@@ -80,21 +84,21 @@ class PandasTableView(QTableView):
 		super().setModel(self.Proxy_Model)
 		# self.Proxy_Model.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
 
-		self.selectionModel().selectionChanged.connect(self.displaySelectionStats) #TODO: 
+		self.selectionModel().selectionChanged.connect(self.displaySelectionStats) #TODO:
 
 		self.setSortingEnabled(True)
 		#Detect right-clicks on table headers
 	# 	self.horizontalHeader().sectionClicked.connect(self.headerClicked)
-		
+
 
 	def setStatusBar(self, status_bar):
 		self._status_bar = status_bar
 
 	def setModel(self, model: QtCore.QAbstractItemModel) -> None:
 		return self.Proxy_Model.setSourceModel(model)
-	
 
-	
+
+
 	def copySelection(self):
 		# clear the current contents of the clipboard
 		selected = self.selectedIndexes()
@@ -132,7 +136,7 @@ class PandasTableView(QTableView):
 		for index in self.selectedIndexes():
 			cells.append((index.row(), index.column()))
 		return cells
-	
+
 	def getSelectedData(self, discard_empty=True, discard_nan=True):
 		"""Return a list of the selected data"""
 		data = []
@@ -143,13 +147,13 @@ class PandasTableView(QTableView):
 				continue
 			data.append(self.model().data(index, Qt.ItemDataRole.EditRole))
 		return data
-	
+
 
 	def displaySelectionStats(self):
 		"""Display the number of selected cells, the average and the sum of the selected data"""
 		if self._status_bar is None: #Only show stats if a status bar is available
 			return
-		
+
 		#Get the data from the selected cells
 		data = self.getSelectedData()
 
