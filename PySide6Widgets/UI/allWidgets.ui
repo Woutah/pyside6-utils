@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>997</width>
-    <height>869</height>
+    <width>1289</width>
+    <height>960</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,6 +42,18 @@
         </widget>
        </item>
       </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_3">
+      <property name="font">
+       <font>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Pandas Model/TableView:</string>
+      </property>
      </widget>
     </item>
     <item>
@@ -89,7 +101,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>997</width>
+     <width>1289</width>
      <height>22</height>
     </rect>
    </property>

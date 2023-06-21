@@ -1,10 +1,11 @@
+"""Implements the a Qt-Model for pandas dataframes, so we can display them as a table in Qt-Widgets"""
 import logging
+from numbers import Number
 
 import pandas as pd
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 log = logging.getLogger(__name__)
-from numbers import Number
 
 
 class PandasTableModel(QAbstractTableModel):

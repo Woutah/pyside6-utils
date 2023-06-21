@@ -27,7 +27,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(997, 869)
+        MainWindow.resize(1289, 960)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout = QVBoxLayout(self.centralwidget)
@@ -51,6 +51,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.collapsibleGroupBox)
 
+        self.label_3 = QLabel(self.centralwidget)
+        self.label_3.setObjectName(u"label_3")
+        font = QFont()
+        font.setBold(True)
+        self.label_3.setFont(font)
+
+        self.verticalLayout.addWidget(self.label_3)
+
         self.pandasTableView = PandasTableView(self.centralwidget)
         self.pandasTableView.setObjectName(u"pandasTableView")
 
@@ -73,7 +81,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 997, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1289, 22))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -89,5 +97,6 @@ class Ui_MainWindow(object):
         self.collapsibleGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"CollapsibleGroupBox", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Testlabel1", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Testlabel2", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Pandas Model/TableView:", None))
     # retranslateUi
 

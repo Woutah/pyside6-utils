@@ -8,6 +8,7 @@ class SquareFrame(QtWidgets.QFrame):
 		super().__init__(parent)
 
 	def resizeEvent(self, event):
+		"""On resize, force the widget to remain square"""
 		new_size = QtCore.QSize(10, 10)
 		new_size.scale(event.size(), QtCore.Qt.AspectRatioMode.KeepAspectRatio)
 		self.resize(new_size)

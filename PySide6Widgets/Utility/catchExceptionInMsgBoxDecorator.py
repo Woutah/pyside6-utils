@@ -1,11 +1,14 @@
-
-from PySide6 import QtWidgets
-import traceback
+"""Implements a decorator to be used in UI-classes to catch exceptions and show them in a message box"""
 import logging
-log = logging.getLogger(__name__)
+import traceback
 import typing
 
-def catchExceptionInMsgBoxDecorator(
+from PySide6 import QtWidgets
+
+log = logging.getLogger(__name__)
+
+
+def catch_show_exception_in_popup_decorator(
 		func : typing.Callable,
 		re_raise : bool = True,
 		add_traceback_to_details : bool = True,
@@ -19,11 +22,11 @@ def catchExceptionInMsgBoxDecorator(
 
 	"""
 
-	def catchExceptionInMsgBoxDecorator(*args, **kwargs):
+	def catch_show_exception_in_popup(*args, **kwargs):
 		try:
 			return func(*args, **kwargs)
-		except Exception as e:
-			log.exception(f"Exception in {func.__name__}: {e}")
+		except Exception as exception: #pylint: disable=broad-except
+			log.exception(f"Exception in {func.__name__}: {exception}")
 			#Also create a message box
 			#Check if app is running, if so -> show message box
 			if QtWidgets.QApplication.instance() is not None:
@@ -34,7 +37,7 @@ def catchExceptionInMsgBoxDecorator(
 					msg.setText(custom_error_msg)
 				else:
 					msg.setText(f"An error occured in function call to: {func.__name__}")
-				msg.setInformativeText(f"{type(e).__name__}: {e}")
+				msg.setInformativeText(f"{type(exception).__name__}: {exception}")
 				trace_msg = f"Traceback:\n{traceback.format_exc()}"
 				if add_traceback_to_details:
 					msg.setDetailedText(trace_msg)
@@ -42,4 +45,4 @@ def catchExceptionInMsgBoxDecorator(
 				msg.exec()
 			if re_raise:
 				raise
-	return catchExceptionInMsgBoxDecorator
+	return catch_show_exception_in_popup

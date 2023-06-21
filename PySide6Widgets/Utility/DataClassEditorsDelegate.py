@@ -7,7 +7,7 @@ from datetime import datetime
 from numbers import Integral, Real
 
 import typing_inspect
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets
 
 from PySide6Widgets.Utility.sklearn_param_validation import (Interval,
                                                              StrOptions,
@@ -201,6 +201,3 @@ class DataClassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 	def updateEditorGeometry(self, editor, option, index): #pylint: disable=unused-argument
 		editor.setGeometry(option.rect) #type: ignore
-
-	# def paint(self, painter : QtGui.QPainter, option : QtWidgets.QStyleOptionViewItem, index : QtCore.QModelIndex) -> None:
-	# 	super().paint(painter, option, index)

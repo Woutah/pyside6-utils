@@ -37,7 +37,7 @@ class ExtendedSortFilterProxyModel(QtCore.QSortFilterProxyModel):
 				right = self.sourceModel().index(right.row(), column)
 				leftval = left.data(role=QtCore.Qt.ItemDataRole.EditRole)
 				rightval = right.data(role=QtCore.Qt.ItemDataRole.EditRole)
-				if self._val_less_than(leftval, rightval) == self._val_less_than(leftval=rightval, rightval=leftval): 
+				if self._val_less_than(leftval, rightval) == self._val_less_than(leftval=rightval, rightval=leftval):
 					#If the values are equal, continue to the next column
 					continue
 				else:
@@ -47,7 +47,7 @@ class ExtendedSortFilterProxyModel(QtCore.QSortFilterProxyModel):
 		return False #If we can't differentiate the rows, return False (i.e. don't swap them)
 
 
-	def sort_by_columns(self, columns: list[int], orders: list[QtCore.Qt.SortOrder] = []) -> None:
+	def sort_by_columns(self, columns: list[int], orders: list[QtCore.Qt.SortOrder] | None = None) -> None:
 		"""
 		Sets the sort-columns and their respective sort-orders.
 

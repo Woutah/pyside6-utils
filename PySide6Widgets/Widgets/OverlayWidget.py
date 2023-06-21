@@ -1,10 +1,6 @@
 """Implements an overlay widget that acts as a container but allows displaying another widget on top of it."""
 
-import PySide6.QtCore
-import PySide6.QtGui
-import PySide6.QtWidgets
-import PySide6.QtWidgets as QtWidgets
-from PySide6 import QtCore, QtGui
+from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 
 
@@ -21,7 +17,7 @@ class OverlayWidget(QtWidgets.QWidget):
 		super().__init__(parent)
 
 		self._display_overlay = False
-
+		self._overlay_widget = None
 		self._overlay_widget_container: QtWidgets.QWidget = QtWidgets.QWidget(self)
 		self._overlay_widget_container.setParent(self)
 		self._overlay_widget_container.setWindowFlags(Qt.WindowType.Widget | Qt.WindowType.FramelessWindowHint)
@@ -48,19 +44,19 @@ class OverlayWidget(QtWidgets.QWidget):
 		return super().showEvent(event)
 
 
-	def set_overlay_widget(self, widget: QtWidgets.QWidget) -> None:
+	def set_overlay_widget(self, overlay_widget: QtWidgets.QWidget) -> None:
 		"""
 		Sets the overlay widget to display on top of this widget.
 		"""
-		self._overlay_widget = widget
+		self._overlay_widget = overlay_widget
 		self._overlay_widget_container.setLayout(QtWidgets.QVBoxLayout()) #Reset the layout to remove any previous
-		self._overlay_widget_container.layout().addWidget(widget)
+		self._overlay_widget_container.layout().addWidget(overlay_widget)
 		self._overlay_widget_container.resize(self.size())
 		self._overlay_widget_container.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
 		self._overlay_widget_container.raise_()
 
 
-	def resizeEvent(self, event: PySide6.QtGui.QResizeEvent) -> None:
+	def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
 		"""
 		#On resize, update the overlay widget size
 		"""
@@ -89,13 +85,16 @@ class OverlayWidget(QtWidgets.QWidget):
 		palette = style.standardPalette()
 		palette.setColor(QtGui.QPalette.ColorRole.Window, color) #Background color
 		self._overlay_widget_container.setPalette(palette)
+	def get_background_color(self) -> QtGui.QColor | None:
+		"""
+		Returns the background color of the overlay widget.
+		"""
+		return self._cur_background_color
 
 	overlayHidden = QtCore.Property(bool, get_overlay_hidden, set_overlay_hidden)
 	overlayBlocksMouse = QtCore.Property(bool, get_overlay_mouse_block, set_overlay_mouse_block)
 
-	overlayBackgroundColor = QtCore.Property(QtGui.QColor, lambda self: self._cur_background_color, set_background_color)
-
-
+	overlayBackgroundColor = QtCore.Property(QtGui.QColor, get_background_color, set_background_color)
 
 if __name__ == "__main__":
 	import logging

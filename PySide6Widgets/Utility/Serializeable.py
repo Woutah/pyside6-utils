@@ -1,3 +1,7 @@
+"""
+Helper class to serialize and deserialize objects
+for now, only json is supported, but more formats can be added. 
+"""
 import json
 
 class Serializable():
@@ -13,7 +17,7 @@ class Serializable():
 
 		Raises:
 			NotImplementedError: _description_
-		"""		
+		"""
 		func = getattr(self, "to_"+filetype)
 		if func is None:
 			raise NotImplementedError(f"Could not save to passed filetype ({filetype}), this filetype is not implemented")
@@ -85,6 +89,3 @@ class Serializable():
 		load_dict = json.loads(json_string)
 		for key in load_dict:
 			setattr(self, key, load_dict[key]) #Try to set all attributes from json
-
-
-

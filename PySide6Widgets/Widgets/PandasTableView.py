@@ -1,16 +1,20 @@
+"""Implements a Qt-View used to display a pandas dataframe as a table.
+This view implements some extra funcitonality such as a custom proxy model to enable better sorting and filtering.
+Also enables the copy/pasting of data, while setting the status bar to display the number of selected cells, the average
+and the sum of the selected data.
+"""
 
 
-
-from PySide6.QtWidgets import QTableView, QApplication, QHeaderView
-from PySide6.QtCore import Qt
-# import PySide6.QtCore as QtCore
-from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6.QtGui import QKeySequence, QShortcut
-import typing
 import os
-import pandas as pd
+import typing
 from enum import Enum
-from numbers import Number
+
+import pandas as pd
+from PySide6 import QtCore
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtWidgets import QApplication, QTableView
+
 
 class TableViewRoles(Enum):
 	headerRole = Qt.ItemDataRole.UserRole + 1
@@ -19,7 +23,10 @@ class TableViewRoles(Enum):
 # 	def __init__(self, orientation: QtCore.Qt.Orientation, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
 # 		super().__init__(orientation, parent)
 
-class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and filtering and special icons indicating which columns are sorted
+class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
+	"""
+	Enables sorting and filtering and special icons indicating which columns are sorted
+	"""
 	def __init__(self, parent=None):
 		super().__init__(parent)
 
@@ -37,14 +44,14 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 			) -> typing.Any:
 		if role == TableViewRoles.headerRole.value:
 			default_data = self.sourceModel().headerData(section, orientation, Qt.ItemDataRole.DisplayRole)
-			sort_by = None #None=not sorted, Qt.SortOrder.AscendingOrder=ascending, Qt.DescendingOrder=descending
-			#Check if this column is sorted
-			for i, col in enumerate(self._sort_columns):
-				if col == default_data:
-					sort_by = self._sort_order[i]
-					break
+			# sort_by = None #None=not sorted, Qt.SortOrder.AscendingOrder=ascending, Qt.DescendingOrder=descending
+			# #Check if this column is sorted
+			# for i, col in enumerate(self._sort_columns):
+			# 	if col == default_data:
+			# 		sort_by = self._sort_order[i]
+			# 		break
 
-			return (*default_data, )
+			return (*default_data,)
 
 		return super().headerData(section, orientation, role)
 
@@ -61,46 +68,46 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel): #Enables sorting and 
 		try:
 			val = ldata < rdata
 			return val
-		except Exception as e:
+		except Exception as exception: #pylint: disable=broad-except #pylint: disable=unused-variable
 			return super().lessThan(left, right)
 
 
 
 class PandasTableView(QTableView):
-	DESCRIPTION = "A view to display a pandas dataframe, works best in combination with PandasTableModel - places a proxymodel in between the tableview and the model to allow sorting and filtering"
+	DESCRIPTION = ("A view to display a pandas dataframe, works best in combination with PandasTableModel - places a"
+		"proxymodel in between the tableview and the model to allow sorting and filtering")
 
 	def __init__(self, parent=None, status_bar=None):
 		QTableView.__init__(self, parent)
-		self._status_bar = None
+		self._status_bar = status_bar
 		#If ctrl+c is pressed, copy the selection to the clipboard
 		self._copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), self)
-		self._copy_shortcut.activated.connect(self.copySelection)
+		self._copy_shortcut.activated.connect(self.copy_selection_to_clipboard)
 
 
-		self.Proxy_Model = PandasTableProxyModel(self)
-		self.Proxy_Model.setDynamicSortFilter(True)
-		self.Proxy_Model.setSourceModel(None)
-		# self._proxy_model.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
-		super().setModel(self.Proxy_Model)
-		# self.Proxy_Model.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
+		self.proxy_model = PandasTableProxyModel(self)
+		self.proxy_model.setDynamicSortFilter(True)
+		self.proxy_model.setSourceModel(None) #type: ignore
+		super().setModel(self.proxy_model)
 
-		self.selectionModel().selectionChanged.connect(self.displaySelectionStats) #TODO:
-
+		self.selectionModel().selectionChanged.connect(self.display_selection_stats) #TODO:
 		self.setSortingEnabled(True)
 		#Detect right-clicks on table headers
-	# 	self.horizontalHeader().sectionClicked.connect(self.headerClicked)
+		# self.horizontalHeader().sectionClicked.connect(self.headerClicked)
 
 
 	def setStatusBar(self, status_bar):
+		"""Set the status bar to be used by the view, e.g. when making a selection"""
 		self._status_bar = status_bar
 
-	def setModel(self, model: QtCore.QAbstractItemModel) -> None:
-		return self.Proxy_Model.setSourceModel(model)
+	def setModel(self, model: QtCore.QAbstractItemModel) -> None: #type: ignore #pylint: disable=invalid-name
+		"""Set the model for the table view"""
+		return self.proxy_model.setSourceModel(model)
 
 
 
-	def copySelection(self):
-		# clear the current contents of the clipboard
+	def copy_selection_to_clipboard(self):
+		"""Copy the current selection to the clipboard according to excel-like-format"""
 		selected = self.selectedIndexes()
 		rows = []
 		columns = []
@@ -130,14 +137,14 @@ class PandasTableView(QTableView):
 		clipboard.setText(clip_data)
 
 
-	def getSelectedCells(self):
+	def get_selected_cells(self):
 		"""Return a list of the selected cells"""
 		cells = []
 		for index in self.selectedIndexes():
 			cells.append((index.row(), index.column()))
 		return cells
 
-	def getSelectedData(self, discard_empty=True, discard_nan=True):
+	def get_selected_data(self, discard_empty=True, discard_nan=True):
 		"""Return a list of the selected data"""
 		data = []
 		for index in self.selectedIndexes():
@@ -149,13 +156,13 @@ class PandasTableView(QTableView):
 		return data
 
 
-	def displaySelectionStats(self):
+	def display_selection_stats(self):
 		"""Display the number of selected cells, the average and the sum of the selected data"""
 		if self._status_bar is None: #Only show stats if a status bar is available
 			return
 
 		#Get the data from the selected cells
-		data = self.getSelectedData()
+		data = self.get_selected_data()
 
 		#Get the average and sum of the selected data
 		try:

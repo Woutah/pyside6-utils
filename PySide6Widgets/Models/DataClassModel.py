@@ -3,6 +3,7 @@ Defines a model that can be used to display a dataclass as a tree view. See the 
 """
 
 import dataclasses
+import datetime
 import logging
 import typing
 from dataclasses import fields, is_dataclass
@@ -10,7 +11,7 @@ from dataclasses import fields, is_dataclass
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from PySide6Widgets.Models.DataClassTreeItem import DataClassTreeItem
-import datetime
+
 log = logging.getLogger(__name__)
 
 class SetDataCommand(QtGui.QUndoCommand):
@@ -282,7 +283,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 						return font
 				return None
 		except Exception as exception: #pylint: disable=broad-except
-			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - " 
+			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - "
 	       		f"{type(exception).__name__} : {exception}")
 
 		return None

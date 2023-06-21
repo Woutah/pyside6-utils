@@ -60,7 +60,9 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 			windowlist (List[QtWidgets.QMdiSubWindow]): The windowlist to order the subwindows by
 		"""
 		#Sort the subwindows by the given windowlist
-		self._subwindows.sort(key = lambda subwindow: windowlist.index(subwindow) if subwindow in windowlist else len(windowlist))
+		self._subwindows.sort(
+			key = lambda subwindow: windowlist.index(subwindow) if subwindow in windowlist else len(windowlist)
+		)
 
 	def addSubWindow(self,
 		  		widget: QtWidgets.QWidget,
