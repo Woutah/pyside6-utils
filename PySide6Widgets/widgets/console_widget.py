@@ -308,3 +308,5 @@ if __name__ == "__main__":
 	window.show()
 	app.exec()
 	temp_file.close()
+	#remove the temp file
+	os.remove(temp_file.name)
