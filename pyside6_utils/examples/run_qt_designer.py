@@ -39,7 +39,7 @@ def run_qt_designer():
 	designer_process = QProcess()
 	designer_process.setProcessEnvironment(env)
 	designer_process.setProcessChannelMode(QProcess.ProcessChannelMode.ForwardedChannels) #Show output in console
-	designer_process.start("pyside6-designer", [os.path.join(main_path, "ui", "allWidgets.ui")]) #Start Qt Designer,
+	designer_process.start("pyside6-designer", [os.path.join(main_path, "ui", "AllWidgets.ui")]) #Start Qt Designer,
 		#opening the example UI file
 
 	#Check if designer is running

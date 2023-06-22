@@ -131,7 +131,7 @@
              </property>
              <property name="icon">
               <iconset resource="../Icons/app_resources.qrc">
-               <normaloff>:/Icons/actions/list-remove.png</normaloff>:/Icons/actions/list-remove.png</iconset>
+               <normaloff>:/icons/actions/list-remove.png</normaloff>:/icons/actions/list-remove.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -157,7 +157,7 @@
              </property>
              <property name="icon">
               <iconset resource="../Icons/app_resources.qrc">
-               <normaloff>:/Icons/actions/system-search.png</normaloff>:/Icons/actions/system-search.png</iconset>
+               <normaloff>:/icons/actions/system-search.png</normaloff>:/icons/actions/system-search.png</iconset>
              </property>
              <property name="iconSize">
               <size>
@@ -174,7 +174,7 @@
          </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="contentLayout" stretch=""/>
+         <layout class="QVBoxLayout" name="contentLayout"/>
         </item>
        </layout>
       </widget>
@@ -184,7 +184,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../Icons/app_resources.qrc"/>
+  <include location="../icons/app_resources.qrc"/>
  </resources>
  <connections/>
 </ui>

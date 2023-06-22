@@ -200,11 +200,12 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 		"""Pass on context menu to parent (QMdiArea) - tile/cascade etc. 
 		"""
 		parent = self.mdiArea()
-		if isinstance(parent, extended_mdi_area.ExtendedMdiArea): #If parent is an extended mdi area, show context menu
-			#convert pos to parent
-			pos = self.ui.titleBar.mapToGlobal(pos)
-			pos = parent.mapFromGlobal(pos)
+		pos = self.ui.titleBar.mapToGlobal(pos)
+		pos = parent.mapFromGlobal(pos)
+		try:
 			parent.context_menu_requested(pos)
+		except AttributeError:
+			log.debug("Parent of FramelessMdiWindow is not an ExtendedMdiArea, context menu not shown")
 
 	def resizeEvent(self, resizeEvent: QtGui.QResizeEvent) -> None:
 		"""Upon resize, make sure that all grips are at the right position"""
@@ -258,13 +259,18 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 			#avoid shaking motion
 		if not self._moveable:
 			return super().mousePressEvent(event) #type: ignore
-		if self._drag_type == self.DragType.TITLE_BAR and\
+		#If left-click, check if on titlebar
+		if event.button() == QtCore.Qt.MouseButton.LeftButton:
+			if self._drag_type == self.DragType.TITLE_BAR and\
+					self.ui.titleBar.rect().contains(self.ui.titleBar.mapFromGlobal(global_mouse_pos).toPoint()):
+				self.start_mouse_pos = event.globalPosition().toPoint()
+				self.start_window_pos = self.pos()
+			elif self._drag_type == self.DragType.EVERYWHERE:
+				self.start_mouse_pos = event.globalPosition().toPoint()
+				self.start_window_pos = self.pos()
+		elif event.button() == QtCore.Qt.MouseButton.RightButton and\
 				self.ui.titleBar.rect().contains(self.ui.titleBar.mapFromGlobal(global_mouse_pos).toPoint()):
-			self.start_mouse_pos = event.globalPosition().toPoint()
-			self.start_window_pos = self.pos()
-		elif self._drag_type == self.DragType.EVERYWHERE:
-			self.start_mouse_pos = event.globalPosition().toPoint()
-			self.start_window_pos = self.pos()
+			self.mdi_context_menu_requested(event.position().toPoint())
 		return True
 
 	def mouseReleaseEvent(self, mouseEvent: QtGui.QMouseEvent) -> bool: #pylint: disable=unused-argument

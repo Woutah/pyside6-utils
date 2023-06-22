@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'ConsoleWidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.0
+## Created by: Qt User Interface Compiler version 6.5.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -17,7 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QHeaderView, QPlainTextEdit, QSizePolicy,
     QSplitter, QTableView, QVBoxLayout, QWidget)
-import pyside6_utils.Icons.app_resources_rc
+import pyside6_utils.icons.app_resources_rc
 
 class Ui_ConsoleWidget(object):
     def setupUi(self, ConsoleWidget):

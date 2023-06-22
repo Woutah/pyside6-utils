@@ -13,6 +13,7 @@ from pyside6_utils.models.extended_sort_filter_proxy_model import \
 from pyside6_utils.ui.ConsoleWidget_ui import Ui_ConsoleWidget
 from pyside6_utils.widgets.delegates.console_widget_delegate import ConsoleWidgetDelegate
 
+
 log = logging.getLogger(__name__)
 
 
@@ -20,13 +21,13 @@ log = logging.getLogger(__name__)
 
 class ConsoleWidget(QtWidgets.QWidget):
 	"""Widget that dynamically displayes multiple console -
-	E.g. in the case of ConsoleModle + ConsoleFromFileItems : watches the selected file for changes and updates the
+	E.g. in the case of ConsoleModel + ConsoleFromFileItems : watches the selected file for changes and updates the
 	widget accordingly.	Mainly intended for use with a file to which stdout/stderr can be redirected to.
 	"""
 
-	DESCRIPTION = """Widget that dynamically displayes the output of multiple console instances - \
-	E.g. in the case of ConsoleFromFileModel : watches the selected file for changes and updates the widget accordingly.
-	Mainly intended for use with a file to which stdout/stderr can be redirected to."""
+	DESCRIPTION = ("Widget that dynamically displayes multiple console - "
+	"E.g. in the case of ConsoleModel + ConsoleFromFileItems : watches the selected file for changes and updates the"
+	"widget accordingly. Mainly intended for use with a file to which stdout/stderr can be redirected to.")
 
 	def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None, display_max_chars = 200_000) -> None:
 		"""

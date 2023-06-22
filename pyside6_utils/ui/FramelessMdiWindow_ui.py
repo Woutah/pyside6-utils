@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'FramelessMdiWindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.0
+## Created by: Qt User Interface Compiler version 6.5.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -73,7 +73,7 @@ class Ui_FramelessMidiWindow(object):
         sizePolicy1.setHeightForWidth(self.MinimizeButton.sizePolicy().hasHeightForWidth())
         self.MinimizeButton.setSizePolicy(sizePolicy1)
         icon = QIcon()
-        icon.addFile(u":/Icons/actions/list-remove.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icons/actions/list-remove.png", QSize(), QIcon.Normal, QIcon.Off)
         self.MinimizeButton.setIcon(icon)
         self.MinimizeButton.setIconSize(QSize(15, 15))
         self.MinimizeButton.setFlat(False)
@@ -85,7 +85,7 @@ class Ui_FramelessMidiWindow(object):
         sizePolicy1.setHeightForWidth(self.zoomButton.sizePolicy().hasHeightForWidth())
         self.zoomButton.setSizePolicy(sizePolicy1)
         icon1 = QIcon()
-        icon1.addFile(u":/Icons/actions/system-search.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u":/icons/actions/system-search.png", QSize(), QIcon.Normal, QIcon.Off)
         self.zoomButton.setIcon(icon1)
         self.zoomButton.setIconSize(QSize(15, 15))
         self.zoomButton.setFlat(False)
