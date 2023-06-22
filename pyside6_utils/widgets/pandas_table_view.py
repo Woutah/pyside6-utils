@@ -38,7 +38,8 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 		self._sort_order = [] #Qt.DescendingOrder or Qt.SortOrder.AscendingOrder
 		self._filter_columns = [] #List of column names to filter by
 		self._filter_strings = [] #List of strings to filter by
-		# self.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role (so that we can sort by the value in the cell, not the display role)
+		# self.setSortRole(QtCore.Qt.ItemDataRole.EditRole) #Sort by the edit role
+		# 	(so that we can sort by the value in the cell, not the display role)
 
 
 	def headerData(self,
@@ -78,6 +79,8 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 
 
 class PandasTableView(QTableView):
+	"""A view to display a pandas dataframe, works best in combination with PandasTableModel - places a"
+		proxymodel in between the tableview and the model to allow sorting and filtering"""
 	DESCRIPTION = ("A view to display a pandas dataframe, works best in combination with PandasTableModel - places a"
 		"proxymodel in between the tableview and the model to allow sorting and filtering")
 
@@ -100,11 +103,11 @@ class PandasTableView(QTableView):
 		# self.horizontalHeader().sectionClicked.connect(self.headerClicked)
 
 
-	def setStatusBar(self, status_bar):
+	def set_status_bar(self, status_bar):
 		"""Set the status bar to be used by the view, e.g. when making a selection"""
 		self._status_bar = status_bar
 
-	def setModel(self, model: QtCore.QAbstractItemModel) -> None: #type: ignore #pylint: disable=invalid-name
+	def setModel(self, model: QtCore.QAbstractItemModel) -> None: #type: ignore
 		"""Set the model for the table view"""
 		return self.proxy_model.setSourceModel(model)
 
@@ -123,13 +126,13 @@ class PandasTableView(QTableView):
 		min_row = min(rows)
 		max_row = max(rows)
 		min_col = min(columns)
-		maxCol = max(columns)
+		max_col = max(columns)
 
 		#Create a string with the selected data, using tabs and newlines (excel-like-format)
 		clip_data = ""
 		for row in range(min_row, max_row + 1):
 			sep = ""
-			for column in range(min_col, maxCol + 1):
+			for column in range(min_col, max_col + 1):
 				clip_data += sep
 				index = self.model().index(row, column)
 				sep = "\t"
@@ -154,7 +157,8 @@ class PandasTableView(QTableView):
 		for index in self.selectedIndexes():
 			if discard_empty and self.model().data(index, Qt.ItemDataRole.DisplayRole) == "":
 				continue
-			if discard_nan and self.model().data(index, Qt.ItemDataRole.EditRole) is None or pd.isnull(self.model().data(index, Qt.ItemDataRole.EditRole)):
+			if discard_nan and self.model().data(index, Qt.ItemDataRole.EditRole) is None or\
+					pd.isnull(self.model().data(index, Qt.ItemDataRole.EditRole)):
 				continue
 			data.append(self.model().data(index, Qt.ItemDataRole.EditRole))
 		return data
@@ -182,14 +186,12 @@ class PandasTableView(QTableView):
 		if len(data) == 2: #If we selected exactly 2 cells -> also show the difference
 			try:
 				difference = abs(data[1] - data[0])
-				additional_text = ", Difference: {}".format(difference)
+				additional_text = f", Difference: {difference}"
 			except (TypeError, ZeroDivisionError):
 				additional_text = ""
 		#Display the results
 		self._status_bar.showMessage(
-			"Selected cells: {}, Average: {}, Total: {}, Sum: {}{}".format(
-				len(data), average, total, thesum,additional_text
-			)
+			f"Selected cells: {len(data)}, Average: {average}, Total: {total}, Sum: {thesum}{additional_text}"
 		)
 
 
@@ -214,7 +216,7 @@ def run_example_app():
 	example_df_model = PandasTableModel(example_df)
 	example_view = PandasTableView()
 	example_view.setModel(example_df_model)
-	example_view.setStatusBar(test_window.statusBar())
+	example_view.set_status_bar(test_window.statusBar())
 	test_window.setCentralWidget(example_view)
 	example_view.show()
 	test_window.show()

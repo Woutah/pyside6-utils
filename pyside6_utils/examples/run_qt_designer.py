@@ -19,7 +19,7 @@ def run_qt_designer():
 	env.insert('PYSIDE_DESIGNER_PLUGINS', os.path.join(main_path, "registrars"))
 
 
-	app = QApplication(sys.argv)
+	app = QApplication(sys.argv) #pylint: disable=unused-variable
 	QMessageBox.information(
 		None, #type: ignore
 		"PySide6 Designer",

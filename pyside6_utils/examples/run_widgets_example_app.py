@@ -1,7 +1,8 @@
 """Run a window with examples for the widgets in this package."""
 
-import pandas as pd
 import sys
+
+import pandas as pd
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from pyside6_utils.models.pandas_table_model import PandasTableModel
@@ -13,9 +14,9 @@ def run_widgets_example_app():
 	TODO: create buttons for the large widgets? 
 	"""
 	app = QApplication(sys.argv)
-	MainWindow = QMainWindow()
-	ui = Ui_MainWindow()
-	ui.setupUi(MainWindow)
+	example_window = QMainWindow()
+	example_ui = Ui_MainWindow()
+	example_ui.setupUi(example_window)
 
 	#====== Example df for PandasTableView ======
 	example_df = pd.DataFrame({
@@ -26,10 +27,10 @@ def run_widgets_example_app():
 		"Column 5": [10000, 20000, 30000, 40000, 50000],
 	})
 	example_df_model = PandasTableModel(example_df)
-	ui.pandasTableView.setModel(example_df_model)
-	ui.pandasTableView.setStatusBar(MainWindow.statusBar())
+	example_ui.pandasTableView.setModel(example_df_model)
+	example_ui.pandasTableView.set_status_bar(example_window.statusBar())
 
-	MainWindow.show()
+	example_window.show()
 	sys.exit(app.exec())
 
 

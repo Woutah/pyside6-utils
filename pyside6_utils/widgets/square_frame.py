@@ -1,6 +1,8 @@
 """Implements a wrapper that forces the inside widget to remain square"""
-from PySide6 import QtCore, QtWidgets
 import logging
+
+from PySide6 import QtCore, QtWidgets
+
 log = logging.getLogger(__name__)
 
 class SquareFrame(QtWidgets.QFrame):
