@@ -9,7 +9,9 @@ from pyside6_utils.ui.allWidgets_ui import Ui_MainWindow
 
 
 def run_widgets_example_app():
-	"""Creates a qt app and shows a window with all (small) widgets in this package."""
+	"""Creates a qt app and shows a window with all a couple of small widgets in this package.
+	TODO: create buttons for the large widgets? 
+	"""
 	app = QApplication(sys.argv)
 	MainWindow = QMainWindow()
 	ui = Ui_MainWindow()
