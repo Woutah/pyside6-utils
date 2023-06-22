@@ -334,17 +334,10 @@ class FileExplorerView(QtWidgets.QTreeView):
 		self.edit(index)
 
 
-
-
-if __name__ == "__main__":
+def run_example_app():
+	"""Run an example instance of the file_explorer view with a file_explorer model"""
+	#pylint: disable=import-outside-toplevel
 	import sys
-
-	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
-	handler = logging.StreamHandler()
-	handler.setFormatter(formatter)
-	logging.basicConfig(
-		handlers=[handler],
-		level=logging.DEBUG) #Without time
 
 	test_app = QtWidgets.QApplication(sys.argv)
 	test_view = FileExplorerView()
@@ -361,5 +354,17 @@ if __name__ == "__main__":
 	test_view.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 	test_view.show()
 	#Set path to C:\Users\user\Documents\radial_drilling\Widgets\Examples\Temp
-	test_view.setRootIndex(test_model.index("C:\\Users\\user\\Documents\\Temp"))
+	cur_path = os.path.join(os.path.dirname(__file__))
+	test_view.setRootIndex(test_model.index(cur_path))
 	sys.exit(test_app.exec())
+
+
+if __name__ == "__main__":
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
+	run_example_app()
+	

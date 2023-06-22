@@ -6,7 +6,7 @@ import os
 import typing
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from pyside6_utils.models.console_widget_models.console_standard_item_model import (
+from pyside6_utils.models.console_widget_models.console_model import (
     BaseConsoleItem, ConsoleModel)
 from pyside6_utils.models.extended_sort_filter_proxy_model import \
     ExtendedSortFilterProxyModel
@@ -116,7 +116,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 		elif selection.indexes()[0].isValid():
 			index = selection.indexes()[0]
 			item = self._files_proxy_model.data(index, role = QtCore.Qt.ItemDataRole.UserRole + 1)
-			assert isinstance(item, BaseConsoleItem), "Item is not of type BaseConsoleStandardItemModel"
+			assert isinstance(item, BaseConsoleItem), "Item is not of type BaseConsoleItem"
 			item.currentTextChanged.connect(self._on_current_text_changed)
 			self._current_text_connect = item.currentTextChanged
 			self._on_current_text_changed(item.get_current_text())

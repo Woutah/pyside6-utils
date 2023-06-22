@@ -1,8 +1,8 @@
-# PySide6 Utilities
-PySide6-utilities implements several useful PySide6 widgets, models and delegates as well as some other utility functions
+# PySide6 - Utils
+`pyside6-utils` implements several useful PySide6 widgets, models and delegates as well as some generally useful utility functions
 The package contains registrars for all new widgets, which can be used register the widgets in QtDesigner to quickly build UI's.
 
-This package was mainly developed around the DataClass-visualization, in tandem with []. 
+This package was mainly developed for the DataClass-visualization and editing, in tandem with []. 
 
 
 A quick list of the main widgets:
@@ -20,7 +20,8 @@ A quick list of the main widgets:
   - Built around the use of a QFileSystemModel - enables right-click operations and undo/redo actions, as well as the possibility to set a "highlighted" file
 - [`OverlayWidget`](#OverlayWidget)
   - Provides a container-widget to which another widget can be provided, when turning the overlay-mode of this widget on, this widget will be overlayed over the contained widget(s)
-- [`Square]
+- [`SquareFrame`](#SquareFrame)
+  - A small widget wrapper that enforces squareness. Useful when designing UI's in QtDesigner.
 - [`RangeSelector`](#RangeSelector)
   - Widget to select a range of float/int/datetime etc.  *NOTE: work in progress*
 
@@ -53,7 +54,7 @@ If all is well, this should result in the widgets showing up in the left-hand si
 
 
 # Widgets
-
+**NOTE: every widget-module contains a `run_example_app()` function, which starts a qt app and an example-instance of the widget in question**
 
 ## `DataclassTreeview`
 `DataclassTreeview`, `DataClassModel` and `DataClassEditorDelegate` are a view/model/delegate combination (resp.) which mirror a python dataclass (`@dataclass`) object and provides editors for each of the types defined.
@@ -85,33 +86,109 @@ Default values are saved and can be reset using right-click context menu. Values
 
 An example of a dataclass-view is shown below:
 <p align="center">
-	<img src="./PySide6Widgets/examples/images/dataclass_view.png" width="800" />
+	<img src="./pyside6_utils/examples/images/dataclass_view.png" width="800" />
 </p>
 
 The dataclass from which this example was generated can be found under `./examples/example_dataclass.py`.  
 
+## `PandasTableView` (and `PandasTableModel`)
+Provide an easy way to show and edit pandas dataframes. Pandas-table model adds the possibility to copy/paste data from excel, as well as current selection information (e.g. selected cells, average, total and sum).
+<p align="center">
+	<img src="./pyside6_utils/examples/images/pandas_table_view.png" width="800" />
+</p>
+
+
+
 ## `ExtendedMdiArea` / `FramelessMdiWindow`
-Based on PySide6.QtWidgets.QMdiArea, provides a way to load frameless windows with a custom UI, while also retaining resize/move/etc. A custom UI example is provided in `./ui/FrameslessMdiWindow.ui`
+Based on PySide6.QtWidgets.QMdiArea, provides a way to load frameless windows with a custom UI, while also retaining resize/move/etc. The ui used by default is provided in `./ui/FrameslessMdiWindow.ui`.
+
+<p align="center">
+	<img src="./pyside6_utils/examples/images/extended_mdi_area.png" width="800" />
+</p>
+
+We can drag, resize and move the windows as we would expect from a normal window. The windows can also be maximized and minimized using the buttons in the top-right corner. A custom UI can be provided, all functionality will be retained if the ui contains the following widgets:
+
+- `contentLayout` (`QtWidgets.QLayout`): The layout that will be used to add the content-widget
+- `titleBar` (`QtWidgets.QWidget`): The widget that will be used as the title bar, we can drag the window by using this, the parent-mdi area context menu will also be made available when right-clicking this widget
+	- `titleLabel` (`QtWidgets.QLabel`): The label that will be used to display the title
+	- `zoomButton` (`QtWidget.QButtton`): If pressed, set window to fullscreen
+	- `minimizeButton` (`QtWidget.QButtton`): If pressed, minimize the window
+
+
 
 ## `CollapsibleGroupBox`
 A QtWidgets.QGroupbox that acts as a layout, when the user check/unchecks the groupbox, the contents collapse
 When opened:
 <p align="center">
-	<img src="./PySide6Widgets/examples/images/collapsible_group_box_open.png" width="800" />
+	<img src="./pyside6_utils/examples/images/collapsible_group_box_open.png" width="800" />
 </p>
 When collapsed:
 <p align="center">
-	<img src="./PySide6Widgets/examples/images/collapsible_group_box_collapsed.png" width="800" />
+	<img src="./pyside6_utils/examples/images/collapsible_group_box_collapsed.png" width="800" />
 </p>
 
-## Console Widget
-A console-like widget to which multiple files can be mirorred, user can select the items to view the consoleitem-contens
+## `Console Widget`
+We can import `console_from_file_item` from `pyside6_utils.models.console_widget_models` to create console items which mirror a text-output file. We can then add these items to the console-widget using `ConsoleWidget.add_item`.
+
+The user can then scroll between the various console-outputs, which are updated every time the target file changes. This is especially useful for managing multiple output-files. 
+<p align="center">
+	<img src="./pyside6_utils/examples/images/console_widget.png" width="800" />
+</p>
 
 ## `FileExplorerView`
 Built around the use of a QFileSystemModel - enables right-click operations and undo/redo actions, as well as the possibility to set a "highlighted" file
+
+<p align="center">
+	<img src="./pyside6_utils/examples/images/file_explorer_view.png" width="500" />
+</p>
+
 ## `OverlayWidget`
 Provides a container-widget to which another widget can be provided, when turning the overlay-mode of this widget on, this widget will be overlayed over the contained widget(s). 
-## `PandasTableView` (and `PandasTableModel`)
-Provide an easy way to show and edit pandas dataframes
+
+<p align="center">
+	<img src="./pyside6_utils/examples/images/overlay_widget.png" width="300" />
+</p>
+
 ## `RangeSelector` 
-Widget to sel
+Widget to select a range of float/int/datetime etc.  *NOTE: work in progress*
+
+
+# Utility
+The utility submodule provides the following:
+- `catch_show_exception_in_popup_decorator`
+  - A decorator that catches exceptions and shows them in a popup
+- `constraints`
+  - Sklearn constraints, used for `DataClassModel` to constrain the editor-type based on the type-hint of the field
+- `Serializable`
+  - Base-class mainly targeted towards dataclasses - enable serialization to json. 
+- `SignalBlocker` 
+  - Enables us to temporarily block PySide6 signals using a `with` statement 
+- `utility_functions`
+  - Several smaller utility functions used in this package
+
+
+# Models
+The models submodule provides an implementation of the following:
+- `ConsoleFromFileItem` / `ConsoleModel` 
+  - Also see `ConsoleFromFileWidget` - A model/item combination that mirrors a text-file, used in `ConsoleWidget`. Use the `addItem()` method of `ConsoleModel` to add a new file to the model.
+- `DataclassModel`
+  - Also see `DataclassTreeview` - A model that mirrors a python dataclass (`@dataclass`) object and provides editors for each of the types defined. Edits are propagated to the dataclass object.
+- `ExtendedSortFilterProxyModel`
+  - Implements more advanced filtering (using multiple columns) and a more general sorting method
+- `FileExplorerModel`
+  - Also see `FileExplorerView` - Enabled highlighting items 
+- `PandasTableModel`
+  - Also see `PandasTableView` - Mirrors pandas dataframe to a Qt tablemodel
+
+
+# Using 
+This package was created in tandem with [TODO] - used for time series analysis. If this package was useful to you, please cite [TODO] using the following bibtex:
+```
+@article{TODO,
+  title={TODO},
+  author={TODO},
+  journal={TODO},
+  year={TODO},
+  publisher={TODO}
+}
+```

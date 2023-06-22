@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (QApplication, QHeaderView, QLabel, QMainWindow,
 from pyside6_utils.widgets.collapsible_group_box import CollapsibleGroupBox
 from pyside6_utils.widgets.pandas_table_view import PandasTableView
 from pyside6_utils.widgets.range_selector import RangeSelector
-import pyside6-utils.icons.app_resources_rc
+import pyside6_utils.icons.app_resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

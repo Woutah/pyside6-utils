@@ -2,12 +2,14 @@
 A custom UI can be used, for more information, see the class documentation
 """
 import enum
+import logging
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
+import pyside6_utils.widgets.extended_mdi_area as extended_mdi_area  # Circular import, use this to avoid it
 from pyside6_utils.ui.FramelessMdiWindow_ui import Ui_FramelessMidiWindow
 
-import pyside6_utils.widgets.extended_mdi_area as extended_mdi_area #Circular import, use this to avoid it
+log = logging.getLogger(__name__)
 
 class SideGrip(QtWidgets.QWidget):
 	""" Implements a grip for the sides of a window/mdi-window. Based on:
@@ -292,8 +294,9 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 					return
 		self.move(new_window_pos)
 
-
-if __name__ == "__main__":
+def run_example_app():
+	"""Show example frameless window in a normal mdi area - for more functionality, see extended_mdi_area.py"""
+	#pylint: disable=import-outside-toplevel
 	import sys
 	app = QtWidgets.QApplication(sys.argv)
 	mdi_area = QtWidgets.QMdiArea()
@@ -313,3 +316,14 @@ if __name__ == "__main__":
 	mdi_area.move((screen_size.width() - window_size.width()) // 2,
 				(screen_size.height() - window_size.height()) // 2)
 	sys.exit(app.exec())
+
+
+
+if __name__ == "__main__":
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
+	run_example_app()

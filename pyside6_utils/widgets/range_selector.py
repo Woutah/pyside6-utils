@@ -433,6 +433,8 @@ class RangeSelector(IntRangeSelector):
 
 	hasValueBoxes = QtCore.Property(bool, lambda self: self._has_value_boxes, setHasValueBoxes)
 
+
+
 if __name__ == "__main__":
 	import sys
 	app = QtWidgets.QApplication(sys.argv)

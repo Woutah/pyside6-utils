@@ -125,7 +125,7 @@ def run_example_app():
 	overlay = QtWidgets.QWidget(None)
 	overlay.setFixedSize(300, 100)
 	overlay.setLayout(QtWidgets.QVBoxLayout())
-	overlay.layout().addWidget(QtWidgets.QLabel("Widget itself"))
+	overlay.layout().addWidget(QtWidgets.QLabel("This is an overlay widget with a button to hide it"))
 	btn = QtWidgets.QPushButton("Hide overlay")
 	btn.clicked.connect(lambda: widget.set_overlay_hidden(True))
 	overlay.layout().addWidget(btn)

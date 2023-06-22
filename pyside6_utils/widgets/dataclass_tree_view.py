@@ -9,7 +9,6 @@ from dataclasses import Field
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-
 from pyside6_utils.models.dataclass_model import DataclassModel
 
 log = logging.getLogger(__name__)
@@ -93,64 +92,43 @@ class DataClassTreeView(QtWidgets.QTreeView):
 
 
 def run_example_app():
-	"""Creates a qt-app instance and runs the example
-	Creates a temp file and mirrors the output to the "console", then deletes the temp file afterwards
+	"""Run an example using ./examples/example_dataclass.py and a dataclass treeview & model
+	As well as a tableview with the same model. Note that the tableview does not support nested dataclass-attributes. 
 	"""
 	#pylint: disable=import-outside-toplevel
-	from pyside6_utils.models.console_widget_models.console_from_file_item import ConsoleFromFileItem
-	import tempfile
-	import threading
-	import time
-	log.info("Now running an example using console from file items, the console should print a number every second")
-	temp_dir = tempfile.gettempdir()
-	temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, mode='w', delete=False, suffix=".txt") #Delete temporary
-		# file afterwards
+	import sys
 
-	app = QtWidgets.QApplication([])
-	test_console_model = ConsoleModel()
-	console_widget = ConsoleWidget()
-	console_widget.set_model(test_console_model)
+	from pyside6_utils.examples.example_dataclass import ExampleDataClass
+	from pyside6_utils.widgets.delegates.dataclass_editors_delegate import \
+	    DataclassEditorsDelegate
 
+	app = QtWidgets.QApplication(sys.argv)
+	test_data = ExampleDataClass()
+	model = DataclassModel(test_data)
+	view1 = DataClassTreeView()
+	view2= QtWidgets.QTableView()
 
-	test_console_model.add_item(
-		ConsoleFromFileItem(
-			name="Output 1",
-			path = temp_file.name,
-		)
-	)
-	test_console_model.add_item(
-		ConsoleFromFileItem(
-			name="Output 2",
-			path = temp_file.name,
-		)
-	)
-	window = QtWidgets.QMainWindow()
-	#Set size to 1000
-	window.resize(1200, 500)
-	console_widget.set_console_width_percentage(80)
+	view1.setModel(model)
+	view1.setItemDelegate(DataclassEditorsDelegate())
+	view2.setModel(model)
+	view2.setItemDelegate(DataclassEditorsDelegate())
+	#adjust treeview to fit contents, but allow user to resize
+	#Fit header of view 1 to contents, then allow user to resize
+	view1.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+	view1.header().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+	view1.show()
+	view2.show()
 
-	layout = QtWidgets.QVBoxLayout()
-	layout.addWidget(console_widget)
+	#Set window size to 400 and display
+	view1.resize(400, 400)
+	view2.resize(400, 400)
 
-	console_widget.set_console_width_percentage(80)
-
-	#Create thread that
-	def log_to_file():
-		"""logs integer to file every seconds for 10 seconds"""
-		for i in range(20):
-			temp_file.write(f"Wrote line {i} to file {temp_file.name}\n")
-			temp_file.flush()
-			time.sleep(1)
-	thread = threading.Thread(target=log_to_file)
-	thread.start()
-
-
-	window.setCentralWidget(console_widget)
-	window.show()
+	#Place windows next to each other
+	view1.move(1000, 400)
+	view2.move(1400, 400)
 	app.exec()
-	temp_file.close()
-	#remove the temp file
-	os.remove(temp_file.name)
+	print(test_data)
+	sys.exit()
 
 
 

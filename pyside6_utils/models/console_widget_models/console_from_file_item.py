@@ -3,7 +3,7 @@ import os
 import time
 
 from PySide6 import QtCore, QtWidgets
-from pyside6_utils.models.console_widget_models.console_standard_item_model import BaseConsoleItem
+from pyside6_utils.models.console_widget_models.console_model import BaseConsoleItem
 
 class FileCheckerWorker(QtCore.QObject):
 	"""A class that continuously checks a file path for changes in file size, if so, it emits a simple signal,
