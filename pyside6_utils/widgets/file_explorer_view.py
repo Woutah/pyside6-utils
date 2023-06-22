@@ -9,7 +9,11 @@ import shutil
 import typing
 from abc import abstractmethod
 
-import winshell
+try:
+	import winshell
+except ImportError:
+	pass
+
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from pyside6_utils.models.file_explorer_model import FileExplorerModel
@@ -55,8 +59,14 @@ class DeleteAction(UndoAbleAction):
 			os.rename(self._deleted_file_path, self._original_file_path) #Restore file
 		else: #TODO: This only support windows or OS'es that return deleted-file-paths when using QFile.moveToTrash
 			# recycled_files = list(winshell.recycle_bin())
-			winshell.undelete(self._original_file_path.replace("/", os.sep)) #Path returned by QFileSystemModel is in
+
+			#Check if windows
+			if os.name == "nt":
+				winshell.undelete(self._original_file_path.replace("/", os.sep)) #Path returned by QFileSystemModel is in
 				#unix format, so we need to convert it to windows format
+			else:
+				raise NotImplementedError("Undoing delete action is not supported on this OS ({os.name}))")
+				#TODO: implement for other OS'es
 
 	def redo(self):
 		QtCore.QFile.moveToTrash(self._original_file_path, self._deleted_file_path) #type: ignore
@@ -367,4 +377,3 @@ if __name__ == "__main__":
 		handlers=[handler],
 		level=logging.DEBUG) #Without time
 	run_example_app()
-	
