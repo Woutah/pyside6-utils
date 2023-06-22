@@ -6,6 +6,7 @@ setup(
 	packages=find_packages('.'),
     description="A collection of useful widgets and utilities for PySide6 compatible with pyside6-designer.",
     long_description=open('README.md').read(),
+    long_description_content_type="text/markdown", #Long description is in markdown
     author="Wouter Stokman",
     url="https://github.com/Woutah/pyside6-utils",
     license="LPGPLv2",
