@@ -1,9 +1,11 @@
 """Implements a collapsible QGroupBox (using checkmark to toggle)"""
 import copy
+import logging
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Property
 
+log = logging.getLogger(__name__)
 
 class CollapsibleGroupBox(QtWidgets.QGroupBox):
 	"""A collapsible QGroupBox (using checkmark to toggle)"""
@@ -119,18 +121,9 @@ class CollapsibleGroupBox(QtWidgets.QGroupBox):
 
 
 
-if __name__ == "__main__":
-	import logging
-	log = logging.getLogger(__name__)
-
-	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
-	handler = logging.StreamHandler()
-	handler.setFormatter(formatter)
-	logging.basicConfig(
-		handlers=[handler],
-		level=logging.DEBUG) #Without time
+def run_example_app():
+	"""Creates a qt-app instance and runs the example"""
 	log.debug("Now running collapsible groupbox example...")
-
 	app = QtWidgets.QApplication([])
 	window = QtWidgets.QWidget()
 	widget = CollapsibleGroupBox(title="Test")
@@ -144,3 +137,16 @@ if __name__ == "__main__":
 	window.show()
 	app.exec()
 	log.debug("Done!")
+
+
+
+if __name__ == "__main__":
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
+
+	#Run example
+	run_example_app()

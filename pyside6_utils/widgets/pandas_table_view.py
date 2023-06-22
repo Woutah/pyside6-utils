@@ -5,6 +5,7 @@ and the sum of the selected data.
 """
 
 
+import logging
 import os
 import typing
 from enum import Enum
@@ -15,9 +16,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QTableView
 
+log = logging.getLogger(__name__)
+
 
 class TableViewRoles(Enum):
-	headerRole = Qt.ItemDataRole.UserRole + 1
+	"""Enum woth roles used by the table view"""
+	HEADER_ROLE = Qt.ItemDataRole.UserRole + 1
 
 # class FilterSortHeaderView(QHeaderView):
 # 	def __init__(self, orientation: QtCore.Qt.Orientation, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
@@ -42,7 +46,7 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 				orientation: QtCore.Qt.Orientation,
 				role: int = Qt.ItemDataRole.DisplayRole
 			) -> typing.Any:
-		if role == TableViewRoles.headerRole.value:
+		if role == TableViewRoles.HEADER_ROLE.value:
 			default_data = self.sourceModel().headerData(section, orientation, Qt.ItemDataRole.DisplayRole)
 			# sort_by = None #None=not sorted, Qt.SortOrder.AscendingOrder=ascending, Qt.DescendingOrder=descending
 			# #Check if this column is sorted
@@ -68,7 +72,7 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 		try:
 			val = ldata < rdata
 			return val
-		except Exception as exception: #pylint: disable=broad-except #pylint: disable=unused-variable
+		except Exception as exception: #pylint: disable=broad-except,unused-variable
 			return super().lessThan(left, right)
 
 
@@ -187,3 +191,46 @@ class PandasTableView(QTableView):
 				len(data), average, total, thesum,additional_text
 			)
 		)
+
+
+def run_example_app():
+	"""Creates a qt-app instance and runs the example"""
+	#pylint: disable=import-outside-toplevel
+	from PySide6 import QtWidgets
+
+	from pyside6_utils.models import PandasTableModel
+	log.info(f"Running example app for {PandasTableView.__name__}...")
+
+	app = QtWidgets.QApplication([])
+	test_window = QtWidgets.QMainWindow()
+	#====== Example df for PandasTableView ======
+	example_df = pd.DataFrame({
+		"Column 1": [1, 2, 3, 4, 5],
+		"Column 2": [10, 20, 30, 40, 50],
+		"Column 3": [100, 200, 300, 400, 500],
+		"Column 4": [1000, 2000, 3000, 4000, 5000],
+		"Column 5": [10000, 20000, 30000, 40000, 50000],
+	})
+	example_df_model = PandasTableModel(example_df)
+	example_view = PandasTableView()
+	example_view.setModel(example_df_model)
+	example_view.setStatusBar(test_window.statusBar())
+	test_window.setCentralWidget(example_view)
+	example_view.show()
+	test_window.show()
+	app.exec()
+
+
+
+
+
+if __name__ == "__main__":
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
+
+	#Run example
+	run_example_app()

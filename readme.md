@@ -2,6 +2,8 @@
 PySide6-utilities implements several useful PySide6 widgets, models and delegates as well as some other utility functions
 The package contains registrars for all new widgets, which can be used register the widgets in QtDesigner to quickly build UI's.
 
+This package was mainly developed around the DataClass-visualization, in tandem with []. 
+
 
 A quick list of the main widgets:
 - [`DataclassTreeview` (and `DataClassModel` & `DataClassEditorDelegate`)](#DataclassTreeview)

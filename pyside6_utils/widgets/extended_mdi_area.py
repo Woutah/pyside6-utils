@@ -1,11 +1,12 @@
 """Implements a QMdiArea with some extra functionality."""
 import enum
+import logging
 from typing import List
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
 import pyside6_utils.widgets.frameless_mdi_window as frameless_mdi_window
-import logging
+
 log = logging.getLogger(__name__)
 
 class ExtendedMdiArea(QtWidgets.QMdiArea):
@@ -161,7 +162,7 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 
 def run_example_app():
 	"""Creates a qt-app instance and runs the example"""
-	import sys #pylint: disable=import-outside-toplevel
+	import sys  # pylint: disable=import-outside-toplevel
 	log.info(f"Running example app for {ExtendedMdiArea.__name__}...")
 	app = QtWidgets.QApplication(sys.argv)
 	area = ExtendedMdiArea()
@@ -181,7 +182,7 @@ def run_example_app():
 
 	area.tileSubWindows()
 	sys.exit(app.exec())
-	
+
 if __name__ == "__main__":
 	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
 	handler = logging.StreamHandler()

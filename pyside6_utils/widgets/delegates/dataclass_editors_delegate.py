@@ -51,7 +51,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		elif constraint == datetime:
 			editor = QtWidgets.QDateTimeEdit(parent)
 			editor.setCalendarPopup(True)
-			return editor 
+			return editor
 		elif isinstance(constraint, type) and issubclass(constraint, Integral): #If int or (other subclass of) integral
 			editor = QtWidgets.QSpinBox(parent)
 			editor.setMaximum(9999999)

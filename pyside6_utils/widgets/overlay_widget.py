@@ -1,8 +1,11 @@
 """Implements an overlay widget that acts as a container but allows displaying another widget on top of it."""
 
+import logging
+
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 
+log = logging.getLogger(__name__)
 
 class OverlayWidget(QtWidgets.QWidget):
 	"""
@@ -96,18 +99,11 @@ class OverlayWidget(QtWidgets.QWidget):
 
 	overlayBackgroundColor = QtCore.Property(QtGui.QColor, get_background_color, set_background_color)
 
-if __name__ == "__main__":
-	import logging
-	log = logging.getLogger(__name__)
 
-	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
-	handler = logging.StreamHandler()
-	handler.setFormatter(formatter)
-	logging.basicConfig(
-		handlers=[handler],
-		level=logging.DEBUG) #Without time
-	log.debug(f"Now running {OverlayWidget.__name__} example...")
 
+def run_example_app():
+	"""Creates a qt-app instance and runs the example"""
+	log.info(f"Running example app for {OverlayWidget.__name__}...")
 
 	app = QtWidgets.QApplication([])
 	widget = OverlayWidget(None)
@@ -137,4 +133,15 @@ if __name__ == "__main__":
 	widget.show()
 
 	app.exec()
-	log.debug("Done!")
+	log.info("Done!")
+
+
+if __name__ == "__main__":
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
+	log.info("Now running overlay widget example...")
+	run_example_app()
