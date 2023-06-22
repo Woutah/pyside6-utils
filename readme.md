@@ -23,7 +23,7 @@ A quick list of the main widgets:
 - [`SquareFrame`](#SquareFrame)
   - A small widget wrapper that enforces squareness. Useful when designing UI's in QtDesigner.
 - [`RangeSelector`](#RangeSelector)
-  - Widget to select a range of float/int/datetime etc.  *NOTE: work in progress*
+  - Widget to select a range of float/int/datetime, provides extra styling if ticks are provided.
 
 
 ## Installation
@@ -54,7 +54,7 @@ If all is well, this should result in the widgets showing up in the left-hand si
 
 
 # Widgets
-**NOTE: every widget-module contains a `run_example_app()` function, which starts a qt app and an example-instance of the widget in question**
+**NOTE: every widget-module contains a `run_example_app()` function, which starts a qt app and an example-instance of the widget in question, the widget-images are pictures of these examples.**
 
 ## `DataclassTreeview`
 `DataclassTreeview`, `DataClassModel` and `DataClassEditorDelegate` are a view/model/delegate combination (resp.) which mirror a python dataclass (`@dataclass`) object and provides editors for each of the types defined.
@@ -132,7 +132,7 @@ We can import `console_from_file_item` from `pyside6_utils.models.console_widget
 
 The user can then scroll between the various console-outputs, which are updated every time the target file changes. This is especially useful for managing multiple output-files. 
 <p align="center">
-	<img src="./pyside6_utils/examples/images/console_widget.png" width="800" />
+	<img src="./pyside6_utils/examples/images/console_widget.png" width="900" />
 </p>
 
 ## `FileExplorerView`
@@ -146,11 +146,15 @@ Built around the use of a QFileSystemModel - enables right-click operations and 
 Provides a container-widget to which another widget can be provided, when turning the overlay-mode of this widget on, this widget will be overlayed over the contained widget(s). 
 
 <p align="center">
-	<img src="./pyside6_utils/examples/images/overlay_widget.png" width="300" />
+	<img src="./pyside6_utils/examples/images/overlay_widget.png" width="400" />
 </p>
 
 ## `RangeSelector` 
-Widget to select a range of float/int/datetime etc.  *NOTE: work in progress*
+Widget to select a range of float/int/datetime etc. Can drag in the middle to change both, or drag on the edges to change only min/max.
+Provides extra styling when ticks are enabled.
+<p align="center">
+	<img src="./pyside6_utils/examples/images/range_selector.png" width="400" />
+</p>
 
 
 # Utility
