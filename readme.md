@@ -1,8 +1,8 @@
 # PySide6 - Utils
-`pyside6-utils` implements several useful PySide6 widgets, models and delegates as well as some generally useful utility functions.
-The package contains registrars for all useful widgets, which can be [used to register the widgets in QtDesigner](#Qt-Designer) to quickly build UI's.
+`pyside6-utils` implements several useful PySide6 widgets, models and delegates as well as some utility functions.
+The package contains registrars for these widgets, which can be [used to register the widgets in QtDesigner](#Qt-Designer) to quickly build UI's.
 
-This package was mainly developed for DataClass-visualization and user-friendly editing of large config files. It was developed in tandem with [TODO]. 
+This package was mainly developed around the python Dataclass-functionality and helps to create user-friendly apps to view/edit large configurations (for example training configurations for machine learning). It was developed in tandem with [TODO]. 
 
 
 A quick list of the main widgets:
