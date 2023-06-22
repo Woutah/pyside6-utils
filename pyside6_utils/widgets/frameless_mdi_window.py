@@ -6,7 +6,6 @@ import logging
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-import pyside6_utils.widgets.extended_mdi_area as extended_mdi_area  # Circular import, use this to avoid it
 from pyside6_utils.ui.FramelessMdiWindow_ui import Ui_FramelessMidiWindow
 
 log = logging.getLogger(__name__)
