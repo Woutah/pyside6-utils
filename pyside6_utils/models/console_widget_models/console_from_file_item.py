@@ -38,7 +38,6 @@ class FileCheckerWorker(QtCore.QObject):
 			if cur_size != self._last_size:
 				self._last_size = cur_size
 				self.fileChanged.emit()
-				print("File changed!")
 
 
 class ConsoleFromFileItem(BaseConsoleItem):
