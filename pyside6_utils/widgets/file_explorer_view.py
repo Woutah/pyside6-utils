@@ -234,7 +234,7 @@ class FileExplorerView(QtWidgets.QTreeView):
 
 	def custom_menu_requested(self, pos):
 		"""Show the custom menu at the given position"""
-		log.info("Custom menu requested")
+		log.debug("Custom menu requested")
 		#Make alpha channel of font 0.5
 
 		#If redo is not possible, disable it
