@@ -5,14 +5,14 @@ setup(
 	version= "1.0.0",
 	packages=find_packages('.'),
     install_requires=[
-        'pandas>=1.5.2' #Works for 1.23.5
+        'pandas>=1.5.2', #Works for 1.23.5
         'numpy>=1.0.0', #Works for 1.23.5
         'PySide6>=6.0.0', # Qt for Python, works for 6.5.1.1
-        'PySide6_Addons>=6.0.0' #Works for 6.5.1.1
-        'PySide6_Essentials>=6.0.0' #Works for 6.5.1.1
+        'PySide6_Addons>=6.0.0', #Works for 6.5.1.1
+        'PySide6_Essentials>=6.0.0', #Works for 6.5.1.1
         'pathos>=0.3.0', #Works for 0.3.0
         'setuptools>=65.0.0', #Works for 65.5.0
-        'winshell>=0.6; platform_system == "Windows"'
+        'winshell>=0.6; platform_system == "Windows"',
         'typing_inspect>=0.7.0', #Works for 0.8.0
 	]
 )

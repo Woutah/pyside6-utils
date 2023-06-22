@@ -10,7 +10,7 @@ from pyside6_utils.models.console_widget_models.console_model import (
     BaseConsoleItem, ConsoleModel)
 from pyside6_utils.models.extended_sort_filter_proxy_model import \
     ExtendedSortFilterProxyModel
-from pyside6_utils.ui.ConsoleWidget_ui import Ui_ConsoleFromFileWidget
+from pyside6_utils.ui.ConsoleWidget_ui import Ui_ConsoleWidget
 from pyside6_utils.widgets.delegates.console_widget_delegate import ConsoleWidgetDelegate
 
 log = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 				and <path> of the file in column 1, 2 and 3 respectively
 		"""
 		super().__init__(parent)
-		self.ui = Ui_ConsoleFromFileWidget() #pylint: disable=invalid-name
+		self.ui = Ui_ConsoleWidget() #pylint: disable=invalid-name
 		self.ui.setupUi(self)
 
 		self._display_max_chars = display_max_chars #The maximum number of characters to display in the text edit
