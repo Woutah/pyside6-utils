@@ -43,7 +43,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 		style_options.subControls = QtWidgets.QStyle.SubControl.SC_SliderHandle #Draw sliderhandle
 		if draw_groove:
 			style_options.subControls |= QtWidgets.QStyle.SubControl.SC_SliderGroove #Also draw slidergroove
-			if self.tickPosition() != QtWidgets.QSlider.NoTicks: #If draw ticks
+			if self.tickPosition() != QtWidgets.QSlider.TickPosition.NoTicks: #If draw ticks
 				style_options.subControls |= QtWidgets.QStyle.SubControl.SC_SliderTickmarks
 
 		style_options.activeSubControls = QtWidgets.QStyle.SubControl.SC_None #No active subcontrols
@@ -59,7 +59,7 @@ class IntRangeSelector(QtWidgets.QSlider):
 		return style_options
 
 
-	def paintEvent(self, ev: QtGui.QPaintEvent) -> None:
+	def paintEvent(self, event : QtGui.QPaintEvent) -> None: #pylint: disable=unused-argument
 		painter = QtGui.QPainter(self)
 		style = QtWidgets.QApplication.style()
 
@@ -186,14 +186,14 @@ class IntRangeSelector(QtWidgets.QSlider):
 			if self._hovering_on_control[0] or self._hovering_on_control[1]:
 				#If horizontal
 				if self.orientation() == QtCore.Qt.Orientation.Horizontal:
-					self.setCursor(QtCore.Qt.SizeHorCursor)
+					self.setCursor(QtCore.Qt.CursorShape.SizeHorCursor)
 				else:
-					self.setCursor(QtCore.Qt.SizeVerCursor)
+					self.setCursor(QtCore.Qt.CursorShape.SizeVerCursor)
 			elif self._span_rect.contains(pos):
-					self.setCursor(QtCore.Qt.OpenHandCursor)
+					self.setCursor(QtCore.Qt.CursorShape.OpenHandCursor)
 					self._hovering_on_control = [True, True]
 			else:
-				self.setCursor(QtCore.Qt.ArrowCursor)
+				self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
 				self._hovering_on_control = [False, False]
 			self.update()
 			return
@@ -327,13 +327,12 @@ class IntRangeSelector(QtWidgets.QSlider):
 
 
 class RangeSelector(IntRangeSelector):
-
+	"""Implements a range selector based on IntRangeSelector that can be used to select a range of values of any
+	compatible type"""
 
 	rangeChanged = QtCore.Signal(object) #Min/max of slider range changed (Of any type)
 	valuesChanged = QtCore.Signal(object, object) #Min/max of selected range changed (Of any type)
-
-
-	SUPPORTED_TYPES = typing.Union[int, float, QtCore.QDate, QtCore.QTime, QtCore.QDateTime]
+	SUPPORTED_TYPES = typing.Union[int, float, QtCore.QDate, QtCore.QTime, QtCore.QDateTime, type(None)]
 
 	def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None) -> None:
 		super().__init__(parent)
@@ -342,9 +341,14 @@ class RangeSelector(IntRangeSelector):
 		# self._layout.setSpacing(0)
 		self._has_value_boxes = True
 		self._value_boxes = [QtWidgets.QSpinBox(), QtWidgets.QSpinBox()]
+
+		# self._value_boxes[0].setParent(self)
+		# self._value_boxes[1].setParent(self)
 		# self._range_selector = IntRangeSelector()
 		self._minimum = None
 		self._maximum = None
+		self._min_value = None
+		self._max_value = None
 
 		self._enforce_minimum = False
 		self._enforce_maximum = False
@@ -368,7 +372,12 @@ class RangeSelector(IntRangeSelector):
 		# self._value_boxes[1].setMaximum(value)
 		self.update()
 
-	def setAll(self, minimum : SUPPORTED_TYPES, maximum : SUPPORTED_TYPES, min_value : SUPPORTED_TYPES, max_value : SUPPORTED_TYPES):
+	def setAll(self,
+				minimum : SUPPORTED_TYPES,
+				maximum : SUPPORTED_TYPES,
+				min_value : SUPPORTED_TYPES,
+				max_value : SUPPORTED_TYPES
+			):
 		self._minimum = minimum
 		self._maximum = maximum
 		self._min_value = min_value
@@ -382,6 +391,12 @@ class RangeSelector(IntRangeSelector):
 	def update(self):
 		#Check if type of min/max is in SUPPORTED_TYPES
 		supported_types = typing.get_args(self.SUPPORTED_TYPES)
+
+		if self._minimum is None or self._maximum is None or self._min_value is None or self._max_value is None:
+			self.setEnabled(False)
+			super().update()
+			return
+
 		if type(self._minimum) not in supported_types\
 				or type(self._maximum) not in supported_types\
 				or type(self._min_value) not in supported_types\
@@ -390,7 +405,7 @@ class RangeSelector(IntRangeSelector):
 			msg = (f"One of the values (min/max minval/maxval) of type {type(self._minimum)} is not a supported type for"
 				f"RangeSelector. Supported types are: {self.SUPPORTED_TYPES}")
 			log.warning(msg)
-			raise TypeError()
+			raise TypeError(msg)
 
 		#Check if all types are the same
 		if type(self._minimum) != type(self._maximum) or\
@@ -427,21 +442,45 @@ class RangeSelector(IntRangeSelector):
 	#QAbstractSlider properties
 	value = None
 	# sliderPosition = QtCore.Property(object, lambda self: (self._value_boxes[0].value(), self._value_boxes[1].value()), lambda self, value: self.setSliderPositions(value))
-	minimum = QtCore.Property(int, lambda self: self.minimum(), setMinimum)
+	# minimum = QtCore.Property(int, lambda self: self.minimum(), setMinimum)
 	enforceMinimum = QtCore.Property(bool, lambda self: self._enforce_minimum, setEnforceMinimum) #Whether to enforce the minimum value when using setSliderPositions-methods
 	enforceMaximum = QtCore.Property(bool, lambda self: self._enforce_maximum, setEnforceMaximum) #Whether to enforce the maximum value when using setSliderPositions-methods
 
 	hasValueBoxes = QtCore.Property(bool, lambda self: self._has_value_boxes, setHasValueBoxes)
 
 
-
-if __name__ == "__main__":
+def run_example_app():
+	"""Run the example app with this widget"""
 	import sys
 	app = QtWidgets.QApplication(sys.argv)
 	window = QtWidgets.QMainWindow()
 
-	range_selector = RangeSelector()
-	range_selector.setOrientation(QtCore.Qt.Orientation.Horizontal)
-	window.setCentralWidget(range_selector)
+	range_selector1 = RangeSelector()
+	range_selector1.setOrientation(QtCore.Qt.Orientation.Horizontal)
+	range_selector1.setAll(0.0, 100.0, 20.0, 80.0)
+	range_selector1.setTickInterval(5)
+	range_selector1.setTickPosition(QtWidgets.QSlider.TickPosition.TicksAbove)
+
+	range_selector2 = RangeSelector()
+	range_selector2.setOrientation(QtCore.Qt.Orientation.Horizontal)
+	range_selector2.setAll(0.0, 100.0, 20.0, 80.0)
+
+	layout = QtWidgets.QVBoxLayout()
+	layout.addWidget(range_selector1)
+	layout.addWidget(range_selector2)
+	widget = QtWidgets.QWidget()
+	widget.setLayout(layout)
+	window.setCentralWidget(widget)
 	window.show()
 	sys.exit(app.exec())
+
+
+
+if __name__ == "__main__":
+	formatter = logging.Formatter("[{pathname:>90s}:{lineno:<4}]  {levelname:<7s}   {message}", style='{')
+	handler = logging.StreamHandler()
+	handler.setFormatter(formatter)
+	logging.basicConfig(
+		handlers=[handler],
+		level=logging.DEBUG) #Without time
+	run_example_app()
