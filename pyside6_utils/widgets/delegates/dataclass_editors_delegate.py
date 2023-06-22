@@ -6,7 +6,6 @@ import typing
 from datetime import datetime
 from numbers import Integral, Real
 
-import typing_inspect
 from PySide6 import QtCore, QtWidgets
 
 from pyside6_utils.utility.constraints import Interval, Options, StrOptions
@@ -115,15 +114,14 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		if isinstance(typehint, type):
 			return [typehint]
 		elif isinstance(typehint, types.UnionType) or \
-				typing_inspect.get_origin(typehint) == typing.Union:
-				# typing_inspect.get_origin(typehint) == typing.Union: #If optional -> same as Union[x | None],
-			type_list = list(typing_inspect.get_args(typehint))
+				typing.get_origin(typehint) == typing.Union:
+			type_list = list(typing.get_args(typehint))
 			constraints = []
 			for cur_type in type_list:
 				new_constraint = DataclassEditorsDelegate.get_constraints_from_typehint(cur_type)
 				if new_constraint:
 					constraints.extend(new_constraint)
-		elif typing_inspect.get_origin(typehint) == typing.Literal: #pylint: disable=comparison-with-callable
+		elif typing.get_origin(typehint) == typing.Literal: #pylint: disable=comparison-with-callable
 			constraints = [Options(typing.Any, set(typehint.__args__))] #TODO: maybe check if all the same type instead
 				# of typing.Any?
 		return constraints

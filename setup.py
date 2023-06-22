@@ -19,7 +19,6 @@ setup(
         'PySide6_Essentials>=6.0.0', #Works for 6.5.1.1
         'pathos>=0.3.0', #Works for 0.3.0
         'setuptools>=65.0.0', #Works for 65.5.0
-        'winshell>=0.6; platform_system == "Windows"',
-        'typing_inspect>=0.7.0', #Works for 0.8.0
+        'winshell>=0.6; platform_system == "Windows"'
 	]
 )
