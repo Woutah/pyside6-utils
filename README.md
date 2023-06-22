@@ -49,7 +49,7 @@ from pyside6_utilities.examples import run_qt_designer
 
 If all is well, this should result in the widgets showing up in the left-hand side of Qt-designer, e.g. for the views it should look like this:
 <p align="center">
-	<img src="./pyside6_utils/examples/images/Qt_designer_loaded_widgets_example.png" width="800" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/Qt_designer_loaded_widgets_example.png?raw=True" width="800" />
 </p>
 
 # Widgets
@@ -85,7 +85,7 @@ Default values are saved and can be reset using right-click context menu. Values
 
 An example of a dataclass-view is shown below:
 <p align="center">
-	<img src="./pyside6_utils/examples/images/dataclass_view.png" width="800" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/dataclass_view.png?raw=True" width="800" />
 </p>
 
 The dataclass from which this example was generated can be found under `./examples/example_dataclass.py`.  
@@ -93,7 +93,7 @@ The dataclass from which this example was generated can be found under `./exampl
 ## `PandasTableView` (and `PandasTableModel`)
 Provide an easy way to show and edit pandas dataframes. Pandas-table model adds the possibility to copy/paste data from excel, as well as current selection information (e.g. selected cells, average, total and sum).
 <p align="center">
-	<img src="./pyside6_utils/examples/images/pandas_table_view.png" width="800" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/pandas_table_view.png?raw=True" width="800" />
 </p>
 
 
@@ -102,7 +102,7 @@ Provide an easy way to show and edit pandas dataframes. Pandas-table model adds 
 Based on PySide6.QtWidgets.QMdiArea, provides a way to load frameless windows with a custom UI, while also retaining resize/move/etc. The ui used by default is provided in `./ui/FrameslessMdiWindow.ui`.
 
 <p align="center">
-	<img src="./pyside6_utils/examples/images/extended_mdi_area.png" width="800" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/extended_mdi_area.png?raw=True" width="800" />
 </p>
 
 We can drag, resize and move the windows as we would expect from a normal window. The windows can also be maximized and minimized using the buttons in the top-right corner. A custom UI can be provided, all functionality will be retained if the ui contains the following widgets:
@@ -119,11 +119,11 @@ We can drag, resize and move the windows as we would expect from a normal window
 A QtWidgets.QGroupbox that acts as a layout, when the user check/unchecks the groupbox, the contents collapse
 When opened:
 <p align="center">
-	<img src="./pyside6_utils/examples/images/collapsible_group_box_open.png" width="800" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/collapsible_group_box_open.png?raw=True" width="800" />
 </p>
 When collapsed:
 <p align="center">
-	<img src="./pyside6_utils/examples/images/collapsible_group_box_collapsed.png" width="800" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/collapsible_group_box_collapsed.png?raw=True" width="800" />
 </p>
 
 ## `Console Widget`
@@ -131,28 +131,28 @@ We can import `console_from_file_item` from `pyside6_utils.models.console_widget
 
 The user can then scroll between the various console-outputs, which are updated every time the target file changes. This is especially useful for managing multiple output-files. 
 <p align="center">
-	<img src="./pyside6_utils/examples/images/console_widget.png" width="900" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/console_widget.png?raw=True" width="900" />
 </p>
 
 ## `FileExplorerView`
 Built around the use of a QFileSystemModel - enables right-click operations and undo/redo actions, as well as the possibility to set a "highlighted" file
 
 <p align="center">
-	<img src="./pyside6_utils/examples/images/file_explorer_view.png" width="500" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/file_explorer_view.png?raw=True" width="500" />
 </p>
 
 ## `OverlayWidget`
 Provides a container-widget to which another widget can be provided, when turning the overlay-mode of this widget on, this widget will be overlayed over the contained widget(s). 
 
 <p align="center">
-	<img src="./pyside6_utils/examples/images/overlay_widget.png" width="400" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/overlay_widget.png?raw=True" width="400" />
 </p>
 
 ## `RangeSelector` 
 Widget to select a range of float/int/datetime etc. Can drag in the middle to change both, or drag on the edges to change only min/max.
 Provides extra styling when ticks are enabled.
 <p align="center">
-	<img src="./pyside6_utils/examples/images/range_selector.png" width="400" />
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/range_selector.png?raw=True" width="400" />
 </p>
 
 
