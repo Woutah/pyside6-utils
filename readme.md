@@ -7,7 +7,7 @@ This package was mainly developed for the DataClass-visualization and editing, i
 
 A quick list of the main widgets:
 - [`DataclassTreeview` (and `DataClassModel` & `DataClassEditorDelegate`)](#DataclassTreeview)
-  - A view/model/delegate combination which mirrors a python dataclass (`@dataclass`) object and provides editors for each of the types defined. Edits are propagated to the dataclass object.
+  - A view/model/delegate combination which mirrors a python dataclass (`@dataclass`) object and provides editors for each of the types defined. Edits are propagated to the dataclass object. We can use [`dataclasses.field()`](https://docs.python.org/3/library/dataclasses.html#dataclasses.Field) to customize how attributes are displayed and to change the editor-type and constraints.
 - [`PandasTableView` (and `PandasTableModel`)](#PandasTableView)
   - Provide an easy way to show and edit pandas dataframes
 - [`CollapsibleGroupBox`](#CollapsibleGroupBox)
@@ -29,14 +29,14 @@ A quick list of the main widgets:
 ## Installation
 The easiest way to install this package is using PyPi
 ```
-pip install **TODO**
+pip install pyside6-utils
 ```
 
 The package can also be manually installed by downloading this repository, extracting it to the desired install location and installing it using:
 ```
-pip install <path>
+pip install <install_path>
 ```
-Optionally, we can provide the `-e` argument to pip to be able to edit the package. 
+Optionally, we can provide the `-e` argument to pip so we can edit the package while pip keeps everything up to date.
 
 ## Qt-Designer
 This package provides registrars for the implemented widgets, meaning that the widgets can be made available directly in qt-designer (only `pyside6-designer` supports this functionality).
@@ -49,9 +49,10 @@ from pyside6_utilities.examples import run_qt_designer
 
 If all is well, this should result in the widgets showing up in the left-hand side of Qt-designer, e.g. for the views it should look like this:
 <p align="center">
-	<img src="./PySide6Widgets/examples/images/Qt_designer_loaded_widgets_example.png" width="800" />
+	<img src="./pyside6_utils/examples/images/Qt_designer_loaded_widgets_example.png" width="800" />
 </p>
 
+We can then drag/drop the items and create custom UI's. 
 
 # Widgets
 **NOTE: every widget-module contains a `run_example_app()` function, which starts a qt app and an example-instance of the widget in question, the widget-images are pictures of these examples.**
