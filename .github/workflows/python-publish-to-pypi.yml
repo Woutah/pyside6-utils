@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Upload Python Package to test.mypi.org
+name: Upload Python Package to mypi.org
 
 on:
   release:
@@ -38,5 +38,3 @@ jobs:
       run: python -m build
     - name: Publish the built release/package distribution to test.pypi.org
       uses: pypa/gh-action-pypi-publish@release/v1
-      with: 
-        repository-url: https://test.pypi.org/legacy/
