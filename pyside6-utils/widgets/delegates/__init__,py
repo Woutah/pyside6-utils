@@ -1,4 +1,0 @@
-"""Make all delegates importable using <package>.widgets.delegates.<delegate>"""
-#pylint: disable=unused-import
-from PySide6Widgets.widgets.delegates.console_widget_delegate import ConsoleWidgetDelegate
-from PySide6Widgets.widgets.delegates.dataclass_editors_delegate import DataclassEditorsDelegate
