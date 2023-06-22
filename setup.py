@@ -4,6 +4,12 @@ setup(
 	name = "pyside6_utils",
 	version= "1.0.0",
 	packages=find_packages('.'),
+    description="A collection of useful widgets and utilities for PySide6 compatible with pyside6-designer.",
+    long_description=open('README.md').read(),
+    author="Wouter Stokman",
+    url="https://github.com/Woutah/pyside6-utils",
+    license="LPGPLv2",
+    include_package_data=True,
     install_requires=[
         'pandas>=1.5.2', #Works for 1.23.5
         'numpy>=1.0.0', #Works for 1.23.5

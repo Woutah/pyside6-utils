@@ -1,8 +1,8 @@
 # PySide6 - Utils
-`pyside6-utils` implements several useful PySide6 widgets, models and delegates as well as some generally useful utility functions
-The package contains registrars for all new widgets, which can be used register the widgets in QtDesigner to quickly build UI's.
+`pyside6-utils` implements several useful PySide6 widgets, models and delegates as well as some generally useful utility functions.
+The package contains registrars for all useful widgets, which can be [used to register the widgets in QtDesigner](#Qt-Designer) to quickly build UI's.
 
-This package was mainly developed for the DataClass-visualization and editing, in tandem with []. 
+This package was mainly developed for DataClass-visualization and user-friendly editing of large config files. It was developed in tandem with [TODO]. 
 
 
 A quick list of the main widgets:
@@ -27,7 +27,7 @@ A quick list of the main widgets:
 
 
 ## Installation
-The easiest way to install this package is using PyPi
+The easiest way to install this package is using pip:
 ```
 pip install pyside6-utils
 ```
@@ -36,13 +36,13 @@ The package can also be manually installed by downloading this repository, extra
 ```
 pip install <install_path>
 ```
-Optionally, we can provide the `-e` argument to pip so we can edit the package while pip keeps everything up to date.
+Optionally, we can provide the `-e` argument so we can edit the package while pip keeps everything up to date.
 
 ## Qt-Designer
-This package provides registrars for the implemented widgets, meaning that the widgets can be made available directly in qt-designer (only `pyside6-designer` supports this functionality).
+This package provides registrars for the implemented widgets, which means that the widgets can be made available directly in qt-designer (note that `pyside6-designer` should be used).
 To enable this, the environment variable `PYSIDE_DESIGNER_PLUGINS` should be set to `<install_path>/registrars`, so that the widgets can be loaded in using the `QPyDesignerCustomWidgetCollection.registerCustomWidget` method.
 
-Alternatively, we can automatically set environment variables by using the pyside6 launch script. We can do this by running `<install_path>/examples/run_qt_designer.py` or by importing and running `run_qt_designer()` using:
+Alternatively, we can automatically set environment variables by using the provided pyside6 launch script. We can use this script by running `<install_path>/examples/run_qt_designer.py` or by importing and running the `run_qt_designer()`-function using:
 ```
 from pyside6_utilities.examples import run_qt_designer
 ```
@@ -52,10 +52,8 @@ If all is well, this should result in the widgets showing up in the left-hand si
 	<img src="./pyside6_utils/examples/images/Qt_designer_loaded_widgets_example.png" width="800" />
 </p>
 
-We can then drag/drop the items and create custom UI's. 
-
 # Widgets
-**NOTE: every widget-module contains a `run_example_app()` function, which starts a qt app and an example-instance of the widget in question, the widget-images are pictures of these examples.**
+**NOTE: every widget-module contains a `run_example_app()` function, which starts a qt app and an example-instance of the widget in question, the following example-widget-images are pictures of these examples.**
 
 ## `DataclassTreeview`
 `DataclassTreeview`, `DataClassModel` and `DataClassEditorDelegate` are a view/model/delegate combination (resp.) which mirror a python dataclass (`@dataclass`) object and provides editors for each of the types defined.
