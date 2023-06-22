@@ -186,8 +186,9 @@ The models submodule provides an implementation of the following:
   - Also see `PandasTableView` - Mirrors pandas dataframe to a Qt tablemodel
 
 
-# Using 
-This package was created in tandem with [TODO] - used for time series analysis. If this package was useful to you, please cite [TODO] using the following bibtex:
+# Citing
+This package was created in tandem with [TODO] - a framework for time series analysis. 
+If you're doing research and these utilities were in any way useful, please consider citing [TODO] using the following bibtex:
 ```
 @article{TODO,
   title={TODO},
