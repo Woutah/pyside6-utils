@@ -19,7 +19,7 @@ class ExampleDataClass:
 		default="testparentwithpropertystr",
 		metadata=dict(
 			display_name="Test parent with property (uneditable)",
-			help= "This is a test property (str)",
+			help= "This is a test property",
 			display_path="test_parent", #Always from base
 			editable=False
 		)
@@ -29,7 +29,7 @@ class ExampleDataClass:
 		default="teststr",
 		metadata=dict(
 			display_name="Test str property",
-			help= "This is a test property (str)",
+			help= "This is a test property",
 			display_path="test_parent/test_parent_with_property", #Always from base
 			changed=True
 		)
@@ -39,7 +39,7 @@ class ExampleDataClass:
 		default=None,
 		metadata=dict(
 			display_name="Test int/none property",
-			help= "This is a test property (int) that can also be none",
+			help= "This is a test property that can also be none",
 			changed=True
 		)
 	)
@@ -48,8 +48,18 @@ class ExampleDataClass:
 		default="testliteral1",
 		metadata=dict(
 			display_name="Test literal property",
-			help= "This is a test property (literal)",
+			help= "This is a test property",
 			changed=True
+		)
+	)
+
+	test_required_int_property: int | None = field(
+		default=None,
+		metadata=dict(
+			display_name="Test required int property",
+			help= "This is a test property that is required",
+			changed=True,
+			required=True
 		)
 	)
 
@@ -57,7 +67,7 @@ class ExampleDataClass:
 		default=1,
 		metadata=dict(
 			display_name="Test int literal property",
-			help= "This is a test property (int literal)",
+			help= "This is a test property",
 			changed=True
 		)
 	)
@@ -66,7 +76,7 @@ class ExampleDataClass:
 		default=1,
 		metadata=dict(
 			display_name="Test int options property",
-			help= "This is a test property (int options)",
+			help= "This is a test property",
 			changed=True,
 			constraints = [Interval(int, 0,10, closed='both'), None]
 		)

@@ -68,7 +68,7 @@ The following metadata is supported:
 | `"display_path"` | `str` | Path to display this attribute - we can group/structure items when using a treeview - defaults to no parents|
 | `"help"` | `str` | Help-message which will be shown when the user hovers over this item - empty by default|
 | `"constraints"` | `List[sklearn_param_validation constraints]` | Additional constraints on which the editor will be determined to apply to the field [^constraint_note], if none provided, use typehint of the field|
-| `"required"` | `bool` | Whether this field is required to be filled in `TODO`|
+| `"required"` | `bool` | Whether this field is required to be filled in - if true - a red background will appear if the value is not set|
 
 [^constraint_note]Constraints are (almost fully) sourced from the `sklearn.utils._validation` module and provides a way to constrain the dataclass fields such that the user can only enter valid values. They are also packed into this package under `utility.constraints`. The following constraints are supported:
 | Constraint | Description | Editor Type
@@ -177,7 +177,7 @@ The models submodule provides an implementation of the following:
 - `DataclassModel`
   - Also see `DataclassTreeview` - A model that mirrors a python dataclass (`@dataclass`) object and provides editors for each of the types defined. Edits are propagated to the dataclass object.
 - `ExtendedSortFilterProxyModel`
-  - Implements more advanced filtering (using multiple columns) and a more general sorting method
+  - Implements more advanced sorting (using multiple columns) and a `set_filter_function(...)` that can be used to use (multiple) custom methods to filter the model.
 - `FileExplorerModel`
   - Also see `FileExplorerView` - Enabled highlighting items 
 - `PandasTableModel`

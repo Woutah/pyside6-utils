@@ -252,11 +252,20 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			elif role == QtCore.Qt.ItemDataRole.EditRole:
 				return self._dataclass.__dict__.get(node.name, None)
 			elif role == QtCore.Qt.ItemDataRole.ToolTipRole:
+				if name_field_dict.get(node.name, None) is None:
+					return node.name #If only a header (no data)
 				result_str = ""
 				result_str += name_field_dict[node.name].metadata.get("help", "")
-				item_type_name = name_field_dict[node.name].type.__name__
+
+				if name_field_dict[node.name].metadata.get("required", False):
+					result_str += " <b style='color:red'>(required)</b>"
+				try:
+					item_type_name = name_field_dict[node.name].type.__name__
+				except AttributeError: #E.g. uniontype has no __name__ attribute
+					item_type_name = str(name_field_dict[node.name].type)
 				result_str += f" (type: {item_type_name[:20]})"
 
+					
 				if hasattr(name_field_dict[node.name], "default"):
 					result_str += f" (default: {str(name_field_dict[node.name].default)[:20]})"
 				return result_str
@@ -282,6 +291,15 @@ class DataclassModel(QtCore.QAbstractItemModel):
 						font.setBold(True)
 						return font
 				return None
+			elif role == QtCore.Qt.ItemDataRole.BackgroundRole: #If required and empty, make background red
+				if name_field_dict.get(node.name, None) is None:
+					return None #If only a header (no data)
+				if hasattr(name_field_dict[node.name], "metadata"):
+					is_required =  name_field_dict[node.name].metadata.get("required", False)
+					if is_required and self._dataclass.__dict__.get(node.name, None) is None:
+						return QtGui.QBrush(QtGui.QColor(255, 0, 0, 50))
+				return None
+			
 		except Exception as exception: #pylint: disable=broad-except
 			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - "
 	       		f"{type(exception).__name__} : {exception}")
