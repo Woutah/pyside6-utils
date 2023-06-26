@@ -317,7 +317,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			tree_item = index.internalPointer()
 			assert isinstance(tree_item, DataclassTreeItem)
 			self._dataclass.__dict__[tree_item.name] = value
-			self.dataChanged.emit(index, index)
+			self.dataChanged.emit(index, self.index(index.row(), 2, index.parent()))
 			return True
 		return False
 
