@@ -196,3 +196,9 @@ If you're doing research and these utilities were in any way useful, please cons
   publisher={TODO}
 }
 ```
+
+
+# Acknowledgements
+This package uses icons from and based off of the Tango Desktop Project:
+http://tango.freedesktop.org/Tango_Desktop_Project
+
