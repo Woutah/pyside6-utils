@@ -11,7 +11,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 log = logging.getLogger(__name__)
 
 class FileExplorerModel(QtWidgets.QFileSystemModel):
-	"""A QFileSystemModel that also allows for hightlighting of a single file, for example when selecting a file for
+	"""A QFileSystemModel that also allows for highlighting of a single file, for example when selecting a file for
 	editing purposes.
 	"""
 	highlightPathChanged = QtCore.Signal(str)
@@ -27,7 +27,7 @@ class FileExplorerModel(QtWidgets.QFileSystemModel):
 		if allow_select_files_only:
 			self._allow_select_files_only = True
 
-	def reset_hightlight(self) -> None:
+	def reset_highlight(self) -> None:
 		"""Reset the highlight"""
 		self._selected_path = None
 		if self._prev_selection:
@@ -35,11 +35,11 @@ class FileExplorerModel(QtWidgets.QFileSystemModel):
 			self._prev_selection = None
 		self.highlightPathChanged.emit(None)
 
-	def get_hightlight_path(self) -> str | None:
+	def get_highlight_path(self) -> str | None:
 		"""Get the currently highlighted path"""
 		return self._selected_path
 
-	def set_hightlight_using_path(self, path: str | None) -> None:
+	def set_highlight_using_path(self, path: str | None) -> None:
 		"""Set the current highlight to the given path
 
 		Args:

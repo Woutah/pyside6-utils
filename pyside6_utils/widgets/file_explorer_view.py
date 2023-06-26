@@ -240,7 +240,7 @@ class FileExplorerView(QtWidgets.QTreeView):
 				folder_index += 1
 		os.mkdir(new_folder_path)
 		# self.model().refresh(self.model().parent(index))
-		# self.model().setHightLightPath(new_folder_path)
+		# self.model().sethighlightPath(new_folder_path)
 		# self.edit(index)
 		new_index = self.model().index(new_folder_path)
 		self.setCurrentIndex(new_index)
@@ -264,8 +264,8 @@ class FileExplorerView(QtWidgets.QTreeView):
 		return super().setModel(new_model)
 
 	def highlight_selection(self):
-		"""Hightlight the current selection using the model"""
-		log.info("Setting hightlight selection in view")
+		"""highlight the current selection using the model"""
+		log.info("Setting highlight selection in view")
 		cur_model = self.model()
 		if cur_model and isinstance(cur_model, FileExplorerModel):
 			self._highlight = self.model().filePath(self.currentIndex())
