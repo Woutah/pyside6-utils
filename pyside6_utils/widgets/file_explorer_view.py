@@ -212,24 +212,30 @@ class FileExplorerView(QtWidgets.QTreeView):
 		index = self.currentIndex()
 		if index.isValid():
 			path = self.model().filePath(index)
-			if not os.path.isdir(path):
-				path = os.path.dirname(path)
+		else:
+			path = self.model().rootPath()
+		if not os.path.isdir(path):
+			path = os.path.dirname(path)
 
-			new_folder_name = "New Folder"
-			new_folder_path = os.path.join(path, new_folder_name)
-			if os.path.exists(new_folder_path):
-				folder_index = 1
-				while os.path.exists(new_folder_path):
-					new_folder_name = f"New Folder ({folder_index})"
-					new_folder_path = os.path.join(path, new_folder_name)
-					folder_index += 1
-			os.mkdir(new_folder_path)
-			# self.model().refresh(self.model().parent(index))
-			# self.model().setHightLightPath(new_folder_path)
-			# self.edit(index)
-			new_index = self.model().index(new_folder_path)
-			self.setCurrentIndex(new_index)
-			self.edit(new_index)
+		if not os.path.isdir(path):
+			log.warning(f"Could not create new folder at path: {path}")
+			return
+
+		new_folder_name = "New Folder"
+		new_folder_path = os.path.join(path, new_folder_name)
+		if os.path.exists(new_folder_path):
+			folder_index = 1
+			while os.path.exists(new_folder_path):
+				new_folder_name = f"New Folder ({folder_index})"
+				new_folder_path = os.path.join(path, new_folder_name)
+				folder_index += 1
+		os.mkdir(new_folder_path)
+		# self.model().refresh(self.model().parent(index))
+		# self.model().setHightLightPath(new_folder_path)
+		# self.edit(index)
+		new_index = self.model().index(new_folder_path)
+		self.setCurrentIndex(new_index)
+		self.edit(new_index)
 
 
 	def custom_menu_requested(self, pos):
