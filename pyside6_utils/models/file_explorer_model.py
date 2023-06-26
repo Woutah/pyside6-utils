@@ -6,7 +6,7 @@ import logging
 import os
 import typing
 
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 log = logging.getLogger(__name__)
 
@@ -60,11 +60,25 @@ class FileExplorerModel(QtWidgets.QFileSystemModel):
 		self._selected_path = self.filePath(selection)
 
 		if self._prev_selection:
-			self.dataChanged.emit(self._prev_selection, self._prev_selection)
+			log.debug(f"Updating previous selection: {self.filePath(self._prev_selection)}")
+			self.dataChanged.emit(
+				self._prev_selection,
+				self.index(
+					self._prev_selection.row(),
+					self.columnCount(self._prev_selection),
+					self._prev_selection.parent()
+		)) #Update the icon of prev. highlighted item
 
 		new_selection = self.index(selection.row(), 0, selection.parent()) #Get index of first column (icon)
 		self._prev_selection = QtCore.QPersistentModelIndex(new_selection)
-		self.dataChanged.emit(new_selection, new_selection)#, [QtCore.Qt.FileIconRole])
+		self.dataChanged.emit(
+			new_selection,
+			self.index(
+				new_selection.row(),
+				self.columnCount(new_selection),
+				new_selection.parent()
+			)
+		)
 		self.highlightPathChanged.emit(self._selected_path)
 
 
@@ -82,6 +96,13 @@ class FileExplorerModel(QtWidgets.QFileSystemModel):
 				and (self.filePath(index) == self._selected_path):
 			#Return arrow icon if selected
 			return self._selection_icon
+		elif role == QtCore.Qt.ItemDataRole.FontRole \
+				and self._selected_path \
+				and (self.filePath(index) == self._selected_path): #Enbolden whole selected column
+			font = QtGui.QFont()
+			font.setBold(True)
+			return font
+
 
 		return super().data(index, role)
 
