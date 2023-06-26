@@ -194,18 +194,27 @@ class FileExplorerView(QtWidgets.QTreeView):
 		self.action_paste.triggered.connect(self.paste_action)
 		self.action_delete.triggered.connect(self.delete_selection)
 		self.action_rename.triggered.connect(self.rename_selection)
-		self.action_highlight.triggered.connect(self.hightlight_selection)
+		self.action_highlight.triggered.connect(self.highlight_selection)
 		self.action_new_folder.triggered.connect(self.create_new_folder)
 
 		self._highlight = None
 
-		#Catch double-click event on file
-		# self.doubleClicked.connect(self.onDoubleClick)
-		self.doubleClicked.connect(self.hightlight_selection)
+		#Catch double-click event on file - by 
+		self._double_click_connection = self.doubleClicked.connect(self.highlight_selection)
 
 		self._copied_file_path = None #If copy is pressed, this will be set to the path of the selected file
 		self._cut_mode = False
 
+	def set_double_click_callback(self, callback: typing.Callable[[str], None]) -> None:
+		"""Set the callback to be called when a file is double-clicked
+		
+		NOTE: by default, we call highlight_selection, which will highlight the file in the model-view.
+		This function is useful when, on-click, we first want to try to load the file, and if succesful, only then
+		highlight it in the model-view.
+		"""
+		if self._double_click_connection:
+			self.doubleClicked.disconnect(self._double_click_connection)
+		self.doubleClicked.connect(callback)
 
 	def create_new_folder(self):
 		"""Create a new folder at the current location and edit it"""
@@ -254,7 +263,7 @@ class FileExplorerView(QtWidgets.QTreeView):
 		assert isinstance(new_model, FileExplorerModel)
 		return super().setModel(new_model)
 
-	def hightlight_selection(self):
+	def highlight_selection(self):
 		"""Hightlight the current selection using the model"""
 		log.info("Setting hightlight selection in view")
 		cur_model = self.model()
