@@ -48,7 +48,7 @@ class FileExplorerModel(QtWidgets.QFileSystemModel):
 		self._selected_path = path
 		self.highlightPathChanged.emit(self._selected_path)
 
-	def set_highlight_using_index(self, selection: QtCore.QModelIndex) -> None:
+	def set_highlight_using_index(self, selection: QtCore.QModelIndex | QtCore.QPersistentModelIndex) -> None:
 		"""Set the current selection to the model"""
 		log.info(f"Trying to set model selection to: {self.filePath(selection)}")
 

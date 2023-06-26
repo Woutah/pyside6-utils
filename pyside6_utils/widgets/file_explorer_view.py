@@ -199,15 +199,18 @@ class FileExplorerView(QtWidgets.QTreeView):
 
 		self._highlight = None
 
-		#Catch double-click event on file - by 
+		#Catch double-click event on file - by
 		self._double_click_connection = self.doubleClicked.connect(self.highlight_selection)
 
 		self._copied_file_path = None #If copy is pressed, this will be set to the path of the selected file
 		self._cut_mode = False
 
-	def set_double_click_callback(self, callback: typing.Callable[[str], None]) -> None:
+	def set_double_click_callback(
+				self,
+			    callback: typing.Callable[[QtCore.QModelIndex | QtCore.QPersistentModelIndex], None]
+			) -> None:
 		"""Set the callback to be called when a file is double-clicked
-		
+
 		NOTE: by default, we call highlight_selection, which will highlight the file in the model-view.
 		This function is useful when, on-click, we first want to try to load the file, and if succesful, only then
 		highlight it in the model-view.
