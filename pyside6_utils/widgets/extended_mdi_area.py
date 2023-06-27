@@ -135,10 +135,12 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 	def add_actions_to_menu(self, menu : QtWidgets.QMenu) -> None:
 		"""Adds all available actions of this widget to the given menu.
 		"""
-		tile_submenu = menu.addMenu("Tile")
+		tile_submenu = menu.addMenu("Tile-mode")
+		tile_submenu.setIcon(QtGui.QIcon(":/icons/apps/preferences-system-windows.png"))
 		tile_submenu.addAction("Tile", self.tileSubWindows)
 		tile_submenu.addAction("Cascade", self.cascadeSubWindows)
 		show_hidden = menu.addMenu("Un-minimize")
+		show_hidden.setIcon(QtGui.QIcon(":/icons/actions/list-add.png"))
 		for subwindow in self._subwindows:
 			if subwindow.isMinimized():
 				show_hidden.addAction(subwindow.windowTitle(), subwindow.showNormal)
@@ -146,10 +148,13 @@ class ExtendedMdiArea(QtWidgets.QMdiArea):
 			show_hidden.setEnabled(False)
 
 		bring_to_front = menu.addMenu("Bring to front")
+		bring_to_front.setIcon(QtGui.QIcon(":/icons/actions/go-up.png"))
 		for subwindow in self._subwindows:
 			bring_to_front.addAction(subwindow.windowTitle(), lambda subwindow=subwindow: self.setActiveSubWindow(subwindow))
 
-		menu.addAction("Toggle Tabbed View", self.toggle_tabbified)
+		tab_action = menu.addAction("Toggle Tabbed View")
+		tab_action.triggered.connect(self.toggle_tabbified)
+		tab_action.setIcon(QtGui.QIcon(":/icons/actions/tab-new.png"))
 
 
 	def context_menu_requested(self, pos: QtCore.QPoint) -> None:
