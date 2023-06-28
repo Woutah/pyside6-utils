@@ -72,10 +72,11 @@ The following metadata is supported:
 | `"display_name"` | `str` | Name to display for this attribute in the view - defaults to the variable name itself |
 | `"display_path"` | `str` | Path to display this attribute - we can group/structure items when using a treeview - defaults to no parents|
 | `"help"` | `str` | Help-message which will be shown when the user hovers over this item - empty by default|
-| `"constraints"` | `List[sklearn_param_validation constraints]` | Additional constraints on which the editor will be determined to apply to the field [^constraint_note], if none provided, use typehint of the field|
+| `"constraints"` | `List[sklearn_param_validation constraints]` | Additional constraints on which the editor will be determined to apply to the field [^constraintnote] , if none provided, use typehint of the field|
 | `"required"` | `bool` | Whether this field is required to be filled in - if true - a red background will appear if the value is not set|
+| `"editable"` | `bool` | Whether this field is editable - if false - the editor will be disabled|
 
-[^constraint_note]Constraints are (almost fully) sourced from the `sklearn.utils._validation` module and provides a way to constrain the dataclass fields such that the user can only enter valid values. They are also packed into this package under `utility.constraints`. The following constraints are supported:
+[^constraintnote] Constraints are (almost fully) sourced from the `sklearn.utils._validation` module and provides a way to constrain the dataclass fields such that the user can only enter valid values. They are also packed into this package under `utility.constraints`. The following constraints are supported:
 | Constraint | Description | Editor Type
 | --- | --- | --- |
 | `type` | The type of the value should match the type of the constraint | based on type |
@@ -191,6 +192,6 @@ The models submodule provides an implementation of the following:
 
 
 # Acknowledgements
-This package uses icons from and based off of the Tango Desktop Project:
+This package uses icons from (and based off) the Tango Desktop Project:
 http://tango.freedesktop.org/Tango_Desktop_Project
 
