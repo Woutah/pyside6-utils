@@ -202,7 +202,7 @@ class FramelessMdiWindow(QtWidgets.QMdiSubWindow):
 		pos = self.ui.titleBar.mapToGlobal(pos)
 		pos = parent.mapFromGlobal(pos)
 		try:
-			parent.context_menu_requested(pos)
+			parent.context_menu_requested(pos) #type: ignore
 		except AttributeError:
 			log.debug("Parent of FramelessMdiWindow is not an ExtendedMdiArea, context menu not shown")
 

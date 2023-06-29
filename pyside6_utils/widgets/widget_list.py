@@ -13,12 +13,14 @@ class WidgetList(QtWidgets.QWidget):
 	Create a widget to which we can add/remove instances of the same widget type using a +-button at the end of the
 	widget list and a - button next to each widget.
 	"""
+	DESCRIPTION = ("Create a widget to which we can add/remove instances of a user-passed widget type using a +-button at "
+		"the end of the widget list. We can remove widgets by pressing the '-' button next to each widget.")
 	widgetsAdded = QtCore.Signal(list, list) #indexes of widget in list, widget list
 	widgetsRemoved = QtCore.Signal(list, list) #(previous) indexes of widget in list, widget list
 
 	def __init__(self, #pylint: disable=keyword-arg-before-vararg
-		  	widget_type : type,
-			widget_value_getter : typing.Callable, #How to get the value from
+		  	widget_type : type = QtWidgets.QLineEdit,
+			widget_value_getter : typing.Callable = QtWidgets.QLineEdit.text, #How to get the value from
 			widget_creation_args : dict | None = None,
 			user_addable : bool = True,
 			layout_orientation : QtCore.Qt.Orientation = QtCore.Qt.Orientation.Vertical,
@@ -163,7 +165,7 @@ def run_example_app():
 	layout = QtWidgets.QVBoxLayout()
 	central_widget.setLayout(layout)
 
-	widget_list = WidgetList(QtWidgets.QLineEdit, lambda x: x.text(), user_addable=True)
+	widget_list = WidgetList() #By default, use line-edit
 	widget_list.append()
 	widget_list.append()
 	widget_list.append()
@@ -175,7 +177,7 @@ def run_example_app():
 		QtWidgets.QSizePolicy.Policy.Expanding)
 	)
 
-	widget_list._add_btn.clicked.connect(lambda: print(widget_list.get_values()))
+	widget_list._add_btn.clicked.connect(lambda: print(widget_list.get_values())) #pylint: disable=protected-access
 
 	example_window.show()
 

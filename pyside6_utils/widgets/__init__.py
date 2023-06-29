@@ -9,3 +9,4 @@ from pyside6_utils.widgets.overlay_widget import OverlayWidget
 from pyside6_utils.widgets.pandas_table_view import PandasTableView
 from pyside6_utils.widgets.range_selector import RangeSelector
 from pyside6_utils.widgets.square_frame import SquareFrame
+from pyside6_utils.widgets.widget_list import WidgetList
