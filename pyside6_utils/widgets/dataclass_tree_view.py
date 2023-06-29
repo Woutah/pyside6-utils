@@ -102,7 +102,7 @@ def run_example_app():
 	from pyside6_utils.widgets.delegates.dataclass_editors_delegate import \
 	    DataclassEditorsDelegate
 
-	app = QtWidgets.QApplication(sys.argv)
+	app = QtWidgets.QApplication()
 	test_data = ExampleDataClass()
 	model = DataclassModel(test_data)
 	view1 = DataClassTreeView()

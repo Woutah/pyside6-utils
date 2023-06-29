@@ -6,7 +6,7 @@ import pandas as pd
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from pyside6_utils.models.pandas_table_model import PandasTableModel
-from pyside6_utils.ui.AllWidgets_ui import Ui_MainWindow
+from pyside6_utils.ui.allWidgets_ui import Ui_MainWindow
 
 
 def run_widgets_example_app():
