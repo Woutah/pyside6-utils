@@ -19,22 +19,36 @@ class WidgetList(QtWidgets.QWidget):
 	widgetsRemoved = QtCore.Signal(list, list) #(previous) indexes of widget in list, widget list
 
 	def __init__(self, #pylint: disable=keyword-arg-before-vararg
-		  	widget_type : type = QtWidgets.QLineEdit,
+		  	widget_source : type | typing.Callable[['WidgetList'], QtWidgets.QWidget] = QtWidgets.QLineEdit,
 			widget_value_getter : typing.Callable = QtWidgets.QLineEdit.text, #How to get the value from
-			widget_creation_args : dict | None = None,
+			widget_creation_args : dict | None = None, #If widget_source is a type, pass these arguments to the constructor
 			user_addable : bool = True,
 			layout_orientation : QtCore.Qt.Orientation = QtCore.Qt.Orientation.Vertical,
 			*args,
 			**kwargs
 		):
+		"""A list of widgets, we can add/remove widgets of the same type using a +-button at the end of the widget list
+		using either a factory or a type (with creation arguments)
+
+		Args:
+			widget_source (type | typing.Callable[['WidgetList'], QtWidgets.QWidget], optional): The type of widget to
+				add to the list, or a function that returns a widget (factory). Defaults to QtWidgets.QLineEdit.
+			widget_value_getter (typing.Callable, optional): The function to call on the widgets to get the value,
+				is used by the get_value() function to get the list of current values. Defaults to QtWidgets.QLineEdit.text.
+			widget_creation_args (dict | None, optional): The arguments to pass to the constructor of the widget, if
+				widget_source is a type. Defaults to None.
+			user_addable (bool, optional): Whether the user can add/remove widgets. Defaults to True.
+			layout_orientation (QtCore.Qt.Orientation, optional): _description_. Defaults to QtCore.Qt.Orientation.Vertical.
+
+		Raises:
+			TypeError: _description_
+		"""
 
 		if widget_creation_args is None:
 			widget_creation_args = {}
 
-		# super(WidgetList, self).__init__(*args, **kwargs)
 		super().__init__(*args, **kwargs)
 
-		# self.val_type = utility.get_dict_entry(item_dict, ("entry", "value_type"))
 		self._layout_type = QtWidgets.QHBoxLayout \
 			if layout_orientation == QtCore.Qt.Orientation.Horizontal else QtWidgets.QVBoxLayout
 		self._opposite_layout_type = QtWidgets.QVBoxLayout \
@@ -48,6 +62,7 @@ class WidgetList(QtWidgets.QWidget):
 		self._layout_container = QtWidgets.QWidget()
 		self._addable_items_layout = self._layout_type()
 		self._addable_items_layout.setContentsMargins(0, 0, 0, 0)
+		self._addable_items_layout.setSpacing(0)
 		self._layout_container.setLayout(self._addable_items_layout)
 		self.layout().addWidget(self._layout_container)
 
@@ -61,11 +76,20 @@ class WidgetList(QtWidgets.QWidget):
 
 
 		self._user_addable = user_addable #Whether user can add/remove widgets
-		self.widget_type = widget_type
+
+		self.widget_type = None
+		self.widget_factory = None
+		if isinstance(widget_source, type): #If widget_source is a type
+			self.widget_type = widget_source
+		elif isinstance(widget_source, typing.Callable): #If widget_source is a function
+			self.widget_factory = widget_source
+		else:
+			raise TypeError(f"widget_source must be a type or a function (factory), not {type(widget_source)}")
+
 		self.widget_creation_args = widget_creation_args
 		self.widget_value_getter = widget_value_getter
 		self.widgets : typing.List[QtWidgets.QWidget] = [] #Public - makes it easier to set/get values
-		self._widget_layout_containers : typing.List[QtWidgets.QWidget] = [] #Contains the container widgets with the 
+		self._widget_layout_containers : typing.List[QtWidgets.QWidget] = [] #Contains the container widgets with the
 			# widget to be added/removed and a '-' button
 
 		self._add_btn.clicked.connect(self._append_btn_clicked)
@@ -125,7 +149,13 @@ class WidgetList(QtWidgets.QWidget):
 		self._widget_layout_containers.insert(index, container_widget)
 
 		#Create actual widget
-		new_widget = self.widget_type(**self.widget_creation_args)
+		if self.widget_factory is not None:
+			new_widget = self.widget_factory(self)
+		elif self.widget_type is not None:
+			new_widget = self.widget_type(**self.widget_creation_args)
+		else:
+			raise RuntimeError("Both widget_factory and widget_type are None - this should not happen")
+
 		self.widgets.insert(index, new_widget)
 		container_widget.layout().addWidget(new_widget)
 

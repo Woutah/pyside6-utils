@@ -96,7 +96,6 @@ class OverlayWidget(QtWidgets.QWidget):
 
 	overlayHidden = QtCore.Property(bool, get_overlay_hidden, set_overlay_hidden)
 	overlayBlocksMouse = QtCore.Property(bool, get_overlay_mouse_block, set_overlay_mouse_block)
-
 	overlayBackgroundColor = QtCore.Property(QtGui.QColor, get_background_color, set_background_color)
 
 
