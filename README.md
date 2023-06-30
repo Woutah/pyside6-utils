@@ -192,8 +192,8 @@ Provides extra styling when ticks are enabled.
 Widget to which we can pass a widget-factory or widget-type. The user can then add/remove widgets of this type to the list. 
 A value-getter can be specified to easily get the values of all widgets in the list. 
 <p align="center">
-	<!-- <img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/widget_list.png?raw=True" width="300" /> -->
-	<img src="./pyside6_utils/examples/images/widget_list.png" width=300/>
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/widget_list.png?raw=True" width="300" />
+	<!-- <img src="./pyside6_utils/examples/images/widget_list.png" width=300/> -->
 </p>
 
 ## `WidgetSwitcher`
@@ -201,8 +201,8 @@ Wrapper around [`QtWidgets.QStackedWidget`](https://doc.qt.io/qt-6/qstackedwidge
 
 Especially useful in combination with [`WidgetList`](#widgetlist). Provides the same value-getter functionality as `WidgetList`.
 <p align="center">
-	<!-- <img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/widget_switcher.png?raw=True" width="500" /> -->
-	<img src="./pyside6_utils/examples/images/widget_switcher.png" width=500/>
+	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/widget_switcher.png?raw=True" width="500" />
+	<!-- <img src="./pyside6_utils/examples/images/widget_switcher.png" width=500/> -->
 </p>
 
 
