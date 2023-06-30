@@ -22,13 +22,12 @@ DOM_XML = f"""
 					<x>0</x>
 					<y>0</y>
 					<width>200</width>
-					<height>400</height>
+					<height>300</height>
 				</rect>
 			</property>
 		</widget>
 	</ui>
 """
-
 MODULE = ""
 if len(Paths.PACKAGE_NAME) > 0:
 	MODULE+= f"{Paths.PACKAGE_NAME}."

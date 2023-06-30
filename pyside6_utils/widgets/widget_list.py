@@ -166,10 +166,6 @@ def run_example_app():
 	central_widget.setLayout(layout)
 
 	widget_list = WidgetList() #By default, use line-edit
-	widget_list.append()
-	widget_list.append()
-	widget_list.append()
-	widget_list.append()
 	layout.addWidget(widget_list)
 	layout.addSpacerItem(QtWidgets.QSpacerItem(0,
 		0,
