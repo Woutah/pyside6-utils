@@ -4,26 +4,53 @@ The package contains registrars for these widgets, which can be [used to registe
 
 This package was mainly developed around the python Dataclass-functionality. It was created in tandem with the following package: [Configurun - A tool to create and manage machine learning training/testing-configurations and run them automatically and/or remotely.](https://github.com/Woutah/configurun). 
 
+# Table of contents
+- [PySide6 - Utils](#pyside6---utils)
+- [Table of contents](#table-of-contents)
+- [Features](#features)
+	- [Installation](#installation)
+	- [Qt-Designer](#qt-designer)
+- [Widgets](#widgets)
+	- [`DataclassTreeview`](#dataclasstreeview)
+	- [`PandasTableView` (and `PandasTableModel`)](#pandastableview-and-pandastablemodel)
+	- [`ExtendedMdiArea` / `FramelessMdiWindow`](#extendedmdiarea--framelessmdiwindow)
+	- [`CollapsibleGroupBox`](#collapsiblegroupbox)
+	- [`Console Widget`](#console-widget)
+	- [`FileExplorerView`](#fileexplorerview)
+	- [`OverlayWidget`](#overlaywidget)
+	- [`RangeSelector`](#rangeselector)
+	- [`WidgetList`](#widgetlist)
+	- [`WidgetSwitcher`](#widgetswitcher)
+- [Utility](#utility)
+- [Models](#models)
+- [Acknowledgements](#acknowledgements)
+
+
+# Features
 
 A quick list of the main widgets:
-- [`DataclassTreeview` (and `DataClassModel` & `DataClassEditorDelegate`)](#DataclassTreeview)
+- [`DataclassTreeview` (and `DataClassModel` & `DataClassEditorDelegate`)](#dataclasstreeview)
   - A view/model/delegate combination which mirrors a python dataclass (`@dataclass`) object and provides editors for each of the types defined. Edits are propagated to the dataclass object. We can use [`dataclasses.field()`](https://docs.python.org/3/library/dataclasses.html#dataclasses.Field) to customize how attributes are displayed and to change the editor-type and constraints.
-- [`PandasTableView` (and `PandasTableModel`)](#PandasTableView)
+- [`PandasTableView` (and `PandasTableModel`)](#pandastableview-and-pandastablemodel)
   - Provide an easy way to show and edit pandas dataframes
-- [`CollapsibleGroupBox`](#CollapsibleGroupBox)
+- [`CollapsibleGroupBox`](#collapsiblegroupbox)
   - A groupbox that acts as a layout, when the user check/unchecks the groupbox, the contents collapse
-- [`ConsoleWidget`](#ConsoleWidget)
+- [`ConsoleWidget`](#console-widget)
   - A console-like widget to which multiple files can be mirorred, user can select the items to view the consoleitem-contens
-- [`ExtendedMdiArea` / `FramelessMdiWindow`](#ExtendedMdiArea)
+- [`ExtendedMdiArea` / `FramelessMdiWindow`](#extendedmdiarea--framelessmdiwindow)
   - Based on PySide6.QtWidgets.QMdiArea, provides a way to load frameless windows with a custom UI, while also retaining resize/move/etc. A custom UI example is provided in `./ui/FrameslessMdiWindow.ui` 
-- [`FileExplorerView`](#FileExplorerView)
+- [`FileExplorerView`](#fileexplorerview)
   - Built around the use of a QFileSystemModel - enables right-click operations and undo/redo actions, as well as the possibility to set a "highlighted" file
-- [`OverlayWidget`](#OverlayWidget)
+- [`OverlayWidget`](#overlaywidget)
   - Provides a container-widget to which another widget can be provided, when turning the overlay-mode of this widget on, this widget will be overlayed over the contained widget(s)
-- [`SquareFrame`](#SquareFrame)
+- [`SquareFrame`](#squareframe)
   - A small widget wrapper that enforces squareness. Useful when designing UI's in QtDesigner.
 - [`RangeSelector`](#RangeSelector)
   - Widget to select a range of float/int/datetime, provides extra styling if ticks are provided.
+- [`WidgetList`](#widgetlist)
+  - Widget to which we can pass a widget-factory or widget-type. The user can then add/remove widgets of this type to the list.
+- [`WidgetSwitcher`](#widgetswitcher)
+  - Wrapper around [`QtWidgets.QStackedWidget`](https://doc.qt.io/qt-6/qstackedwidget.html), provides a way to switch between multiple widgets.
 
 
 ## Installation
@@ -159,6 +186,23 @@ Widget to select a range of float/int/datetime etc. Can drag in the middle to ch
 Provides extra styling when ticks are enabled.
 <p align="center">
 	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/range_selector.png?raw=True" width="400" />
+</p>
+
+## `WidgetList`
+Widget to which we can pass a widget-factory or widget-type. The user can then add/remove widgets of this type to the list. 
+A value-getter can be specified to easily get the values of all widgets in the list. 
+<p align="center">
+	<!-- <img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/widget_list.png?raw=True" width="300" /> -->
+	<img src="./pyside6_utils/examples/images/widget_list.png" width=300/>
+</p>
+
+## `WidgetSwitcher`
+Wrapper around [`QtWidgets.QStackedWidget`](https://doc.qt.io/qt-6/qstackedwidget.html), provides a way to switch between multiple widgets. A context menu can be accessed via right click or via the small triangle in the right-bottom corner, which allows the user to switch between the widgets. 
+
+Especially useful in combination with [`WidgetList`](#widgetlist). Provides the same value-getter functionality as `WidgetList`.
+<p align="center">
+	<!-- <img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/widget_switcher.png?raw=True" width="500" /> -->
+	<img src="./pyside6_utils/examples/images/widget_switcher.png" width=500/>
 </p>
 
 

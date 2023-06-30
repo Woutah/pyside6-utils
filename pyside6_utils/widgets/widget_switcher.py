@@ -46,7 +46,7 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 		self._triangle_button = QtWidgets.QPushButton()
 		self._triangle_button.setParent(self)
 		self._triangle_button.setIcon(QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TitleBarUnshadeButton))
-		self._triangle_button.setFixedSize(20, 20)
+		self._triangle_button.setFixedSize(8, 8)
 		self._triangle_button.setStyleSheet("border-radius: 0px") #No border, just icon
 		self._triangle_button.clicked.connect(self._context_triangle_clicked)
 		self._triangle_button.show()
@@ -61,7 +61,7 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 	def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
 		super().resizeEvent(event)
 		self._triangle_button.move( #Button right corner
-			self.width() - self._triangle_button.width(), self.height() - self._triangle_button.height()
+			self.width() - self._triangle_button.width() -4, self.height() - self._triangle_button.height()-1
 		)
 
 	def showEvent(self, event: QtGui.QShowEvent) -> None:
@@ -148,9 +148,11 @@ def run_example_app():
 
 	def widget_factory(*_):
 		test_widget = WidgetSwitcher()
-		test_widget.add_widget(QtWidgets.QPushButton("Test1"), "Button1", lambda x: "None")
-		test_widget.add_widget(QtWidgets.QPushButton("Test2"), "Button2", lambda x: "None")
-		test_widget.add_widget(QtWidgets.QLineEdit("Test3"), "LineEdit", lambda x: x.text())
+		test_widget.add_widget(QtWidgets.QPushButton("Button"), "Button", lambda x: "None")
+		combobox = QtWidgets.QComboBox()
+		combobox.addItems(["ComboBoxOption1", "ComboBoxOption2", "ComboBoxOption3"])
+		test_widget.add_widget(combobox, "Combobox", lambda x: x.currentText())
+		test_widget.add_widget(QtWidgets.QLineEdit("LineEdit"), "LineEdit", lambda x: x.text())
 		#Show left/right arrow buttons to switch between widgets
 
 		return test_widget
