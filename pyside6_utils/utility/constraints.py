@@ -1,5 +1,13 @@
 """
-Copied module from sklearn.utils.validation and sklearn.utils._validation for framework not to be dependent on whole sklearn library
+Module largely sourced from sklearn.utils.validation and sklearn.utils._validation for framework
+not to be dependent on whole sklearn library
+
+Also added ConstrainedList - this indicates that an item contains a list of items, each constrained by the same constraint
+e.g.:
+
+ConstrainedList([None, Interval(int, 0,10, closed='both')]) indicates a list of items, each of which is either None or
+an int between 0 and 10
+
 ==========================License:================================
 BSD 3-Clause License
 
@@ -44,10 +52,11 @@ from numbers import Real
 import operator
 import re
 import warnings
+import typing
 
 import numpy as np
-# from scipy.sparse import issparse 
-# from scipy.sparse import csr_matrix 
+# from scipy.sparse import issparse
+# from scipy.sparse import csr_matrix
 
 # from .validation import _is_arraylike_not_scalar
 def _is_arraylike(x):
@@ -168,7 +177,7 @@ def make_constraint(constraint):
 		return _NoneConstraint()
 	if isinstance(constraint, type):
 		return _InstancesOf(constraint)
-	if isinstance(constraint, (Interval, StrOptions, Options, HasMethods)):
+	if isinstance(constraint, (Interval, StrOptions, Options, HasMethods, ConstrainedList)):
 		return constraint
 	if isinstance(constraint, str) and constraint == "boolean":
 		return _Booleans()
@@ -508,6 +517,41 @@ class Interval(_Constraint):
 		)
 
 
+class ConstrainedList(_Constraint):
+	"""
+	Added to allow for more control over constraints inside of a list of items 
+
+	This class indicates that an item contains a list of items, each constrained by the same constraint.
+	Has overlap with array-like constraint, but is more specific in that it indicates that the list is constrained
+	by the same constraint, rather than just being array-like
+
+	e.g.:
+	ConstrainedList([None, Interval(int, 0,10, closed='both')]) indicates a list of items, each of which is either None or
+	an int between 0 and 10
+	"""
+
+	def __init__(self, constraints):
+		super().__init__()
+		self.constraints : typing.List[_Constraint] = [make_constraint(constraint) for constraint in constraints] #Make constraints
+
+	def is_satisfied_by(self, val_list):
+		"""
+		Goes over all items in the list and checks if all constraints are satisfied by each item
+		"""
+		if not isinstance(val_list, list): #Must be list
+			return False
+
+		for val in val_list:
+			for constraint in self.constraints:
+				if not constraint.is_satisfied_by(val):
+					return False
+		return True
+
+	def __str__(self):
+		return f"a list of values, each of which satisfies: {', '.join([str(c) for c in self.constraints])}"
+
+
+
 class _ArrayLikes(_Constraint):
 	"""Constraint representing array-likes"""
 
@@ -522,7 +566,7 @@ class _SparseMatrices(_Constraint):
 	"""Constraint representing sparse matrices."""
 
 	def is_satisfied_by(self, val):
-		return issparse(val) #type:ignore #NOTE: to use, import from scipy.sparse import issparse 
+		return issparse(val) #type:ignore #NOTE: to use, import from scipy.sparse import issparse
 
 	def __str__(self):
 		return "a sparse matrix"
@@ -914,7 +958,7 @@ def generate_valid_param(constraint):
 		return np.array([1, 2, 3])
 
 	if isinstance(constraint, _SparseMatrices):
-		#NOTE: to use, import scipy.sparse import issparse: from scipy.sparse import csr_matrix 
+		#NOTE: to use, import scipy.sparse import issparse: from scipy.sparse import csr_matrix
 		# Chose to comment this to make this module work without scipy
 		return csr_matrix([[0, 1], [1, 0]]) #pylint: disable=undefined-variable #type:ignore
 
