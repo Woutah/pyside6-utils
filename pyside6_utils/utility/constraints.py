@@ -152,6 +152,7 @@ def validate_parameter_constraints(parameter_constraints, params, caller_name):
 			)
 
 
+
 def make_constraint(constraint):
 	"""Convert the constraint into the appropriate Constraint object.
 
@@ -548,7 +549,7 @@ class ConstrainedList(_Constraint):
 		return True
 
 	def __str__(self):
-		return f"a list of values, each of which satisfies: {', '.join([str(c) for c in self.constraints])}"
+		return f"a list of values, each {', '.join([str(c) for c in self.constraints])}"
 
 
 

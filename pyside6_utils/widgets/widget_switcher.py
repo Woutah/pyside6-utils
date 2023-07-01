@@ -22,7 +22,7 @@ class WidgetDescriptor:
 	value_getter : typing.Callable
 	value_setter : typing.Callable
 
-class WidgetSwitcher(QtWidgets.QStackedWidget):
+class WidgetSwitcher(QtWidgets.QWidget):
 	"""Wrapper aroun a QtStackedWidget to allow for easy switching between widget types using a context-menu
 	with descriptors for each widget type. Implements a context menu and a button to show the context menu.
 	Using the get_value() function, we can get the value of the current widget.
@@ -32,7 +32,11 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 		"with descriptors for each widget type. Implements a context menu and a button to show the context menu."
 		"Using the get_value() function, we can get the value of the current widget.")
 
-	def __init__(self, *args, **kwargs):
+	currentChanged = QtCore.Signal(int)
+	widgetRemoved = QtCore.Signal(int)
+
+
+	def __init__(self, inline_button = True, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self._widget_descriptors : typing.Dict[str, WidgetDescriptor]= {}
 		# self._current_widget = None
@@ -41,17 +45,38 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 		self._menu.aboutToShow.connect(self._update_menu)
 		# self._menu.triggered.connect(self._menu_triggered)
 
+		#Create the wrapped stacked widget
+		self.setLayout(QtWidgets.QHBoxLayout())
+		self._stack_widget = QtWidgets.QStackedWidget()
+		self.layout().addWidget(self._stack_widget)
+		self.layout().setContentsMargins(0, 0, 0, 0)
+		self.layout().setSpacing(0)
+		self._stack_widget.currentChanged.connect(self.currentChanged)
+		self._stack_widget.widgetRemoved.connect(self.widgetRemoved)
+		self._stack_widget.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+		self._stack_widget.customContextMenuRequested.connect(self.show_menu)
+
 		#Catch right-click events
 		self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
 		self.customContextMenuRequested.connect(self.show_menu)
 		self._triangle_button = QtWidgets.QPushButton()
 		self._triangle_button.setParent(self)
 		self._triangle_button.setIcon(QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TitleBarUnshadeButton))
-		self._triangle_button.setFixedSize(8, 8)
-		self._triangle_button.setStyleSheet("border-radius: 0px") #No border, just icon
 		self._triangle_button.clicked.connect(self._context_triangle_clicked)
 		self._triangle_button.show()
 		self._triangle_button.raise_()
+		if inline_button:
+			self._triangle_button.setFixedWidth(18)
+			self._triangle_button.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Expanding)
+			self.layout().addWidget(self._triangle_button)
+		else: #If not inline, write the button on top of the widget in the bottom right corner
+			self._triangle_button.setFixedSize(8, 8)
+			self._triangle_button.setStyleSheet("border-radius: 0px") #No border, just icon
+
+		self._button_inline = inline_button
+		self.fix_layout()
+
+
 
 
 
@@ -59,15 +84,22 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 		cur_mouse_pos = QtGui.QCursor.pos()
 		self._menu.exec(cur_mouse_pos)
 
+	def fix_layout(self):
+		"""Fixes the layout of the widget switcher, so that the button is in the correct position"""
+		if not self._button_inline:
+			self._triangle_button.move( #Button right corner
+				self.width() - self._triangle_button.width(), self.height() - self._triangle_button.height()-1
+			)
+
 	def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
 		super().resizeEvent(event)
-		self._triangle_button.move( #Button right corner
-			self.width() - self._triangle_button.width() -4, self.height() - self._triangle_button.height()-1
-		)
+		self.fix_layout()
 
 	def showEvent(self, event: QtGui.QShowEvent) -> None:
 		ret = super().showEvent(event)
 		self._triangle_button.raise_()
+		self.fix_layout()
+		# self.setMinimumSize(self.minimumSizeHint())
 		return ret
 
 	def _update_menu(self):
@@ -77,19 +109,22 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 			self._menu.addAction(descriptor.name, lambda x=descriptor.widget: self.setCurrentWidget(x))
 
 	def setCurrentWidget(self, widget: QtWidgets.QWidget) -> None:
-		ret = super().setCurrentWidget(widget)
+		ret = self._stack_widget.setCurrentWidget(widget)
 		self._triangle_button.raise_()
 		for descriptor in self._widget_descriptors.values(): #Get the current widget descriptor
 			if descriptor.widget == widget:
 				self._current_widget_descriptor = descriptor
 				break
-
+		self.fix_layout()
+		# self.setMinimumSize(self.minimumSizeHint())
+		self.updateGeometry()
 		return ret
 
 	def setCurrentIndex(self, index: int) -> None:
-		ret = super().setCurrentIndex(index)
+		ret = self._stack_widget.setCurrentIndex(index)
 		self._current_widget_descriptor = self._widget_descriptors[list(self._widget_descriptors.keys())[index]]
 		self._triangle_button.raise_()
+		self.fix_layout()
 		return ret
 
 	def addWidget(self) -> int:
@@ -97,13 +132,27 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 		#TODO: might be more neat to instead use the widget name as the key?
 
 	def removeWidget(self, w: QtWidgets.QWidget) -> None:
-		ret = super().removeWidget(w)
+		ret = self._stack_widget.removeWidget(w)
 
 		for descriptor in self._widget_descriptors.values():
 			if descriptor.widget == w:
 				del self._widget_descriptors[descriptor.name]
 				break
+		self.fix_layout()
 		return ret
+	
+	# def sizeHint(self) -> QtCore.QSize:
+	# 	return self.minimumSizeHint()
+
+	# def minimumSizeHint(self) -> QtCore.QSize:
+	# 	"""Return the min size policy of the currently selected widget"""
+
+	# 	cur_widget = self._stack_widget.currentWidget()
+	# 	cur_size_hint = cur_widget.minimumSizeHint()
+	# 	if self._button_inline: #If button part of the size:
+	# 		cur_size_hint.setWidth(cur_size_hint.width() + self._triangle_button.width())
+
+	# 	return cur_size_hint
 
 	def add_widget(self,
 			widget : QtWidgets.QWidget,
@@ -122,13 +171,18 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 				for a QLineEdit)
 		"""
 		self._widget_descriptors[name] = WidgetDescriptor(widget, name, value_getter, value_setter)
-		super().addWidget(widget)
+		self._stack_widget.addWidget(widget)
 		self._triangle_button.raise_()
+		self.fix_layout()
 
 	def get_value(self) -> typing.Any:
 		"""Returns the value of the current widget using the value_getter passed when the widget was added"""
-		if self._current_widget_descriptor is None:
+		# if self._current_widget_descriptor is None:
+		# 	return None
+		current_index = self._stack_widget.currentIndex()
+		if current_index == -1:
 			return None
+		self._current_widget_descriptor = self._widget_descriptors[list(self._widget_descriptors.keys())[current_index]]
 		return self._current_widget_descriptor.value_getter(self._current_widget_descriptor.widget)
 
 	def set_value(self, value : typing.Any) -> typing.Any:
@@ -151,6 +205,25 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 				continue
 		if could_set == -1:
 			raise ValueError("Could not set the passed value for any of the widgets")
+
+	def count(self) -> int:
+		"""Returns the number of widgets"""
+		return self._stack_widget.count()
+
+	def currentIndex(self) -> int:
+		"""Returns the index of the current widget"""
+		return self._stack_widget.currentIndex()
+
+	def currentWidget(self) -> QtWidgets.QWidget:
+		"""Returns the current widget"""
+		return self._stack_widget.currentWidget()
+
+	def indexOf(self, widget: QtWidgets.QWidget) -> int:
+		"""Returns the index of the specified widget"""
+		return self._stack_widget.indexOf(widget)
+
+	# def insertWidget(self, index: int, widget: QtWidgets.QWidget) -> None: #TODO: implement
+
 
 
 	def set_current_value(self, value : typing.Any) -> None:
@@ -216,9 +289,9 @@ def run_example_app():
 	widget_list.widgetsAdded.connect(lambda x, y: log.info(widget_list.get_values()))
 
 	layout.addWidget(widget_list)
-	layout.addSpacerItem(
-		QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
-	)
+	# layout.addSpacerItem(
+	# 	QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+	# )
 
 
 	example_window.show()

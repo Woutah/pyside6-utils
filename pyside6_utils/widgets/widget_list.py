@@ -4,6 +4,7 @@ Implements a widget that allows the user to add/remove widgets of a certain type
 import logging
 import typing
 from PySide6 import QtCore, QtGui, QtWidgets
+import PySide6.QtCore
 import pyside6_utils.icons.app_resources_rc #pylint: disable=unused-import
 
 log = logging.getLogger(__name__)
@@ -59,10 +60,13 @@ class WidgetList(QtWidgets.QWidget):
 
 		self._add_icon = QtGui.QIcon(":/icons/actions/list-add.png")
 		self._remove_icon = QtGui.QIcon(":/icons/actions/list-remove.png")
-
+		
+	
 
 		self.setLayout(self._layout_type(self))
+		self.layout().setContentsMargins(0, 0, 0, 0)
 		self._layout_container = QtWidgets.QWidget()
+		self._layout_container.setBaseSize(0, 0)
 		self._addable_items_layout = self._layout_type()
 		self._addable_items_layout.setContentsMargins(0, 0, 0, 0)
 		self._addable_items_layout.setSpacing(0)
@@ -70,9 +74,10 @@ class WidgetList(QtWidgets.QWidget):
 		self.layout().addWidget(self._layout_container)
 
 
-		self._add_btn = QtWidgets.QPushButton()
+		self._add_btn = QtWidgets.QPushButton(self)
 		self._add_btn.setIcon(self._add_icon)
 		self._add_btn.setIconSize(QtCore.QSize(16, 16))
+		self.layout().setSpacing(0)
 
 		if user_addable: #If user can add/remove widgets
 			self.layout().addWidget(self._add_btn)
@@ -97,6 +102,8 @@ class WidgetList(QtWidgets.QWidget):
 			# widget to be added/removed and a '-' button
 
 		self._add_btn.clicked.connect(self._append_btn_clicked)
+
+		
 
 	def set_widgetcount(self, new_count : int):
 		"""Set the new widget-count. Keeps appending or popping widgets until the widget count is equal to
@@ -166,10 +173,16 @@ class WidgetList(QtWidgets.QWidget):
 		del self.widgets[index] #Remove from list
 		self.widgetsRemoved.emit([index], [self.widgets]) #Emit signal
 
+
 	def insert_widget(self, index : int):
 		"""Insert a widget at the specified index"""
 		if index < 0 or index > len(self.widgets):
 			raise ValueError(f"Cannot insert widget at index {index} - widget count is {len(self.widgets)}")
+		
+		print(f"The total size hint is {self.sizeHint()}")
+
+		#Set the new sizehint to be the same as the previous sizehint, but with the new widget added
+		# self._layout_container.sizeHi(QtCore.QSize(self._layout_container.sizeHint().width(),
 		container_widget = QtWidgets.QWidget()
 		container_widget.setLayout(self._opposite_layout_type())
 		container_widget.layout().setContentsMargins(0, 0, 0, 0)
@@ -187,6 +200,7 @@ class WidgetList(QtWidgets.QWidget):
 		self.widgets.insert(index, new_widget)
 		container_widget.layout().addWidget(new_widget)
 
+
 		#Create a '-' button
 		remove_btn = QtWidgets.QPushButton()
 		remove_btn.setIcon(self._remove_icon)
@@ -196,14 +210,41 @@ class WidgetList(QtWidgets.QWidget):
 		container_widget.layout().addWidget(remove_btn)
 
 		self._addable_items_layout.insertWidget(index, container_widget) #Take
-		# self.widgetCountChanged.emit(len(self.widgets))
-		self.widgetsAdded.emit([index], [new_widget])
+		# self._addable_items_layout.addWidget(container_widget)
+		# self.setMinimumSize(self.minimumSizeHint())
+		# self.setBaseSize(self.minimumSizeHint())
+		# self.adjustSize()
+
+		# self.widgetsAdded.emit([index], [new_widget])
+		# self
+		self.updateGeometry()
+		# self.adjustSize()
 		return new_widget
+	
+	# def sizeHint(self) -> QtCore.QSize:
+	# 	return self.minimumSizeHint()
+	# 	# return super().sizeHint()
+
+	# def minimumSizeHint(self) -> QtCore.QSize:
+	# 	cur_hint = self._add_btn.minimumSizeHint()
+
+	# 	for item in self._widget_layout_containers:
+	# 		print(f"Item sizehint: {item.sizeHint()}, minsizehint: {item.minimumSizeHint()}, size: {item.size()}, minsize: {item.minimumSize()}")
+	# 		if self._layout_type == QtWidgets.QHBoxLayout:
+	# 			cur_hint.setWidth(cur_hint.width() + item.minimumSizeHint().width())
+	# 			cur_hint.setHeight(max(cur_hint.height(), item.minimumSizeHint().height()))
+	# 		elif self._layout_type == QtWidgets.QVBoxLayout:
+	# 			cur_hint.setHeight(cur_hint.height() + item.minimumSizeHint().height())
+	# 			cur_hint.setWidth(max(cur_hint.width(), item.minimumSizeHint().width()))
+
+	# 	# min_width = max(cur_hint.width(), self._layout_container.minimumSizeHint().width())
+		
+	# 	return cur_hint
+		# return QtCore.QSize(max(min_width, cur_hint.width()), cur_hint.height() + height_addition)
 
 	def append(self):
 		"""Appends a widget to the end of the layout"""
 		self.insert_widget(len(self.widgets))
-
 
 	def pop(self):
 		"""Removes the last widget from the layout"""
@@ -225,15 +266,30 @@ def run_example_app():
 
 	widget_list = WidgetList() #By default, use line-edit
 	layout.addWidget(widget_list)
+
+	print(f"Size before appending: {widget_list.sizeHint()}, minsize = {widget_list.minimumSize()}")
+	widget_list.append()
+	widget_list.append()
+	widget_list.append()
+	widget_list.append()
+
+	print(f"Size after appending: {widget_list.sizeHint()}, minsize = {widget_list.minimumSize()}")
 	layout.addSpacerItem(QtWidgets.QSpacerItem(0,
 		0,
 		QtWidgets.QSizePolicy.Policy.Expanding,
 		QtWidgets.QSizePolicy.Policy.Expanding)
 	)
 
-	widget_list._add_btn.clicked.connect(lambda: print(widget_list.get_values())) #pylint: disable=protected-access
+	widget_list._add_btn.clicked.connect(lambda: print(f"{widget_list.get_values()}")) #pylint: disable=protected-access
+	widget_list._add_btn.clicked.connect(lambda: print(f"Size: {widget_list.size()}")) #pylint: disable=protected-access
+	widget_list._add_btn.clicked.connect(lambda: print(f"Sizehint: {widget_list.sizeHint()}")) #pylint: disable=protected-access
+	widget_list._add_btn.clicked.connect(lambda: print(f"Minsizehint: {widget_list.minimumSizeHint()}")) #pylint: disable=protected-access
 
 	example_window.show()
+	print(f"Size after showing: {widget_list.sizeHint()}")
+	widget_list.append()
+	widget_list.append()
+	print(f"Size after appending: {widget_list.sizeHint()}")
 
 	app.exec()
 

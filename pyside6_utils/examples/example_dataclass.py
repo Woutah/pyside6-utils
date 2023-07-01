@@ -4,7 +4,7 @@ import typing
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from pyside6_utils.utility.constraints import (Interval,
+from pyside6_utils.utility.constraints import (Interval, ConstrainedList,
                                                              StrOptions)
 
 LITERAL_EXAMPLE = typing.Literal["testliteral1", "testliteral2", "testliteral3"] #pylint: disable=invalid-name
@@ -76,9 +76,9 @@ class ExampleDataClass:
 		default=1,
 		metadata=dict(
 			display_name="Test int options property",
-			help= "This is a test property",
+			help= "This is a test property that stays within 0-10 interval",
 			changed=True,
-			constraints = [Interval(int, 0,10, closed='both'), None]
+			constraints = [Interval(int, 0,10, closed='both')]
 		)
 	)
 
@@ -88,7 +88,7 @@ class ExampleDataClass:
 			display_name="Test intlist property",
 			help= "This is a test property",
 			changed=True,
-			constraints = [Interval(int, 0,10, closed='both'), None]
+			constraints = [ConstrainedList([Interval(int, 0,10, closed='both')]), None]
 		)
 	)
 
@@ -98,7 +98,9 @@ class ExampleDataClass:
 			display_name="Test int or none list property",
 			help= "This is a test property",
 			changed=True,
-			constraints = [Interval(int, 0,10, closed='both'), None]
+			constraints = [
+				ConstrainedList([Interval(int, 0,10, closed='both'), None])
+			]
 		)
 	)
 
