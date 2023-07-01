@@ -209,12 +209,12 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 
 	@staticmethod
-	def get_constraints_from_typehint(typehint) -> typing.List[_Constraint] | None:
+	def get_constraints_from_typehint(typehint) -> typing.List[_Constraint]:
 		"""Retrieve the constraints-objects using the passed typehint.
 		E.g.: typing.Union[None, int] -> [_NoneConstraint, _InstancesOf(int)]
 
 		"""
-		constraints = None
+		constraints = []
 		if typehint == type(None): #Nonetype = None constraint
 			constraints = [make_constraint(None)]
 		elif isinstance(typehint, type):
@@ -227,16 +227,19 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				new_constraint = DataclassEditorsDelegate.get_constraints_from_typehint(cur_type)
 				if new_constraint:
 					constraints.extend(new_constraint)
-		elif isinstance(typehint, typing.List):
+		elif typing.get_origin(typehint) == list:
 			# constraints = [ConstrainedList(DataclassEditorsDelegate.get_constraints_from_typehint(typehint[0]))]
-			constraints = [ConstrainedList(DataclassEditorsDelegate.get_constraints_from_typehint(cur_type)) for cur_type in typehint]
+			constraints = []
+			for cur_type in typing.get_args(typehint):
+				new_constraint = DataclassEditorsDelegate.get_constraints_from_typehint(cur_type)
+				if new_constraint:
+					constraints.extend(new_constraint)
+			return [ConstrainedList.create_using_constraint_objects(constraints)]
 		elif typing.get_origin(typehint) == typing.Literal: #pylint: disable=comparison-with-callable
 			constraints = [Options(typing.Any, set(typehint.__args__))] #TODO: maybe check if all the same type instead
 				# of typing.Any?
 		return constraints
 
-	def sizeHintChanged(index):
-		print("SIZE HINT CHANGED")
 
 	def updateEditorGeometry(self, editor, option, index): #pylint: disable=unused-argument
 		if self._frameless_window:
@@ -297,6 +300,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				palette = parent.palette()
 				palette.setColor(editor_frame.backgroundRole(), self._background_color)
 				editor_frame.setPalette(palette)
+
 
 				#Set frameless window props
 				self._frameless_window.setCentralWidget(editor_frame)

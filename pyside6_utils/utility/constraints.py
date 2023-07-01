@@ -535,6 +535,15 @@ class ConstrainedList(_Constraint):
 		super().__init__()
 		self.constraints : typing.List[_Constraint] = [make_constraint(constraint) for constraint in constraints] #Make constraints
 
+	@staticmethod
+	def create_using_constraint_objects(constraints : typing.List[_Constraint]):
+		"""Create a constrained list using a list of constraint objects.
+		The normal constructor expects a list of types, this one a list of constraint objects
+		"""
+		constrained_list = ConstrainedList([])
+		constrained_list.constraints = constraints
+		return constrained_list
+
 	def is_satisfied_by(self, val_list):
 		"""
 		Goes over all items in the list and checks if all constraints are satisfied by each item
