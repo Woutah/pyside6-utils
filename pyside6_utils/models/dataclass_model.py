@@ -262,9 +262,11 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					if ret_val is None:
 						return ""
 					elif isinstance(ret_val, datetime.datetime):
-						return ret_val.strftime("%Y-%m-%d %H:%M:%S")
+						return ret_val.strftime("%d-%m-%Y %H:%M:%S")
 					elif isinstance(ret_val, bool):
 						return str(ret_val).capitalize()
+					elif isinstance(ret_val, list):
+						return ", ".join([str(item) for item in ret_val])
 					return ret_val
 
 			elif role == QtCore.Qt.ItemDataRole.EditRole:
@@ -350,6 +352,11 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			# self.dataChanged.emit(index, self.index(index.row(), 2, index.parent())) #TODO: this seems to cause issues?
 			self.dataChanged.emit(index, index)
 			return True
+		if role == DataclassModel.CustomDataRoles.DefaultValueRole: #If setting back to default
+			tree_item = index.internalPointer()
+			assert isinstance(tree_item, DataclassTreeItem), "Can't get default value for non-treeitem"
+			assert tree_item.field is not None, "Can't get default value for property without field"
+			self._dataclass.__dict__[tree_item.name] = self.get_default_value(tree_item.field)
 		return False
 
 
@@ -375,6 +382,13 @@ class DataclassModel(QtCore.QAbstractItemModel):
 				return False #Do nothing
 			self._undo_stack.push(SetDataCommand(self, index, value, role)) #Push the command to the undo-stack
 			return True
+		elif role == DataclassModel.CustomDataRoles.DefaultValueRole: #If setting back to default
+			tree_item = index.internalPointer()
+			assert isinstance(tree_item, DataclassTreeItem), "Can't get default value for non-treeitem"
+			assert tree_item.field is not None, "Can't get default value for property without field"
+			if self._dataclass.__dict__[tree_item.name] == self.get_default_value(tree_item.field):
+				return False
+			self._undo_stack.push(SetDataCommand(self, index, self.get_default_value(tree_item.field), role))
 		return False
 
 	def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlag:

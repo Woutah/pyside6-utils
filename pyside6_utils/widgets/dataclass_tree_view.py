@@ -75,23 +75,31 @@ class DataClassTreeView(QtWidgets.QTreeView):
 		if not index.isValid():
 			return
 
-		cur_field = index.data(DataclassModel.CustomDataRoles.FieldRole)
-		cur_data = index.data(QtCore.Qt.ItemDataRole.EditRole)
-		if not isinstance(cur_field, Field):
-			log.debug(f"Selected item is not a field: {cur_field}")
-			return
+		# index._set
+		try:
+			model = self.model()
+			model.setData(index, None, DataclassModel.CustomDataRoles.DefaultValueRole) #Set default value (found internally)
+		except Exception as exception: #pylint: disable=broad-except
+			log.exception(f"Error when setting to default {type(exception).__name__}: {exception}")
+			raise exception
+		
+		# cur_field = index.data(DataclassModel.CustomDataRoles.FieldRole)
+		# cur_data = index.data(QtCore.Qt.ItemDataRole.EditRole)
+		# if not isinstance(cur_field, Field):
+		# 	log.debug(f"Selected item is not a field: {cur_field}")
+		# 	return
 
-		if cur_field is None:
-			return
+		# if cur_field is None:
+		# 	return
 
-		if not hasattr(cur_field, "default"):
-			return
+		# # if not hasattr(cur_field, "default"):
+		# # 	return
 
-		default_val = cur_field.default
-		if default_val == cur_data: #if the default value is the same as the current value, no change
-			return
-		model = self.model()
-		model.setData(index, default_val, QtCore.Qt.ItemDataRole.EditRole)
+		# default_val = self.default
+		# if default_val == cur_data: #if the default value is the same as the current value, no change
+		# 	return
+		# model = self.model()
+		# model.setData(index, default_val, QtCore.Qt.ItemDataRole.EditRole)
 
 
 

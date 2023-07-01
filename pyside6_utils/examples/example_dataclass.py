@@ -18,24 +18,23 @@ class ExampleDataClass:
 	test_parent_with_property: str = field(
 		default="testparentwithpropertystr",
 		metadata=dict(
-			display_name="Test parent with property (uneditable)",
-			help= "This is a test property",
-			display_path="test_parent", #Always from base
+			display_name="Test Parent With Value",
+			help= "This is a parent with an unsettable property",
+			# display_path="Test Parent With Value", #Always from base
 			editable=False
 		)
 	)
 
-	test_str_property: str = field(
+	test_str: str = field(
 		default="teststr",
 		metadata=dict(
 			display_name="Test str property",
 			help= "This is a test property",
-			display_path="test_parent/test_parent_with_property", #Always from base
-			changed=True
+			display_path="test_parent_with_property/Dummy Parent", #Always from base
 		)
 	)
 
-	test_int_property: int | None = field(
+	test_int: int | None = field(
 		default=None,
 		metadata=dict(
 			display_name="Test int/none property",
@@ -44,7 +43,7 @@ class ExampleDataClass:
 		)
 	)
 
-	test_literal_property: typing.Literal["testliteral1", "testliteral2", "testliteral3"] = field(
+	test_literal: typing.Literal["testliteral1", "testliteral2", "testliteral3"] = field(
 		default="testliteral1",
 		metadata=dict(
 			display_name="Test literal property",
@@ -53,7 +52,7 @@ class ExampleDataClass:
 		)
 	)
 
-	test_required_int_property: int | None = field(
+	test_required_int: int | None = field(
 		default=None,
 		metadata=dict(
 			display_name="Test required int property",
@@ -63,7 +62,7 @@ class ExampleDataClass:
 		)
 	)
 
-	test_int_literal_property : typing.Literal[1, 2, 3] = field(
+	test_int_literal : typing.Literal[1, 2, 3] = field(
 		default=1,
 		metadata=dict(
 			display_name="Test int literal property",
@@ -72,7 +71,7 @@ class ExampleDataClass:
 		)
 	)
 
-	test_int_options_property : int = field(
+	test_int_options : int = field(
 		default=1,
 		metadata=dict(
 			display_name="Test int options property",
@@ -104,15 +103,15 @@ class ExampleDataClass:
 		)
 	)
 
-	test_stroptions_property : typing.Literal["Option1/10", "Option2/10"] = field(
-		default="Option1/10",
+	test_stroptions_property : typing.Literal["Option 1/10", "Option 2/10"] = field(
+		default="Option 1/10",
 		metadata=dict(
 			display_name="Test stroptions property",
 			help= "This is a test property (stroptions)",
 			changed=True,
-			constraints = [StrOptions({f"Option{i}/10" for i in range(10)}), None], #Similar to literal, but we can
+			constraints = [StrOptions({f"Option {i}/10" for i in range(10)}), None], #Similar to literal, but we can
 				#create additional options dynamically using constraints
-			constraints_help= { f"Option{i}/10" : f"This is help for option{i}/10" for i in range(10) } #This option
+			constraints_help= { f"Option {i}/10" : f"This is help for option{i}/10" for i in range(10) } #This option
 				#allows us to add a "help" popup when hovering over individual options in a combobox
 		)
 	)
@@ -122,7 +121,7 @@ class ExampleDataClass:
 		default=0.001,
 		metadata=dict(
 			display_name="Test float range 0-1 property",
-			help= "This is a test property (float)",
+			help= "This is a test float property",
 			changed=True,
 			constraints = [Interval(float, 0,1, closed='both'), None]
 		)
@@ -132,7 +131,7 @@ class ExampleDataClass:
 		default=False,
 		metadata=dict(
 			display_name="Test bool property",
-			help= "This is a test property (bool)",
+			help= "This is a test bool property ",
 			changed=True
 		)
 	)
@@ -141,7 +140,7 @@ class ExampleDataClass:
 		default=datetime(2050,1,1),
 		metadata=dict(
 			display_name="Test datetime property",
-			help= "This is a test property (datetime)",
+			help= "This is a test datetime property",
 			changed=True
 		)
 	)

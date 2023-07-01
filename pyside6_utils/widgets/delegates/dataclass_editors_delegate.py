@@ -14,6 +14,7 @@ import PySide6.QtWidgets
 from pyside6_utils.widgets.widget_switcher import WidgetSwitcher
 from pyside6_utils.widgets.widget_list import WidgetList
 from pyside6_utils.utility.constraints import Interval, Options, StrOptions, ConstrainedList, _InstancesOf, make_constraint, _Constraint, _NoneConstraint
+from pyside6_utils.models.dataclass_model import DataclassModel
 
 log = logging.getLogger(__name__)
 
@@ -41,19 +42,33 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	TODO: maybe use a factory instead for the editors
 	"""
 	#Custom delegate that allows for editing of different data types of DataClassModel
-	def __init__(self, *args, **kwargs) -> None: #pylint: disable=unused-argument
+	def __init__(self, background_color : QtCore.Qt.GlobalColor = QtCore.Qt.GlobalColor.white,  *args, **kwargs) -> None: #pylint: disable=unused-argument
 		super().__init__()
-		self._frameless_window = None
 		self._frameless_window = QtWidgets.QMainWindow()
 		self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
-		#Transparent background
-		self._frameless_window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+		# #Transparent background
+		# self._frameless_window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+
+		self._background_color = background_color
+		self._parent = None
+
+		palette = self._frameless_window.palette()
+		palette.setColor(self._frameless_window.backgroundRole(), self._background_color)
+		self._frameless_window.setPalette(palette)
+		# self._frameless_window.resizeEvent = self._frameless_window_resize_event
+
+	# def _frameless_window_resize_event(self, event):
+	# 	print("RESIZE EVENT")
+	# 	# self._frameless_window.resizeEvent(event)		
+	# 	new_size = self._frameless_window.centralWidget().sizeHint()
+	# 	self._frameless_window.resize(new_size)
 
 	def get_editor_from_constraints(self,
 			constraint : typing.List[_Constraint],
 			metadata,
 			parent
-		) -> typing.Tuple[QtWidgets.QWidget | None, typing.Callable, typing.Callable]:
+		) -> typing.Tuple[QtWidgets.QWidget, typing.Callable, typing.Callable]:
 		"""
 		Get the editor from the passed constraint (sklearn-constraint)
 
@@ -89,7 +104,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				if cur_editor is not None:
 					editor_list.append((cur_editor, cur_getter, cur_setter))
 			if len(editor_list) == 0:
-				return None, lambda *_: None, lambda *_: None
+				# return None, lambda *_: None, lambda *_: None 
+				raise ValueError(f"Could not create editor for constraints {constraint} - no editor found")
 			elif len(editor_list) == 1:
 				return editor_list[0]
 			else:
@@ -112,7 +128,15 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			return widget_list, WidgetList.get_values, WidgetList.set_values
 		elif constraint is None or constraint == "None" or constraint == "none" or\
 				isinstance(constraint, _NoneConstraint):
-			return QtWidgets.QLabel("None"), lambda *_: None, lambda *_: None
+			label = QtWidgets.QLabel("None")
+			#Fill background with default
+			label.setAutoFillBackground(True)
+			parent_palette = parent.palette()
+			#Set background color to white:
+			parent_palette.setColor(label.backgroundRole(), self._background_color) 
+			label.setPalette(parent_palette)
+			# label.setPalette(parent.palette())
+			return label, lambda *_: None, lambda *_: None
 		elif isinstance(constraint, _InstancesOf): #If type-enforcing constraint
 			the_type = constraint.type
 			if the_type == bool or the_type == "boolean":
@@ -123,7 +147,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			elif the_type == datetime:
 				editor = QtWidgets.QDateTimeEdit(parent)
 				editor.setCalendarPopup(True)
-				return editor, QtWidgets.QDateTimeEdit.dateTime, QtWidgets.QDateTimeEdit.setDateTime
+				return editor, lambda widget : QtWidgets.QDateTimeEdit.dateTime(widget).toPython(), QtWidgets.QDateTimeEdit.setDateTime
 			elif issubclass(the_type, Integral): #If int or (other subclass of) integral
 				editor = QtWidgets.QSpinBox(parent)
 				editor.setMaximum(9999999)
@@ -178,7 +202,9 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		else:
 			log.debug(f"Could not create editor for constraint {constraint} - returning None-editor")
 
-		return None, lambda *_: None, lambda *_: None
+		# return None, lambda *_: None, lambda *_: None
+		return QtWidgets.QLineEdit(parent), QtWidgets.QLineEdit.text, QtWidgets.QLineEdit.setText
+		# raise ValueError(f"Could not create editor for constraint {constraint} - no editor found")
 
 
 
@@ -208,25 +234,24 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			constraints = [Options(typing.Any, set(typehint.__args__))] #TODO: maybe check if all the same type instead
 				# of typing.Any?
 		return constraints
-	
+
 	def sizeHintChanged(index):
 		print("SIZE HINT CHANGED")
 
 	def updateEditorGeometry(self, editor, option, index): #pylint: disable=unused-argument
-		# editor.setGeometry(option.rect) #type: ignore
-		print(f"Editor sizes= sizehint: {editor.sizeHint()} minhint: {editor.minimumSizeHint()}, minsize: {editor.minimumSize()}")
 		if self._frameless_window:
 			min_size = editor.minimumSizeHint()
 			desired_size = editor.sizeHint()
-			print(f"Min size: {min_size}, desired size: {desired_size}, option rect: {option.rect}")
+			# print(f"Min size: {min_size}, desired size: {desired_size}, option rect: {option.rect}")
 
 			min_size.setWidth(max(min_size.width(), option.rect.width()))
 			min_size.setHeight(max(min_size.height(), option.rect.height()))
 			self._frameless_window.resize(min_size)
-			# global_pos = option.widget.mapToGlobal(option.rect.topLeft())
-			# self._frameless_window.move(global_pos)
 
-			# self._frameless_window.move(option.rect.topLeft())
+			if self._parent:
+				global_pos = self._parent.mapToGlobal(option.rect.topLeft())
+				self._frameless_window.move(global_pos)
+				self._frameless_window.raise_()
 
 
 
@@ -242,8 +267,9 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			metadata = field.metadata
 			entry_type = field.type
 			constraints = metadata.get("constraints", None)
+		self._parent = parent
 
-		if constraints: 
+		if constraints:
 			constraints = [make_constraint(constraint) for constraint in constraints]
 		elif constraints is None and entry_type is not None: #If no constraints, set constraints to current type
 			#Get used types from field.type (e.g. typing.Literal, typing.Union, typing.List, typing.Dict, typing.Tuple,
@@ -262,52 +288,35 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			if constraints:
 				editor, getter, setter = self.get_editor_from_constraints(constraints, metadata, parent)
 
-				self._frameless_window.setCentralWidget(editor)
+				#Put editor into a frame with a background
+				editor_frame = QtWidgets.QFrame(parent)
+				editor_frame.setFrameStyle(QtWidgets.QFrame.Shape.Panel | QtWidgets.QFrame.Shadow.Raised)
+				editor_frame.setLayout(QtWidgets.QVBoxLayout())
+				editor_frame.layout().addWidget(editor)
+				editor_frame.layout().setContentsMargins(0, 0, 0, 0)
+				palette = parent.palette()
+				palette.setColor(editor_frame.backgroundRole(), self._background_color)
+				editor_frame.setPalette(palette)
+
+				#Set frameless window props
+				self._frameless_window.setCentralWidget(editor_frame)
 				self._frameless_window.resize(editor.sizeHint())
-				#Get the global position of the currently clicked item 
+				#Get the global position of the currently clicked item
 				# (e.g. if the item is in a scrollarea, the position is relative to the scrollarea)
-				global_pos = option.widget.mapToGlobal(option.rect.topLeft())
+				global_pos = parent.mapToGlobal(option.rect.topLeft()) #type:ignore
+				# global_pos = option.mapToGlobal(option.rect.topLeft())
 				# self._frameless_window.
 				self._frameless_window.move(global_pos)
-				# self._frameless_window.setGeometry(500, , editor.sizeHint().width(), editor.sizeHint().height())
 				self._frameless_window.show()
 				self._frameless_window.raise_()
 
-				#Set backround color of the window to the same color as the current widget
-				# self._frameless_window.setSizePolicy(QtWidgets.QSizePolicy.Policy.Fixed, QtWidgets.QSizePolicy.Policy.Fixed)
-
-				# editor.setParent(self._frameless_window)
-				#When editor size changes, update window size
-				# editor.sizeHintChanged.connect(lambda *_: frameless_window.adjustSize())
 			else:
 				raise ValueError(f"Could not create editor for field {field} - no constraints defined")
 
-			# if constraints: #First try to get editor based off of constraints
-			# 	if len(constraints) == 0: #If no constraints are defined, use default editor
-			# 		return
-			# 	elif "array-like" in constraints: #for now use text-editor for lists
-			# 		pass
-			# 	elif len(constraints) <= 2:
-			# 		if len(constraints) == 1 and None in constraints: #If only none:
-			# 			pass
-			# 		else: #TODO: implement more complex constraints
-			# 			if None in constraints or type(None) in constraints:
-			# 				the_constraint = constraints[0] \
-			# 					if constraints[0] is not None or isinstance(constraints[0], type(None)) else constraints[1]
-			# 			else:
-			# 				the_constraint = constraints[0] #For now, just use the first constaint
-			# 			editor = self.get_editor_from_constraints(the_constraint, metadata, parent)
-			# 			if editor is not None:
-			# 				return editor
-			# 	elif len(constraints) >= 3:
-			# 		pass #For now too complex -> skip, TODO: but create a user-selectable editor for this?
-			# 	# constraints = [entry_type]
 			return editor
 		except Exception as exception: #pylint: disable=broad-except
 			log.warning(f"Could not create editor from constraints {constraints} - {exception}")
 			raise
-
-		return super().createEditor(parent, option, index) #If no custom editor is created, use the default editor
 
 
 	def setEditorData(self, editor, index):
@@ -317,7 +326,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		if isinstance(editor, QtWidgets.QDateTimeEdit):
 			editor.setDateTime(value)
 		elif isinstance(editor, QtWidgets.QComboBox):
-			index = editor.findData(value, QtCore.Qt.ItemDataRole.UserRole)
+			index = editor.findData(value, QtCore.Qt.ItemDataRole.UserRole) #Get by data
 			if index == -1:
 				index = editor.findText(str(value))
 			editor.setCurrentIndex(index)

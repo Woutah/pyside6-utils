@@ -36,7 +36,7 @@ class WidgetSwitcher(QtWidgets.QWidget):
 	widgetRemoved = QtCore.Signal(int)
 
 
-	def __init__(self, inline_button = True, *args, **kwargs):
+	def __init__(self, *args, inline_button = True, **kwargs):
 		super().__init__(*args, **kwargs)
 		self._widget_descriptors : typing.Dict[str, WidgetDescriptor]= {}
 		# self._current_widget = None
@@ -140,7 +140,7 @@ class WidgetSwitcher(QtWidgets.QWidget):
 				break
 		self.fix_layout()
 		return ret
-	
+
 	# def sizeHint(self) -> QtCore.QSize:
 	# 	return self.minimumSizeHint()
 

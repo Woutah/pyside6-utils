@@ -4,7 +4,6 @@ Implements a widget that allows the user to add/remove widgets of a certain type
 import logging
 import typing
 from PySide6 import QtCore, QtGui, QtWidgets
-import PySide6.QtCore
 import pyside6_utils.icons.app_resources_rc #pylint: disable=unused-import
 
 log = logging.getLogger(__name__)
@@ -60,8 +59,8 @@ class WidgetList(QtWidgets.QWidget):
 
 		self._add_icon = QtGui.QIcon(":/icons/actions/list-add.png")
 		self._remove_icon = QtGui.QIcon(":/icons/actions/list-remove.png")
-		
-	
+
+
 
 		self.setLayout(self._layout_type(self))
 		self.layout().setContentsMargins(0, 0, 0, 0)
@@ -103,7 +102,7 @@ class WidgetList(QtWidgets.QWidget):
 
 		self._add_btn.clicked.connect(self._append_btn_clicked)
 
-		
+
 
 	def set_widgetcount(self, new_count : int):
 		"""Set the new widget-count. Keeps appending or popping widgets until the widget count is equal to
@@ -171,6 +170,8 @@ class WidgetList(QtWidgets.QWidget):
 		self.widgets[index].setParent(None) #type:ignore #Set parent to None (delete widget)
 		del self._widget_layout_containers[index] #Remove from list
 		del self.widgets[index] #Remove from list
+		# self.updateGeometry()
+		self.adjustSize()
 		self.widgetsRemoved.emit([index], [self.widgets]) #Emit signal
 
 
@@ -178,8 +179,6 @@ class WidgetList(QtWidgets.QWidget):
 		"""Insert a widget at the specified index"""
 		if index < 0 or index > len(self.widgets):
 			raise ValueError(f"Cannot insert widget at index {index} - widget count is {len(self.widgets)}")
-		
-		print(f"The total size hint is {self.sizeHint()}")
 
 		#Set the new sizehint to be the same as the previous sizehint, but with the new widget added
 		# self._layout_container.sizeHi(QtCore.QSize(self._layout_container.sizeHint().width(),
@@ -210,17 +209,9 @@ class WidgetList(QtWidgets.QWidget):
 		container_widget.layout().addWidget(remove_btn)
 
 		self._addable_items_layout.insertWidget(index, container_widget) #Take
-		# self._addable_items_layout.addWidget(container_widget)
-		# self.setMinimumSize(self.minimumSizeHint())
-		# self.setBaseSize(self.minimumSizeHint())
-		# self.adjustSize()
-
-		# self.widgetsAdded.emit([index], [new_widget])
-		# self
 		self.updateGeometry()
-		# self.adjustSize()
 		return new_widget
-	
+
 	# def sizeHint(self) -> QtCore.QSize:
 	# 	return self.minimumSizeHint()
 	# 	# return super().sizeHint()
@@ -238,7 +229,7 @@ class WidgetList(QtWidgets.QWidget):
 	# 			cur_hint.setWidth(max(cur_hint.width(), item.minimumSizeHint().width()))
 
 	# 	# min_width = max(cur_hint.width(), self._layout_container.minimumSizeHint().width())
-		
+
 	# 	return cur_hint
 		# return QtCore.QSize(max(min_width, cur_hint.width()), cur_hint.height() + height_addition)
 
