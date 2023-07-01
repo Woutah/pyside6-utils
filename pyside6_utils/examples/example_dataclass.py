@@ -82,6 +82,26 @@ class ExampleDataClass:
 		)
 	)
 
+	test_intlist : typing.List[int] = field(
+		default_factory=list,
+		metadata=dict(
+			display_name="Test intlist property",
+			help= "This is a test property",
+			changed=True,
+			constraints = [Interval(int, 0,10, closed='both'), None]
+		)
+	)
+
+	test_int_or_none_list : typing.List[int | None] = field(
+		default_factory=list,
+		metadata=dict(
+			display_name="Test int or none list property",
+			help= "This is a test property",
+			changed=True,
+			constraints = [Interval(int, 0,10, closed='both'), None]
+		)
+	)
+
 	test_stroptions_property : typing.Literal["Option1/10", "Option2/10"] = field(
 		default="Option1/10",
 		metadata=dict(

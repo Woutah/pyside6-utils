@@ -62,6 +62,10 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			editor.setMinimum(-9999999)
 			editor.setMaximum(9999999)
 			return editor
+		# elif isinstance(constraint, type) and issubclass(constraint, list) or issubclass(constraint, typing.List):
+		# 	# maybe check if the list is homogeneous?
+		# 	return QtWidgets.QLineEdit(parent) #Default editor
+		# 	raise NotImplementedError("List-editor not implemented yet")
 		elif isinstance(constraint, Interval):
 			if issubclass(constraint.type, Integral):
 				editor = QtWidgets.QSpinBox(parent)

@@ -9,7 +9,7 @@ from dataclasses import Field
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from pyside6_utils.models.dataclass_model import DataclassModel
+from pyside6_utils.models.dataclass_model import DataclassModel, HasNoDefaultError
 
 log = logging.getLogger(__name__)
 
@@ -45,21 +45,26 @@ class DataClassTreeView(QtWidgets.QTreeView):
 		if not index.isValid():
 			return False
 
-		cur_field = index.data(DataclassModel.FIELD_ROLE)
+		# cur_field = index.data(DataclassModel.CustomDataRoles.FieldRole)
 		cur_data = index.data(QtCore.Qt.ItemDataRole.EditRole)
-		if not isinstance(cur_field, Field):
-			log.debug(f"Selected item is not a field: {cur_field}")
-			return False
+		# if not isinstance(cur_field, Field):
+		# 	log.debug(f"Selected item is not a field: {cur_field}")
+		# 	return False
 
-		if cur_field is None:
-			return False
+		# if cur_field is None:
+		# 	return False
 
-		if hasattr(cur_field, "default"):
-			default_val = cur_field.default
+		# if hasattr(cur_field, "default"):
+		# 	default_val = cur_field.default
+		try:
+			default_val = index.data(DataclassModel.CustomDataRoles.DefaultValueRole)
 			if default_val != cur_data:
 				menu.addAction(f"Set to default ({default_val})", lambda x=index: self.set_index_to_default(index))
 			else:
 				menu.addAction("Set to default (unchanged)", None)
+		except HasNoDefaultError:
+			menu.addAction("Set to default (unchanged)", None)
+
 
 		menu.exec(self.mapToGlobal(pos))
 		return True
@@ -70,7 +75,7 @@ class DataClassTreeView(QtWidgets.QTreeView):
 		if not index.isValid():
 			return
 
-		cur_field = index.data(DataclassModel.FIELD_ROLE)
+		cur_field = index.data(DataclassModel.CustomDataRoles.FieldRole)
 		cur_data = index.data(QtCore.Qt.ItemDataRole.EditRole)
 		if not isinstance(cur_field, Field):
 			log.debug(f"Selected item is not a field: {cur_field}")

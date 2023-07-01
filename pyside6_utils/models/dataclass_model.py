@@ -7,7 +7,7 @@ import datetime
 import logging
 import typing
 from dataclasses import fields, is_dataclass
-
+import enum
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from pyside6_utils.models.dataclass_tree_item import DataclassTreeItem
@@ -45,7 +45,8 @@ class SetDataCommand(QtGui.QUndoCommand):
 	def redo(self):
 		self._model._set_data(self._index, self._new_value, self._role) #pylint: disable=protected-access
 
-
+class HasNoDefaultError(Exception):
+	"""Raised when a field has no default value"""
 
 class DataclassModel(QtCore.QAbstractItemModel):
 	"""
@@ -62,8 +63,13 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		- constraints: A list of constraints that are displayed in the tooltip. Defaults to None.
 
 	"""
-	FIELD_ROLE = QtCore.Qt.ItemDataRole.UserRole + 1 #Role for the field
-	TYPE_ROLE = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
+	# FIELD_ROLE = QtCore.Qt.ItemDataRole.UserRole + 1 #Role for the field
+	# TYPE_ROLE = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
+	class CustomDataRoles(enum.IntEnum):
+		"""The custom roles for getting data of dataclass-fields"""
+		TypeRole = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
+		FieldRole = QtCore.Qt.ItemDataRole.UserRole + 1 #Role for the field
+		DefaultValueRole = QtCore.Qt.ItemDataRole.UserRole + 2 #Role for the default value of the field
 
 	def __init__(self, dataclass_instance : object,
 					parent: typing.Optional[QtCore.QObject] = None,
@@ -219,6 +225,18 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			return None
 
 
+	def get_default_value(self, data_class_field : dataclasses.Field) -> typing.Any:
+		"""Get default value of item using the passed field, raises hasNoDefaultError if no default value is available
+		
+		Raises HasNoDefaultError: If no default value is available
+		"""
+		if hasattr(data_class_field, "default") \
+				and data_class_field.default != dataclasses.MISSING: #If default value is defined
+			return data_class_field.default
+		elif hasattr(data_class_field, "default_factory"):
+			return data_class_field.default_factory() #type: ignore
+		else:
+			raise HasNoDefaultError(f"Could not get default value for field {data_class_field.name}")
 
 
 	def data(self, index: QtCore.QModelIndex, role: int = QtCore.Qt.ItemDataRole.DisplayRole) -> typing.Any:
@@ -265,11 +283,14 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					item_type_name = str(name_field_dict[node.name].type)
 				result_str += f" (type: {item_type_name[:20]})"
 
-					
-				if hasattr(name_field_dict[node.name], "default"):
-					result_str += f" (default: {str(name_field_dict[node.name].default)[:20]})"
+				
+				try: 
+					result_str += f" (default: {str(self.get_default_value(name_field_dict[node.name]))[:20]})"
+				except HasNoDefaultError:
+					pass
+
 				return result_str
-			elif role == DataclassModel.TYPE_ROLE: #Get type role #TODO: maybe create Enum with more descriptive names.
+			elif role == DataclassModel.CustomDataRoles.TypeRole: #Get type role #TODO: maybe create Enum with more descriptive names.
 					#NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance
 					# of Qt.ItemDataRole.DisplayRole
 				result = name_field_dict.get(node.name, None) #Get field
@@ -277,19 +298,27 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					return result.type #If field is available -> return type
 				else:
 					return None
-			elif role == DataclassModel.FIELD_ROLE: #Field role
+			elif role == DataclassModel.CustomDataRoles.FieldRole: #Field role
 				result = name_field_dict.get(node.name, None) #Get field
 				return result
+			elif role == DataclassModel.CustomDataRoles.DefaultValueRole: #Default value role
+				if name_field_dict.get(node.name, None) is None:
+					raise HasNoDefaultError(f"Field {node.name} is not a field of the dataclass")
+				return self.get_default_value(name_field_dict[node.name])
+
 			elif role == QtCore.Qt.ItemDataRole.FontRole:
 				if name_field_dict.get(node.name, None) is None:
 					return None #If only a header (no data)
-				if hasattr(name_field_dict[node.name], "default"):
-					default_val = name_field_dict[node.name].default
-					#If current value is not equal to the default value, make the font bold
-					if self._dataclass.__dict__.get(node.name, None) != default_val:
-						font = QtGui.QFont()
-						font.setBold(True)
-						return font
+				
+				default_val = None
+
+				default_val = self.get_default_value(name_field_dict[node.name]) #Catch hasnodefaulterror later
+				cur_val = self._dataclass.__dict__.get(node.name, None)
+
+				if cur_val != default_val:
+					font = QtGui.QFont()
+					font.setBold(True)
+					return font
 				return None
 			elif role == QtCore.Qt.ItemDataRole.BackgroundRole: #If required and empty, make background red
 				if name_field_dict.get(node.name, None) is None:
@@ -303,6 +332,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		except Exception as exception: #pylint: disable=broad-except
 			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - "
 	       		f"{type(exception).__name__} : {exception}")
+			raise #Re-raise exception so we can use it in caller if we're using data() ourselves
 
 		return None
 
@@ -370,9 +400,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		field = tree_item.field
 		if field is None:
 			return
-		if hasattr(field, "default"):
-			default_value = field.default
-			self.setData(index, default_value, QtCore.Qt.ItemDataRole.EditRole)
+		default_value = self.get_default_value(field)
+		self.setData(index, default_value, QtCore.Qt.ItemDataRole.EditRole)
 
 	def has_default(self, index: QtCore.QModelIndex) -> bool:
 		"""Returns whether the given index has a default value"""

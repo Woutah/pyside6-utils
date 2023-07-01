@@ -21,6 +21,7 @@ class WidgetList(QtWidgets.QWidget):
 	def __init__(self, #pylint: disable=keyword-arg-before-vararg
 		  	widget_source : type | typing.Callable[['WidgetList'], QtWidgets.QWidget] = QtWidgets.QLineEdit,
 			widget_value_getter : typing.Callable = QtWidgets.QLineEdit.text, #How to get the value from
+			widget_value_setter : typing.Callable = QtWidgets.QLineEdit.setText, #How to set the value of
 			widget_creation_args : dict | None = None, #If widget_source is a type, pass these arguments to the constructor
 			user_addable : bool = True,
 			layout_orientation : QtCore.Qt.Orientation = QtCore.Qt.Orientation.Vertical,
@@ -35,6 +36,8 @@ class WidgetList(QtWidgets.QWidget):
 				add to the list, or a function that returns a widget (factory). Defaults to QtWidgets.QLineEdit.
 			widget_value_getter (typing.Callable, optional): The function to call on the widgets to get the value,
 				is used by the get_value() function to get the list of current values. Defaults to QtWidgets.QLineEdit.text.
+			widget_value_setter (typing.Callable, optional): The function to call on the widgets to set the value,
+				is used by the set_value() function to set the values of the widgets. Defaults to QtWidgets.QLineEdit.setText.
 			widget_creation_args (dict | None, optional): The arguments to pass to the constructor of the widget, if
 				widget_source is a type. Defaults to None.
 			user_addable (bool, optional): Whether the user can add/remove widgets. Defaults to True.
@@ -88,6 +91,7 @@ class WidgetList(QtWidgets.QWidget):
 
 		self.widget_creation_args = widget_creation_args
 		self.widget_value_getter = widget_value_getter
+		self.widget_value_setter = widget_value_setter
 		self.widgets : typing.List[QtWidgets.QWidget] = [] #Public - makes it easier to set/get values
 		self._widget_layout_containers : typing.List[QtWidgets.QWidget] = [] #Contains the container widgets with the
 			# widget to be added/removed and a '-' button
@@ -117,6 +121,30 @@ class WidgetList(QtWidgets.QWidget):
 	def get_values_using_getter(self, getter : typing.Callable, *args, **kwargs):
 		"""Get the values of all widgets using the provided getter-function and return a list of values"""
 		return [getter(widget, *args, **kwargs) for widget in self.widgets]
+
+	def set_values(self, values : list, delete_superfluous_widgets : bool = True, *args, **kwargs): #pylint: disable=keyword-arg-before-vararg
+		"""Set the values of all widgets using the provided widget_value_setter-function.
+		if delete_superfluous_widgets is True, remove widgets if the number of values is less than the number of widgets.
+		"""
+		self.set_values_using_setter(self.widget_value_setter, values, delete_superfluous_widgets, *args, **kwargs)
+
+	def set_values_using_setter(self, #pylint: disable=keyword-arg-before-vararg
+			setter : typing.Callable,
+			values : list,
+			delete_superfluous_widgets : bool = True,
+			*args,
+			**kwargs
+		):
+		"""Set the values of all widgets using the provided setter-function.
+		if delete_superfluous_widgets is True, remove widgets if the number of values is less than the number of widgets.
+		"""
+		if not delete_superfluous_widgets and len(values) > len(self.widgets):
+			pass
+		else:
+			self.set_widgetcount(len(values))
+		for widget, value in zip(self.widgets, values):
+			setter(widget, value, *args, **kwargs)
+
 
 	def _append_btn_clicked(self, *_):
 		"""If user presses append button"""

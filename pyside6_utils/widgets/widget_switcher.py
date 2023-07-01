@@ -20,6 +20,7 @@ class WidgetDescriptor:
 	widget : QtWidgets.QWidget #The actual widget
 	name: str
 	value_getter : typing.Callable
+	value_setter : typing.Callable
 
 class WidgetSwitcher(QtWidgets.QStackedWidget):
 	"""Wrapper aroun a QtStackedWidget to allow for easy switching between widget types using a context-menu
@@ -52,7 +53,7 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 		self._triangle_button.show()
 		self._triangle_button.raise_()
 
-	
+
 
 	def _context_triangle_clicked(self):
 		cur_mouse_pos = QtGui.QCursor.pos()
@@ -104,7 +105,12 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 				break
 		return ret
 
-	def add_widget(self, widget : QtWidgets.QWidget, name: str, value_getter : typing.Callable):
+	def add_widget(self,
+			widget : QtWidgets.QWidget,
+			name: str,
+			value_getter : typing.Callable,
+			value_setter : typing.Callable
+		):
 		"""Adds a widget to the widget switcher, with the specified name and value getter
 
 		Args:
@@ -112,8 +118,10 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 			name (str): The name (as it should appear in the context menu)
 			value_getter (typing.Callable): Used by get_value to get the current value of the widget (e.g. widget.text
 				for a QLineEdit)
+			value_setter (typing.Callable): Used by set_value to set the current value of the widget (e.g. widget.setText
+				for a QLineEdit)
 		"""
-		self._widget_descriptors[name] = WidgetDescriptor(widget, name, value_getter)
+		self._widget_descriptors[name] = WidgetDescriptor(widget, name, value_getter, value_setter)
 		super().addWidget(widget)
 		self._triangle_button.raise_()
 
@@ -123,6 +131,33 @@ class WidgetSwitcher(QtWidgets.QStackedWidget):
 			return None
 		return self._current_widget_descriptor.value_getter(self._current_widget_descriptor.widget)
 
+	def set_value(self, value : typing.Any) -> typing.Any:
+		"""
+		Automatically finds the first widget for which the value can be set and sets the value using the value_setter
+		NOTE/TODO: at the moment, this is not very robust - it will just try to set the value for each widget in the order
+		they were added, and will raise an exception if it cannot set the value for any of them.
+
+		TODO: maybe use typehint-parser based on instance? e.g. [1, 2, 3] -> typing.List[int], and base the
+		widget-selection on that?
+		"""
+		could_set = -1
+		for i, descriptor in enumerate(self._widget_descriptors.values()):
+			try: #Find the first widget for which we can set the value
+				descriptor.value_setter(descriptor.widget, value)
+				could_set = i
+				self.setCurrentWidget(descriptor.widget) #Switch to that widget
+				break
+			except Exception: #pylint: disable=broad-except
+				continue
+		if could_set == -1:
+			raise ValueError("Could not set the passed value for any of the widgets")
+
+
+	def set_current_value(self, value : typing.Any) -> None:
+		"""Sets the value of the current widget using the value_setter passed when the widget was added"""
+		if self._current_widget_descriptor is None:
+			return
+		self._current_widget_descriptor.value_setter(self._current_widget_descriptor.widget, value)
 
 	def show_menu(self, pos: QtCore.QPoint):
 		"""Show the context menu at the specified position"""
@@ -146,18 +181,37 @@ def run_example_app():
 	layout = QtWidgets.QVBoxLayout()
 	central_widget.setLayout(layout)
 
+	print(isinstance(int(3), typing.List))
+
+	def combobox_setter(combobox : QtWidgets.QComboBox, val : str): #Make compatible with set_value
+		if combobox.findData(val) == -1:
+			if combobox.findText(val) == -1:
+				raise ValueError(f"Could not find value {val} in combobox")
+			else:
+				combobox.setCurrentText(val)
+		else:
+			combobox.setCurrentIndex(combobox.findData(val))
+		# combobox.setCurrentText(val)
+
+
 	def widget_factory(*_):
 		test_widget = WidgetSwitcher()
-		test_widget.add_widget(QtWidgets.QPushButton("Button"), "Button", lambda x: "None")
+		test_widget.add_widget(QtWidgets.QPushButton("Button"), "Button", lambda x: "None", lambda x: None)
 		combobox = QtWidgets.QComboBox()
 		combobox.addItems(["ComboBoxOption1", "ComboBoxOption2", "ComboBoxOption3"])
-		test_widget.add_widget(combobox, "Combobox", lambda x: x.currentText())
-		test_widget.add_widget(QtWidgets.QLineEdit("LineEdit"), "LineEdit", lambda x: x.text())
+		test_widget.add_widget(combobox, "Combobox", lambda x: x.currentText(), combobox_setter)
+		test_widget.add_widget(QtWidgets.QLineEdit("LineEdit"), "LineEdit", lambda x: x.text(), lambda widget, val: widget.setText(val))
 		#Show left/right arrow buttons to switch between widgets
 
 		return test_widget
-	
-	widget_list = WidgetList(widget_factory, lambda x: x.get_value(), user_addable=True)
+
+	widget_list = WidgetList(widget_factory,
+		widget_value_getter=lambda x: x.get_value(),
+		widget_value_setter=WidgetSwitcher.set_value,
+		user_addable=True
+	)
+
+	widget_list.set_values(["test1", "ComboBoxOption2", "LineEdit"])
 
 	widget_list.widgetsAdded.connect(lambda x, y: log.info(widget_list.get_values()))
 
