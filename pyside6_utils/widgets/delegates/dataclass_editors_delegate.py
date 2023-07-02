@@ -5,16 +5,16 @@ import types
 import typing
 from datetime import datetime
 from numbers import Integral, Real
-from typing import Union
 
 from PySide6 import QtCore, QtWidgets
-import PySide6.QtCore
-import PySide6.QtWidgets
 
-from pyside6_utils.widgets.widget_switcher import WidgetSwitcher
+from pyside6_utils.utility.constraints import (ConstrainedList, Interval,
+                                               Options, StrOptions,
+                                               _Constraint, _InstancesOf,
+                                               _NoneConstraint,
+                                               make_constraint)
 from pyside6_utils.widgets.widget_list import WidgetList
-from pyside6_utils.utility.constraints import Interval, Options, StrOptions, ConstrainedList, _InstancesOf, make_constraint, _Constraint, _NoneConstraint
-from pyside6_utils.models.dataclass_model import DataclassModel
+from pyside6_utils.widgets.widget_switcher import WidgetSwitcher
 
 log = logging.getLogger(__name__)
 
@@ -42,14 +42,12 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	TODO: maybe use a factory instead for the editors
 	"""
 	#Custom delegate that allows for editing of different data types of DataClassModel
-	def __init__(self, background_color : QtCore.Qt.GlobalColor = QtCore.Qt.GlobalColor.white,  *args, **kwargs) -> None: #pylint: disable=unused-argument
+	def __init__(self, *args, background_color : QtCore.Qt.GlobalColor = QtCore.Qt.GlobalColor.white, **kwargs) -> None: #pylint: disable=unused-argument
 		super().__init__()
 		self._frameless_window = QtWidgets.QMainWindow()
-		# self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
-		self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
-
-		# #Transparent background
-		# self._frameless_window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
+		self._frameless_window.setWindowFlags(
+			QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
+		# self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
 		self._background_color = background_color
 		self._parent = None
@@ -57,7 +55,10 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		palette = self._frameless_window.palette()
 		palette.setColor(self._frameless_window.backgroundRole(), self._background_color)
 		self._frameless_window.setPalette(palette)
-		# self._frameless_window.resizeEvent = self._frameless_window_resize_event
+
+		#Check if window is focused out - if so, commit data and close editor-window
+		self._frameless_window.changeEvent = \
+			lambda x, window=self._frameless_window: self.window_focus_out_event(window, x) #type: ignore
 
 	# def _frameless_window_resize_event(self, event):
 	# 	print("RESIZE EVENT")
@@ -66,7 +67,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	# 	self._frameless_window.resize(new_size)
 
 	def get_editor_from_constraints(self,
-			constraint : typing.List[_Constraint],
+			constraint : typing.List[_Constraint] | _Constraint,
 			metadata,
 			parent
 		) -> typing.Tuple[QtWidgets.QWidget, typing.Callable, typing.Callable]:
@@ -119,9 +120,10 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 		elif isinstance(constraint, ConstrainedList):
 			#Retrieve getter/setter and set the constraints-widget-getter as the factory for the list
-			widget_instance, getter, setter = self.get_editor_from_constraints(constraint.constraints, metadata, parent)
+			_, getter, setter = self.get_editor_from_constraints(constraint.constraints, metadata, parent)
 			widget_list = WidgetList(
-				lambda widget_list: self.get_editor_from_constraints(constraint.constraints, metadata, widget_list)[0], #TODO: what if None? #type: ignore
+				lambda widget_list: self.get_editor_from_constraints(
+					constraint.constraints, metadata, widget_list)[0], #TODO: what if None? #type: ignore
 				widget_value_getter=getter,
 				widget_value_setter=setter,
 				parent=parent,
@@ -148,7 +150,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			elif the_type == datetime:
 				editor = QtWidgets.QDateTimeEdit(parent)
 				editor.setCalendarPopup(True)
-				return editor, lambda widget : QtWidgets.QDateTimeEdit.dateTime(widget).toPython(), QtWidgets.QDateTimeEdit.setDateTime
+				return editor, lambda widget : QtWidgets.QDateTimeEdit.dateTime(widget).toPython(), \
+									QtWidgets.QDateTimeEdit.setDateTime
 			elif issubclass(the_type, Integral): #If int or (other subclass of) integral
 				editor = QtWidgets.QSpinBox(parent)
 				editor.setMaximum(9999999)
@@ -243,21 +246,20 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		elif typing.get_origin(typehint) == typing.Literal: #pylint: disable=comparison-with-callable
 			constraints = [Options(typing.Any, set(typehint.__args__))] #TODO: maybe check if all the same type instead
 				# of typing.Any?
-		return constraints
+		return constraints #type: ignore
 
 
 	def updateEditorGeometry(self, editor, option, index): #pylint: disable=unused-argument
 		if self._frameless_window:
 			min_size = editor.minimumSizeHint()
-			desired_size = editor.sizeHint()
-			# print(f"Min size: {min_size}, desired size: {desired_size}, option rect: {option.rect}")
+			option_rect : QtCore.QRect = option.rect #type: ignore
 
-			min_size.setWidth(max(min_size.width(), option.rect.width()))
-			min_size.setHeight(max(min_size.height(), option.rect.height()))
+			min_size.setWidth(max(min_size.width(), option_rect.width()))
+			min_size.setHeight(max(min_size.height(), option_rect.height()))
 			self._frameless_window.resize(min_size)
 
 			if self._parent:
-				global_pos = self._parent.mapToGlobal(option.rect.topLeft())
+				global_pos = self._parent.mapToGlobal(option_rect.topLeft())
 				self._frameless_window.move(global_pos)
 				self._frameless_window.raise_()
 
@@ -270,7 +272,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		editor = None
 		entry_type = None
 		metadata = None
-		constraints = None
+		constraints : typing.List[_Constraint] | None = None
 		if field:
 			metadata = field.metadata
 			entry_type = field.type
@@ -294,7 +296,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 		try:
 			if constraints:
-				editor, getter, setter = self.get_editor_from_constraints(constraints, metadata, parent)
+				editor, _, _ = self.get_editor_from_constraints(constraints, metadata, parent)
 
 				#Put editor into a frame with a background
 				editor_frame = QtWidgets.QFrame()
@@ -306,10 +308,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				palette.setColor(editor_frame.backgroundRole(), self._background_color)
 				editor_frame.setPalette(palette)
 
-				#Check if QtMainWindow on which widget loses focus, if so, commit data
-				# if isinstance(parent, QtWidgets.QMainWindow):
 				self._frameless_window.installEventFilter(parent)
-					# self._frameless_window.installEventFilter(self)
 
 				#Set frameless window props
 				self._frameless_window.setCentralWidget(editor_frame)
@@ -318,27 +317,25 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				# (e.g. if the item is in a scrollarea, the position is relative to the scrollarea)
 				global_pos = parent.mapToGlobal(option.rect.topLeft()) #type:ignore
 				self._frameless_window.move(global_pos)
-				self._frameless_window.changeEvent = lambda x, window=self._frameless_window: self.window_focus_out_event(window, x)
 				self._frameless_window.setFocus()
 				self._frameless_window.show()
 				self._frameless_window.raise_()
-
 			else:
 				raise ValueError(f"Could not create editor for field {field} - no constraints defined")
 
 			return editor
-		except Exception as exception: #pylint: disable=broad-except
+		except Exception as exception:
 			log.warning(f"Could not create editor from constraints {constraints} - {exception}")
 			raise
 
-	def window_focus_out_event(self, window, event):
+	def window_focus_out_event(self, window, event): #pylint: disable=unused-argument
 		"""If editor-window is focused out, hide it and commit data"""
 		active_window = QtWidgets.QApplication.activeWindow()
 		if active_window != self._frameless_window:
 			self._frameless_window.hide()
 			#Commit data
 			self.commitData.emit(window.centralWidget().layout().itemAt(0).widget())
-		
+
 
 
 	def setEditorData(self, editor, index):

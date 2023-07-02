@@ -61,7 +61,8 @@ class WidgetSwitcher(QtWidgets.QWidget):
 		self.customContextMenuRequested.connect(self.show_menu)
 		self._triangle_button = QtWidgets.QPushButton()
 		self._triangle_button.setParent(self)
-		self._triangle_button.setIcon(QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TitleBarUnshadeButton))
+		self._triangle_button.setIcon(
+			QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_TitleBarUnshadeButton))
 		self._triangle_button.clicked.connect(self._context_triangle_clicked)
 		self._triangle_button.show()
 		self._triangle_button.raise_()
@@ -108,7 +109,8 @@ class WidgetSwitcher(QtWidgets.QWidget):
 		for descriptor in self._widget_descriptors.values():
 			self._menu.addAction(descriptor.name, lambda x=descriptor.widget: self.setCurrentWidget(x))
 
-	def setCurrentWidget(self, widget: QtWidgets.QWidget) -> None:
+	def setCurrentWidget(self, widget: QtWidgets.QWidget) -> None: #pylint: disable=invalid-name
+		"""Sets the current widget to the specified widget and updates the current widget descriptor"""
 		ret = self._stack_widget.setCurrentWidget(widget)
 		self._triangle_button.raise_()
 		for descriptor in self._widget_descriptors.values(): #Get the current widget descriptor
@@ -120,22 +122,25 @@ class WidgetSwitcher(QtWidgets.QWidget):
 		self.updateGeometry()
 		return ret
 
-	def setCurrentIndex(self, index: int) -> None:
+	def setCurrentIndex(self, index: int) -> None: #pylint: disable=invalid-name
+		"""Set the current index of the stacked widget and update descriptor"""
 		ret = self._stack_widget.setCurrentIndex(index)
 		self._current_widget_descriptor = self._widget_descriptors[list(self._widget_descriptors.keys())[index]]
 		self._triangle_button.raise_()
 		self.fix_layout()
 		return ret
 
-	def addWidget(self) -> int:
+	def addWidget(self) -> int: #pylint: disable=invalid-name
+		"""Addwidget is not supported, use add_widget instead"""
 		raise NotImplementedError("Use add_widget instead - we need to add a descriptor")
 		#TODO: might be more neat to instead use the widget name as the key?
 
-	def removeWidget(self, w: QtWidgets.QWidget) -> None:
-		ret = self._stack_widget.removeWidget(w)
+	def removeWidget(self, widget : QtWidgets.QWidget) -> None: #pylint: disable=invalid-name
+		"""Remove widget from stacked widget and remove the corresponding descriptor"""
+		ret = self._stack_widget.removeWidget(widget)
 
 		for descriptor in self._widget_descriptors.values():
-			if descriptor.widget == w:
+			if descriptor.widget == widget:
 				del self._widget_descriptors[descriptor.name]
 				break
 		self.fix_layout()
@@ -210,15 +215,15 @@ class WidgetSwitcher(QtWidgets.QWidget):
 		"""Returns the number of widgets"""
 		return self._stack_widget.count()
 
-	def currentIndex(self) -> int:
+	def currentIndex(self) -> int:# pylint: disable=invalid-name
 		"""Returns the index of the current widget"""
 		return self._stack_widget.currentIndex()
 
-	def currentWidget(self) -> QtWidgets.QWidget:
+	def currentWidget(self) -> QtWidgets.QWidget: #pylint: disable=invalid-name
 		"""Returns the current widget"""
 		return self._stack_widget.currentWidget()
 
-	def indexOf(self, widget: QtWidgets.QWidget) -> int:
+	def indexOf(self, widget: QtWidgets.QWidget) -> int: #pylint: disable=invalid-name
 		"""Returns the index of the specified widget"""
 		return self._stack_widget.indexOf(widget)
 
@@ -273,7 +278,8 @@ def run_example_app():
 		combobox = QtWidgets.QComboBox()
 		combobox.addItems(["ComboBoxOption1", "ComboBoxOption2", "ComboBoxOption3"])
 		test_widget.add_widget(combobox, "Combobox", lambda x: x.currentText(), combobox_setter)
-		test_widget.add_widget(QtWidgets.QLineEdit("LineEdit"), "LineEdit", lambda x: x.text(), lambda widget, val: widget.setText(val))
+		test_widget.add_widget(
+			QtWidgets.QLineEdit("LineEdit"), "LineEdit", lambda x: x.text(), lambda widget, val: widget.setText(val))
 		#Show left/right arrow buttons to switch between widgets
 
 		return test_widget

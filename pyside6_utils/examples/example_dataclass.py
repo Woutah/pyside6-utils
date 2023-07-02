@@ -103,7 +103,7 @@ class ExampleDataClass:
 		)
 	)
 
-	
+
 	test_float_or_option : typing.List[float | str] = field(
 		default_factory=list,
 		metadata=dict(

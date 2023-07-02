@@ -2,8 +2,8 @@
 Module largely sourced from sklearn.utils.validation and sklearn.utils._validation for framework
 not to be dependent on whole sklearn library
 
-Also added ConstrainedList - this indicates that an item contains a list of items, each constrained by the same constraint
-e.g.:
+Also added ConstrainedList - this indicates that an item contains a list of items, each constrained by the same 
+constraint e.g.:
 
 ConstrainedList([None, Interval(int, 0,10, closed='both')]) indicates a list of items, each of which is either None or
 an int between 0 and 10
@@ -59,7 +59,7 @@ import numpy as np
 # from scipy.sparse import csr_matrix
 
 # from .validation import _is_arraylike_not_scalar
-def _is_arraylike(x):
+def _is_arraylike(x): #pylint: disable=invalid-name
 	"""Returns whether the input is array-like."""
 	return hasattr(x, "__len__") or hasattr(x, "shape") or hasattr(x, "__array__")
 
@@ -260,7 +260,7 @@ def validate_params(parameter_constraints):
 	return decorator
 
 
-def _type_name(t):
+def _type_name(t): #pylint: disable=invalid-name
 	"""Convert type into human readable string."""
 	module = t.__module__
 	qualname = t.__qualname__
@@ -344,8 +344,7 @@ class _PandasNAConstraint(_Constraint):
 
 	def is_satisfied_by(self, val):
 		try:
-			import pandas as pd
-
+			import pandas as pd #pylint: disable=import-outside-toplevel
 			return isinstance(val, type(pd.NA)) and pd.isna(val)
 		except ImportError:
 			return False
@@ -533,7 +532,8 @@ class ConstrainedList(_Constraint):
 
 	def __init__(self, constraints):
 		super().__init__()
-		self.constraints : typing.List[_Constraint] = [make_constraint(constraint) for constraint in constraints] #Make constraints
+		self.constraints : typing.List[_Constraint] = \
+			[make_constraint(constraint) for constraint in constraints] #Make constraints
 
 	@staticmethod
 	def create_using_constraint_objects(constraints : typing.List[_Constraint]):
@@ -544,16 +544,16 @@ class ConstrainedList(_Constraint):
 		constrained_list.constraints = constraints
 		return constrained_list
 
-	def is_satisfied_by(self, val_list):
+	def is_satisfied_by(self, val):
 		"""
 		Goes over all items in the list and checks if all constraints are satisfied by each item
 		"""
-		if not isinstance(val_list, list): #Must be list
+		if not isinstance(val, list): #Must be list
 			return False
 
-		for val in val_list:
+		for cur_val in val:
 			for constraint in self.constraints:
-				if not constraint.is_satisfied_by(val):
+				if not constraint.is_satisfied_by(cur_val):
 					return False
 		return True
 
@@ -576,7 +576,8 @@ class _SparseMatrices(_Constraint):
 	"""Constraint representing sparse matrices."""
 
 	def is_satisfied_by(self, val):
-		return issparse(val) #type:ignore #NOTE: to use, import from scipy.sparse import issparse #type:ignore
+		#NOTE: to use, import from scipy.sparse import issparse #type:ignore
+		return issparse(val) #type:ignore #pylint: disable=undefined-variable
 
 	def __str__(self):
 		return "a sparse matrix"

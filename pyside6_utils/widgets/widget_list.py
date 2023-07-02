@@ -4,7 +4,6 @@ Implements a widget that allows the user to add/remove widgets of a certain type
 import logging
 import typing
 from PySide6 import QtCore, QtGui, QtWidgets
-import PySide6.QtCore
 import pyside6_utils.icons.app_resources_rc #pylint: disable=unused-import
 
 log = logging.getLogger(__name__)
@@ -227,7 +226,7 @@ class WidgetList(QtWidgets.QWidget):
 	# 	min_width = max(cur_hint.width(), self._layout_container.minimumSizeHint().width())
 	# 	self.setMaximumHeight(cur_hint.height())
 	# 	return cur_hint
-	
+
 	# 	return self.minimumSizeHint()
 	# 	# return super().sizeHint()
 

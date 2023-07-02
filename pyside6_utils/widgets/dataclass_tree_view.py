@@ -54,7 +54,7 @@ class DataClassTreeView(QtWidgets.QTreeView):
 		try:
 			if index is None or not index.isValid():
 				return
-			
+
 			tree_item : DataclassTreeItem = index.data(DataclassModel.CustomDataRoles.TreeItemRole)
 			if tree_item.name in self._expanded_items:
 				self.expand(index)
@@ -83,10 +83,9 @@ class DataClassTreeView(QtWidgets.QTreeView):
 
 	def setModel(self, model: QtCore.QAbstractItemModel | None) -> None:
 		super().setModel(model) #type: ignore #NOTE: before connections, otherwise expand goes wrong bc view is not set
-		if len(self._model_signals) > 0:
+		if len(self._model_signals) > 0: #Disconnect all previous signals
 			for signal in self._model_signals:
-				# signal.disconnect()
-				self.disconnect(signal)
+				self.disconnect(signal) #type: ignore
 			self._model_signals = []
 
 		if model is not None:
@@ -141,38 +140,14 @@ class DataClassTreeView(QtWidgets.QTreeView):
 
 	def set_index_to_default(self, index : QtCore.QModelIndex) -> None:
 		"""Sets the selected item to default"""
-		# index = self.currentIndex()
 		if not index.isValid():
 			return
-
-		# index._set
 		try:
 			model = self.model()
 			model.setData(index, None, DataclassModel.CustomDataRoles.DefaultValueRole) #Set default value (found internally)
-		except Exception as exception: #pylint: disable=broad-except
+		except Exception as exception:
 			log.exception(f"Error when setting to default {type(exception).__name__}: {exception}")
 			raise exception
-
-		# cur_field = index.data(DataclassModel.CustomDataRoles.FieldRole)
-		# cur_data = index.data(QtCore.Qt.ItemDataRole.EditRole)
-		# if not isinstance(cur_field, Field):
-		# 	log.debug(f"Selected item is not a field: {cur_field}")
-		# 	return
-
-		# if cur_field is None:
-		# 	return
-
-		# # if not hasattr(cur_field, "default"):
-		# # 	return
-
-		# default_val = self.default
-		# if default_val == cur_data: #if the default value is the same as the current value, no change
-		# 	return
-		# model = self.model()
-		# model.setData(index, default_val, QtCore.Qt.ItemDataRole.EditRole)
-
-
-
 
 def run_example_app():
 	"""Run an example using ./examples/example_dataclass.py and a dataclass treeview & model

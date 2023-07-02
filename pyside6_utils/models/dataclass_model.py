@@ -336,7 +336,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 						return QtGui.QBrush(QtGui.QColor(255, 0, 0, 50))
 				return None
 
-		except Exception as exception: #pylint: disable=broad-except
+		except Exception as exception:
 			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - "
 	       		f"{type(exception).__name__} : {exception}")
 			raise #Re-raise exception so we can use it in caller if we're using data() ourselves
