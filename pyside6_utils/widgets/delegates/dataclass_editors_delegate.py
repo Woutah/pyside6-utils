@@ -45,7 +45,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 	def __init__(self, background_color : QtCore.Qt.GlobalColor = QtCore.Qt.GlobalColor.white,  *args, **kwargs) -> None: #pylint: disable=unused-argument
 		super().__init__()
 		self._frameless_window = QtWidgets.QMainWindow()
-		self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
+		# self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint | QtCore.Qt.WindowType.WindowStaysOnTopHint)
+		self._frameless_window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
 
 		# #Transparent background
 		# self._frameless_window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground, True)
@@ -301,6 +302,10 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				palette.setColor(editor_frame.backgroundRole(), self._background_color)
 				editor_frame.setPalette(palette)
 
+				#Check if QtMainWindow on which widget loses focus, if so, commit data
+				# if isinstance(parent, QtWidgets.QMainWindow):
+				self._frameless_window.installEventFilter(parent)
+					# self._frameless_window.installEventFilter(self)
 
 				#Set frameless window props
 				self._frameless_window.setCentralWidget(editor_frame)
@@ -309,10 +314,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				# (e.g. if the item is in a scrollarea, the position is relative to the scrollarea)
 				global_pos = parent.mapToGlobal(option.rect.topLeft()) #type:ignore
 				self._frameless_window.move(global_pos)
-				# editor.resizeEvent = lambda event: print("RESIZE EVENT") #pylint: disable=unnecessary-lambda
-				# self._frameless_window.layout().
+				self._frameless_window.changeEvent = lambda x, window=self._frameless_window: self.window_focus_out_event(window, x)
 				self._frameless_window.setFocus()
-
 				self._frameless_window.show()
 				self._frameless_window.raise_()
 
@@ -323,6 +326,15 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		except Exception as exception: #pylint: disable=broad-except
 			log.warning(f"Could not create editor from constraints {constraints} - {exception}")
 			raise
+
+	def window_focus_out_event(self, window, event):
+		"""If editor-window is focused out, hide it and commit data"""
+		active_window = QtWidgets.QApplication.activeWindow()
+		if active_window != self._frameless_window:
+			self._frameless_window.hide()
+			#Commit data
+			self.commitData.emit(window.centralWidget().layout().itemAt(0).widget())
+		
 
 
 	def setEditorData(self, editor, index):
