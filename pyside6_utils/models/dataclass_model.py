@@ -393,7 +393,14 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			assert tree_item.field is not None, "Can't get default value for property without field"
 			if self._dataclass.__dict__[tree_item.name] == self.get_default_value(tree_item.field):
 				return False
-			self._undo_stack.push(SetDataCommand(self, index, self.get_default_value(tree_item.field), role))
+			self._undo_stack.push(
+				SetDataCommand(
+					self,
+					index,
+					self.get_default_value(tree_item.field),
+					role=QtCore.Qt.ItemDataRole.EditRole #Make sure we get old/new value using editRole
+				)
+			)
 		return False
 
 	def flags(self, index: QtCore.QModelIndex) -> QtCore.Qt.ItemFlag:
