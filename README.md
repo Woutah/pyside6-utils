@@ -126,7 +126,7 @@ The following metadata is supported:
 <a name="constrainedlist">*=</a>For example, `ConstrainedList([Interval(float, 0.0, 1.0), StrOptions(["string1", "string2"])])` indicates a list of values that should either be a float between 0.0 and 1.0, or the string "string1" or "string2". The editor for this field would be constructed as a [`WidgetList`](#widgetlist) with a [`WidgetSwitcher`](#widgetswitcher) as the factory-widget. The `WidgetSwitcher` would then have two widgets, one with a `QSpinBox` and one with a `QComboBox` as the editor. **NOTE:** the same editor would be the result of a `Typing.List[typing.Union[float, str]]` typehint, minus the bounded-interval constraint on the float:
 <p align="center">
 	<img src="https://github.com/Woutah/pyside6-utils/blob/main/pyside6_utils/examples/images/string_float_list_example.png?raw=True" width="300" />
-	<img src="./pyside6_utils/examples/images/string_float_list_example.png" width=300/>
+	<!-- <img src="./pyside6_utils/examples/images/string_float_list_example.png" width=300/> -->
 </p>
 
 Default values are saved and can be reset using right-click context menu. Values that have changed from default will appear in bold.
