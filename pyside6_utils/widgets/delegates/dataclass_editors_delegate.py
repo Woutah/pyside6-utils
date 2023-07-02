@@ -59,6 +59,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		#Check if window is focused out - if so, commit data and close editor-window
 		self._frameless_window.changeEvent = \
 			lambda x, window=self._frameless_window: self.window_focus_out_event(window, x) #type: ignore
+		
+
 
 	# def _frameless_window_resize_event(self, event):
 	# 	print("RESIZE EVENT")
@@ -332,9 +334,14 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 		"""If editor-window is focused out, hide it and commit data"""
 		active_window = QtWidgets.QApplication.activeWindow()
 		if active_window != self._frameless_window:
+			self.commitData.emit(window.centralWidget().layout().itemAt(0).widget())
+			self._frameless_window.centralWidget().deleteLater() #Make sure editor is deleted, otherwise we get problems
+				# when we click the same widget twice in a row
+			self._frameless_window.lower()
 			self._frameless_window.hide()
 			#Commit data
-			self.commitData.emit(window.centralWidget().layout().itemAt(0).widget())
+	
+			#Make sure we can re-open the editor
 
 
 
@@ -360,9 +367,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			editor.set_values(value)
 		else:
 			super().setEditorData(editor, index)
+		
 
-	# def sizeHint(self, option, index) -> QtCore.QSize:
-		# return super().sizeHint(option, index)
 
 	def setModelData(self, editor, model, index):
 		if isinstance(editor, QtWidgets.QDateTimeEdit):
@@ -382,4 +388,5 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 		if self._frameless_window:
 			self._frameless_window.hide()
-		# 	self._frameless_window = None
+			self._frameless_window.lower()
+			# self._frameless_window = None
