@@ -5,10 +5,12 @@ NOTE: since this wrapper is VERY simple, it is not included in the registrars
 
 
 import logging
+import typing
 
 from PySide6 import QtCore, QtGui, QtWidgets
-
-from pyside6_utils.models.dataclass_model import DataclassModel, HasNoDefaultError
+from pyside6_utils.models.dataclass_model import (DataclassModel,
+                                                  HasNoDefaultError)
+from pyside6_utils.models.dataclass_tree_item import DataclassTreeItem
 
 log = logging.getLogger(__name__)
 
@@ -22,8 +24,77 @@ class DataClassTreeView(QtWidgets.QTreeView):
 	def __init__(self, parent: QtWidgets.QWidget | None = None) -> None:
 		super().__init__(parent)
 
-		# self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
-		# self.customContextMenuRequested.connect(self.contextMenuEvent)
+		#Keep a list of expanded items (by node.name, re-expand them on model reset)
+		self._expanded_items = set({})
+		#On expand, add the node.name to the list of expanded items
+		self.expanded.connect(lambda index, expanded=True: self._on_expansion_change(index, expanded))
+		self.collapsed.connect(lambda index, expanded=False: self._on_expansion_change(index, expanded))
+
+		self._model_signals : typing.List[QtCore.SignalInstance] = []
+
+		#Context menu
+		self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
+		self.customContextMenuRequested.connect(self.reset_expansion_state)
+
+	def _on_expansion_change(self, index : QtCore.QModelIndex, expanded : bool) -> None:
+		"""
+		Keep track of the expanded items (by node.name)
+		If we switch to a different model, we want to keep the expanded items the same
+		"""
+		attr_name = index.data(DataclassModel.CustomDataRoles.AttributeNameRole)
+		if expanded and attr_name not in self._expanded_items:
+			self._expanded_items.add(attr_name)
+		elif not expanded and attr_name in self._expanded_items:
+			self._expanded_items.remove(attr_name)
+		log.debug(f"Expansion changed: {index.data()} = {expanded}, expanded items: {self._expanded_items}")
+
+	def _get_set_expansion_state(self, index : QtCore.QModelIndex) -> None:
+		"""Recursively sets the expansion state of the given index (and its children) using the current settings"""
+
+		try:
+			if index is None or not index.isValid():
+				return
+			
+			tree_item : DataclassTreeItem = index.data(DataclassModel.CustomDataRoles.TreeItemRole)
+			if tree_item.name in self._expanded_items:
+				self.expand(index)
+			else:
+				self.collapse(index)
+
+			for child_nr in range(tree_item.child_count()):
+				child = tree_item.child(child_nr)
+				child_index = self.model().index(child.row(), 0, index)
+				self._get_set_expansion_state(child_index)
+				# child_index = self.model().createIndex(child.row(), 0, child)
+				# self._get_set_expansion_state(child_index)
+		except Exception as exception: #pylint: disable=broad-except
+			log.exception(f"Error when setting expansion state {type(exception).__name__}: {exception}")
+
+	def reset_expansion_state(self) -> None:
+		"""Resets the expansion state of all items in the treeview"""
+		self.blockSignals(True)
+		# self._get_set_expansion_state(self.model().index(0, 0).parent())
+		# self._get_set_expansion_state(self.rootIndex())
+		root = self.rootIndex()
+		for child_nr in range(self.model().rowCount(root)): #Get all top-level items
+			index = self.model().index(child_nr, 0, root)
+			self._get_set_expansion_state(index)
+		self.blockSignals(False)
+
+	def setModel(self, model: QtCore.QAbstractItemModel | None) -> None:
+		super().setModel(model) #type: ignore #NOTE: before connections, otherwise expand goes wrong bc view is not set
+		if len(self._model_signals) > 0:
+			for signal in self._model_signals:
+				# signal.disconnect()
+				self.disconnect(signal)
+			self._model_signals = []
+
+		if model is not None:
+			self._model_signals.append( #On reset -> re-set all expansion states according to the _expanded_items
+				model.modelReset.connect(self.reset_expansion_state) #type: ignore
+			)
+			#TODO: also do the same (selectively) on rowsInserted and rowsRemoved?
+
 
 	def mousePressEvent(self, event: QtGui.QMouseEvent) -> bool:
 		#Mark event as accepted, so the selection is not changed

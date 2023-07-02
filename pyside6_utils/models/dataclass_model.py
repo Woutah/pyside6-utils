@@ -71,6 +71,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		TypeRole = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
 		FieldRole = QtCore.Qt.ItemDataRole.UserRole + 1 #Role for the field
 		DefaultValueRole = QtCore.Qt.ItemDataRole.UserRole + 2 #Role for the default value of the field
+		AttributeNameRole = QtCore.Qt.ItemDataRole.UserRole + 3 #Role for the name of the attribute
+		TreeItemRole = QtCore.Qt.ItemDataRole.UserRole + 4 #Role for the tree item
 
 	def __init__(self, dataclass_instance : object,
 					parent: typing.Optional[QtCore.QObject] = None,
@@ -269,7 +271,6 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					elif isinstance(ret_val, list):
 						return ", ".join([str(item) for item in ret_val])
 					return ret_val
-
 			elif role == QtCore.Qt.ItemDataRole.EditRole:
 				return self._dataclass.__dict__.get(node.name, None)
 			elif role == QtCore.Qt.ItemDataRole.ToolTipRole:
@@ -301,6 +302,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					return result.type #If field is available -> return type
 				else:
 					return None
+			elif role == DataclassModel.CustomDataRoles.AttributeNameRole: #Get attribute name role
+				return node.name
 			elif role == DataclassModel.CustomDataRoles.FieldRole: #Field role
 				result = name_field_dict.get(node.name, None) #Get field
 				return result
@@ -308,7 +311,8 @@ class DataclassModel(QtCore.QAbstractItemModel):
 				if name_field_dict.get(node.name, None) is None:
 					raise HasNoDefaultError(f"Field {node.name} is not a field of the dataclass")
 				return self.get_default_value(name_field_dict[node.name])
-
+			elif role == DataclassModel.CustomDataRoles.TreeItemRole: #Tree item role
+				return node
 			elif role == QtCore.Qt.ItemDataRole.FontRole:
 				if name_field_dict.get(node.name, None) is None:
 					return None #If only a header (no data)
