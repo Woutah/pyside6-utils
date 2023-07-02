@@ -168,10 +168,14 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			else:
 				editor = QtWidgets.QDoubleSpinBox(parent)
 				editor_type = QtWidgets.QDoubleSpinBox
-			if constraint.right:
+			if constraint.right is not None:
 				editor.setMaximum(constraint.right)
-			if constraint.left:
+			else:
+				editor.setMaximum(9999999)
+			if constraint.left is not None:
 				editor.setMinimum(constraint.left)
+			else:
+				editor.setMinimum(-9999999)
 
 			#Set decimals by max-min/1000 +2 (e.g. if max-min = 1000, set decimals to 1+2 = 3)
 			if isinstance(editor, QtWidgets.QDoubleSpinBox):
