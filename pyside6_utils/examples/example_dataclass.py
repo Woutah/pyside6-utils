@@ -103,6 +103,19 @@ class ExampleDataClass:
 		)
 	)
 
+	
+	test_float_or_option : typing.List[float | str] = field(
+		default_factory=list,
+		metadata=dict(
+			display_name="Either 0-1 float or 'string1' or 'string2'",
+			help= "This is a test",
+			changed=True,
+			constraints = [
+				ConstrainedList([Interval(float, 0,1, closed='both'), StrOptions({"string1", "string2"})])
+			]
+		)
+	)
+
 	test_float_or_int_list : typing.List[float | int] = field(
 		default_factory=list,
 		metadata=dict(

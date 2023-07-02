@@ -4,6 +4,7 @@ Implements a widget that allows the user to add/remove widgets of a certain type
 import logging
 import typing
 from PySide6 import QtCore, QtGui, QtWidgets
+import PySide6.QtCore
 import pyside6_utils.icons.app_resources_rc #pylint: disable=unused-import
 
 log = logging.getLogger(__name__)
@@ -170,9 +171,9 @@ class WidgetList(QtWidgets.QWidget):
 		self.widgets[index].setParent(None) #type:ignore #Set parent to None (delete widget)
 		del self._widget_layout_containers[index] #Remove from list
 		del self.widgets[index] #Remove from list
-		# self.updateGeometry()
-		self.adjustSize()
 		self.widgetsRemoved.emit([index], [self.widgets]) #Emit signal
+
+
 
 
 	def insert_widget(self, index : int):
@@ -213,6 +214,20 @@ class WidgetList(QtWidgets.QWidget):
 		return new_widget
 
 	# def sizeHint(self) -> QtCore.QSize:
+	# 	cur_hint = self._add_btn.minimumSizeHint()
+
+	# 	for item in self._widget_layout_containers:
+	# 		if self._layout_type == QtWidgets.QHBoxLayout:
+	# 			cur_hint.setWidth(cur_hint.width() + item.minimumSizeHint().width())
+	# 			cur_hint.setHeight(max(cur_hint.height(), item.minimumSizeHint().height()))
+	# 		elif self._layout_type == QtWidgets.QVBoxLayout:
+	# 			cur_hint.setHeight(cur_hint.height() + item.minimumSizeHint().height())
+	# 			cur_hint.setWidth(max(cur_hint.width(), item.minimumSizeHint().width()))
+
+	# 	min_width = max(cur_hint.width(), self._layout_container.minimumSizeHint().width())
+	# 	self.setMaximumHeight(cur_hint.height())
+	# 	return cur_hint
+	
 	# 	return self.minimumSizeHint()
 	# 	# return super().sizeHint()
 
@@ -220,7 +235,6 @@ class WidgetList(QtWidgets.QWidget):
 	# 	cur_hint = self._add_btn.minimumSizeHint()
 
 	# 	for item in self._widget_layout_containers:
-	# 		print(f"Item sizehint: {item.sizeHint()}, minsizehint: {item.minimumSizeHint()}, size: {item.size()}, minsize: {item.minimumSize()}")
 	# 		if self._layout_type == QtWidgets.QHBoxLayout:
 	# 			cur_hint.setWidth(cur_hint.width() + item.minimumSizeHint().width())
 	# 			cur_hint.setHeight(max(cur_hint.height(), item.minimumSizeHint().height()))

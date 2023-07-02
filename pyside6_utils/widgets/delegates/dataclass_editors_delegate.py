@@ -60,7 +60,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 
 	# def _frameless_window_resize_event(self, event):
 	# 	print("RESIZE EVENT")
-	# 	# self._frameless_window.resizeEvent(event)		
+	# 	# self._frameless_window.resizeEvent(event)
 	# 	new_size = self._frameless_window.centralWidget().sizeHint()
 	# 	self._frameless_window.resize(new_size)
 
@@ -104,7 +104,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				if cur_editor is not None:
 					editor_list.append((cur_editor, cur_getter, cur_setter))
 			if len(editor_list) == 0:
-				# return None, lambda *_: None, lambda *_: None 
+				# return None, lambda *_: None, lambda *_: None
 				raise ValueError(f"Could not create editor for constraints {constraint} - no editor found")
 			elif len(editor_list) == 1:
 				return editor_list[0]
@@ -133,7 +133,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			label.setAutoFillBackground(True)
 			parent_palette = parent.palette()
 			#Set background color to white:
-			parent_palette.setColor(label.backgroundRole(), self._background_color) 
+			parent_palette.setColor(label.backgroundRole(), self._background_color)
 			label.setPalette(parent_palette)
 			# label.setPalette(parent.palette())
 			return label, lambda *_: None, lambda *_: None
@@ -292,7 +292,7 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				editor, getter, setter = self.get_editor_from_constraints(constraints, metadata, parent)
 
 				#Put editor into a frame with a background
-				editor_frame = QtWidgets.QFrame(parent)
+				editor_frame = QtWidgets.QFrame()
 				editor_frame.setFrameStyle(QtWidgets.QFrame.Shape.Panel | QtWidgets.QFrame.Shadow.Raised)
 				editor_frame.setLayout(QtWidgets.QVBoxLayout())
 				editor_frame.layout().addWidget(editor)
@@ -308,9 +308,11 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 				#Get the global position of the currently clicked item
 				# (e.g. if the item is in a scrollarea, the position is relative to the scrollarea)
 				global_pos = parent.mapToGlobal(option.rect.topLeft()) #type:ignore
-				# global_pos = option.mapToGlobal(option.rect.topLeft())
-				# self._frameless_window.
 				self._frameless_window.move(global_pos)
+				# editor.resizeEvent = lambda event: print("RESIZE EVENT") #pylint: disable=unnecessary-lambda
+				# self._frameless_window.layout().
+				self._frameless_window.setFocus()
+
 				self._frameless_window.show()
 				self._frameless_window.raise_()
 
@@ -336,6 +338,11 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			editor.setCurrentIndex(index)
 		elif isinstance(editor, WidgetSwitcher):
 			editor.set_value(value)
+			cur_widget = editor.currentWidget()
+			if isinstance(cur_widget, QtWidgets.QLabel): #If none-label-'editor', take real editor
+				cur_index = editor.currentIndex()
+				new_index = (cur_index + 1) % editor.count()
+				editor.setCurrentIndex(new_index)
 		elif isinstance(editor, WidgetList):
 			editor.set_values(value)
 		else:

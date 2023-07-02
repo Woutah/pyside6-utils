@@ -39,7 +39,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
+#pylint: disable=redefined-builtin
 
 from abc import ABC
 from abc import abstractmethod
@@ -576,7 +576,7 @@ class _SparseMatrices(_Constraint):
 	"""Constraint representing sparse matrices."""
 
 	def is_satisfied_by(self, val):
-		return issparse(val) #type:ignore #NOTE: to use, import from scipy.sparse import issparse
+		return issparse(val) #type:ignore #NOTE: to use, import from scipy.sparse import issparse #type:ignore
 
 	def __str__(self):
 		return "a sparse matrix"
@@ -603,7 +603,7 @@ class _RandomStates(_Constraint):
 		super().__init__()
 		self._constraints = [
 			Interval(Integral, 0, 2**32 - 1, closed="both"),
-			_InstancesOf(np.random.RandomState),
+			_InstancesOf(np.random.RandomState), #pylint: disable=no-member
 			_NoneConstraint(),
 		]
 
@@ -973,7 +973,7 @@ def generate_valid_param(constraint):
 		return csr_matrix([[0, 1], [1, 0]]) #pylint: disable=undefined-variable #type:ignore
 
 	if isinstance(constraint, _RandomStates):
-		return np.random.RandomState(42)
+		return np.random.RandomState(42) #pylint: disable=no-member
 
 	if isinstance(constraint, _Callables):
 		return lambda x: x

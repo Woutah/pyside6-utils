@@ -5,7 +5,6 @@ NOTE: since this wrapper is VERY simple, it is not included in the registrars
 
 
 import logging
-from dataclasses import Field
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -82,7 +81,7 @@ class DataClassTreeView(QtWidgets.QTreeView):
 		except Exception as exception: #pylint: disable=broad-except
 			log.exception(f"Error when setting to default {type(exception).__name__}: {exception}")
 			raise exception
-		
+
 		# cur_field = index.data(DataclassModel.CustomDataRoles.FieldRole)
 		# cur_data = index.data(QtCore.Qt.ItemDataRole.EditRole)
 		# if not isinstance(cur_field, Field):
@@ -106,7 +105,7 @@ class DataClassTreeView(QtWidgets.QTreeView):
 
 def run_example_app():
 	"""Run an example using ./examples/example_dataclass.py and a dataclass treeview & model
-	As well as a tableview with the same model. Note that the tableview does not support nested dataclass-attributes. 
+	As well as a tableview with the same model. Note that the tableview does not support nested dataclass-attributes.
 	"""
 	#pylint: disable=import-outside-toplevel
 	import sys

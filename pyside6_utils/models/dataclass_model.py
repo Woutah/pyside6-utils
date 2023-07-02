@@ -67,6 +67,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 	# TYPE_ROLE = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
 	class CustomDataRoles(enum.IntEnum):
 		"""The custom roles for getting data of dataclass-fields"""
+		#pylint: disable=invalid-name #Allow Qt-style names
 		TypeRole = QtCore.Qt.ItemDataRole.UserRole #Returns the type of the field
 		FieldRole = QtCore.Qt.ItemDataRole.UserRole + 1 #Role for the field
 		DefaultValueRole = QtCore.Qt.ItemDataRole.UserRole + 2 #Role for the default value of the field
@@ -227,7 +228,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 
 	def get_default_value(self, data_class_field : dataclasses.Field) -> typing.Any:
 		"""Get default value of item using the passed field, raises hasNoDefaultError if no default value is available
-		
+
 		Raises HasNoDefaultError: If no default value is available
 		"""
 		if hasattr(data_class_field, "default") \
@@ -285,14 +286,14 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					item_type_name = str(name_field_dict[node.name].type)
 				result_str += f" (type: {item_type_name[:20]})"
 
-				
-				try: 
+
+				try:
 					result_str += f" (default: {str(self.get_default_value(name_field_dict[node.name]))[:20]})"
 				except HasNoDefaultError:
 					pass
 
 				return result_str
-			elif role == DataclassModel.CustomDataRoles.TypeRole: #Get type role #TODO: maybe create Enum with more descriptive names.
+			elif role == DataclassModel.CustomDataRoles.TypeRole: #Get type role
 					#NOTE: if we just use an enum, we get an error in ModelIndex.data due to the enum not being an instance
 					# of Qt.ItemDataRole.DisplayRole
 				result = name_field_dict.get(node.name, None) #Get field
@@ -311,7 +312,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 			elif role == QtCore.Qt.ItemDataRole.FontRole:
 				if name_field_dict.get(node.name, None) is None:
 					return None #If only a header (no data)
-				
+
 				default_val = None
 
 				default_val = self.get_default_value(name_field_dict[node.name]) #Catch hasnodefaulterror later
@@ -330,7 +331,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 					if is_required and self._dataclass.__dict__.get(node.name, None) is None:
 						return QtGui.QBrush(QtGui.QColor(255, 0, 0, 50))
 				return None
-			
+
 		except Exception as exception: #pylint: disable=broad-except
 			log.warning(f"Error while retrieving data at index ({index.row()},{index.column()}) - "
 	       		f"{type(exception).__name__} : {exception}")
