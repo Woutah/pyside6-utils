@@ -51,6 +51,8 @@ from numbers import Integral
 from numbers import Real
 import operator
 import re
+import copy
+import sys
 import warnings
 import typing
 
@@ -166,6 +168,25 @@ def make_constraint(constraint):
 	constraint : instance of _Constraint
 		The converted constraint.
 	"""
+	#NOTE: added 2023.07.03 to allow for arbitrary Constraint-objects to be passed
+	#Check if module of constraint is sklearn.utils._param_validation -> if so, we can't use isistance as is
+	if constraint is not None and \
+			hasattr(constraint, "__module__") and\
+			constraint.__module__ == "sklearn.utils._param_validation": 
+		#recreate the constraint in the current module by name 
+		#NOTE: this is a bit hacky, but it works
+		# cur_class = getattr(sys.modules[__name__], type(constraint).__name__)\
+		if type(constraint).__name__ not in dir(sys.modules[__name__]):
+			raise ValueError(f"Unknown constraint type: {constraint} - maybe the constraint module is out of date "
+		    	"compared to its sklearn.utils._param_validation equivalent?")
+		cur_class = getattr(sys.modules[__name__], type(constraint).__name__)
+		thecopy = copy.deepcopy(constraint)
+		thecopy.__class__ = cur_class
+		constraint = thecopy
+
+	if isinstance(constraint, _Constraint): #If already a constraint, just return it
+		return constraint
+
 	if isinstance(constraint, str) and constraint == "array-like":
 		return _ArrayLikes()
 	if isinstance(constraint, str) and constraint == "sparse matrix":
@@ -178,7 +199,7 @@ def make_constraint(constraint):
 		return _NoneConstraint()
 	if isinstance(constraint, type):
 		return _InstancesOf(constraint)
-	if isinstance(constraint, (Interval, StrOptions, Options, HasMethods, ConstrainedList)):
+	if isinstance(constraint, (Interval, StrOptions, Options, HasMethods, ConstrainedList)): #Added constrainedlist here
 		return constraint
 	if isinstance(constraint, str) and constraint == "boolean":
 		return _Booleans()
