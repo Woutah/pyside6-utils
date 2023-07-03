@@ -25,6 +25,7 @@ This package was mainly developed around the python Dataclass-functionality. It 
 	- [`WidgetList`](#widgetlist)
 	- [`WidgetSwitcher`](#widgetswitcher)
 - [Utility](#utility)
+- [Classes](#classes)
 - [Models](#models)
 - [Acknowledgements](#acknowledgements)
 
@@ -112,7 +113,7 @@ The following metadata is supported:
 | `"required"` | `bool` | Whether this field is required to be filled in - if true - a red background will appear if the value is not set|
 | `"editable"` | `bool` | Whether this field is editable - if false - the editor will be disabled|
 
-<a name="constraintnote">*</a>Constraints are (almost fully) sourced from the `sklearn.utils._validation` module and provides a way to constrain the dataclass fields such that the user can only enter valid values. They are also packed into this package under `utility.constraints`. The following constraints are supported:
+<a name="constraintnote">*</a>Constraints are (almost fully) sourced from the `sklearn.utils._validation` module and provides a way to constrain the dataclass fields such that the user can only enter valid values. They are also packed into this package under `classes.constraints`. The following constraints are supported:
 | Constraint | Description | Editor Type
 | --- | --- | --- |
 | `type` | The type of the value should match the type of the constraint | based on type |
@@ -235,18 +236,22 @@ Especially useful in combination with [`WidgetList`](#widgetlist). Provides the 
 
 # Utility
 
-The utility submodule provides the following:
+The utility submodule provides the following UI-based utility items:
 
 - `catch_show_exception_in_popup_decorator`
   - A decorator that catches exceptions and shows them in a popup
-- `constraints`
-  - Sklearn constraints, used for `DataClassModel` to constrain the editor-type based on the type-hint of the field
-- `Serializable`
-  - Base-class mainly targeted towards dataclasses - enable serialization to json.
 - `SignalBlocker`
   - Enables us to temporarily block PySide6 signals using a `with` statement
 - `utility_functions`
   - Several smaller utility functions used in this package
+
+# Classes
+The classes submodule provides several useful classes that do not depend on PySide6:
+
+- `constraints`
+  - Sklearn constraints, used for `DataClassModel` to constrain the editor-type based on the type-hint of the field
+- `Serializable`
+  - Mainly useful for `@dataclass`-like classes to parse from/to json
 
 # Models
 

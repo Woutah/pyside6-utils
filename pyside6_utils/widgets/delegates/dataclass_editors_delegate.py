@@ -8,7 +8,7 @@ from numbers import Integral, Real
 
 from PySide6 import QtCore, QtWidgets
 
-from pyside6_utils.utility.constraints import (ConstrainedList, Interval,
+from pyside6_utils.classes.constraints import (ConstrainedList, Interval,
                                                Options, StrOptions,
                                                _Constraint, _InstancesOf,
                                                _NoneConstraint, _Booleans, _VerboseHelper,
