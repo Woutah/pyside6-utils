@@ -11,7 +11,7 @@ from PySide6 import QtCore, QtWidgets
 from pyside6_utils.utility.constraints import (ConstrainedList, Interval,
                                                Options, StrOptions,
                                                _Constraint, _InstancesOf,
-                                               _NoneConstraint,
+                                               _NoneConstraint, _Booleans, _VerboseHelper,
                                                make_constraint)
 from pyside6_utils.widgets.widget_list import WidgetList
 from pyside6_utils.widgets.widget_switcher import WidgetSwitcher
@@ -119,7 +119,8 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 					cur_editor.setParent(switcher) #Set the parent to the switcher
 					switcher.add_widget(cur_editor, str(cur_constraint).capitalize(), cur_getter, cur_setter)
 				return switcher, WidgetSwitcher.get_value, WidgetSwitcher.set_value
-
+		elif isinstance(constraint, _VerboseHelper): #Just a package of multiple standard constraints
+			return self.get_editor_from_constraints(constraint._constraints, metadata, parent)
 		elif isinstance(constraint, ConstrainedList):
 			#Retrieve getter/setter and set the constraints-widget-getter as the factory for the list
 			_, getter, setter = self.get_editor_from_constraints(constraint.constraints, metadata, parent)
@@ -142,14 +143,15 @@ class DataclassEditorsDelegate(QtWidgets.QStyledItemDelegate):
 			label.setPalette(parent_palette)
 			# label.setPalette(parent.palette())
 			return label, lambda *_: None, lambda *_: None
-		elif isinstance(constraint, _InstancesOf): #If type-enforcing constraint
-			the_type = constraint.type
-			if the_type == bool or the_type == "boolean":
+		elif isinstance(constraint, _Booleans) \
+			or (isinstance(constraint, _InstancesOf) and constraint.type == bool):
 				editor = QtWidgets.QComboBox(parent)
 				editor.addItem("True", True)
 				editor.addItem("False", False)
 				return editor, QtWidgets.QComboBox.currentData, combobox_setter
-			elif the_type == datetime:
+		elif isinstance(constraint, _InstancesOf): #If type-enforcing constraint
+			the_type = constraint.type
+			if the_type == datetime:
 				editor = QtWidgets.QDateTimeEdit(parent)
 				editor.setCalendarPopup(True)
 				return editor, lambda widget : QtWidgets.QDateTimeEdit.dateTime(widget).toPython(), \
