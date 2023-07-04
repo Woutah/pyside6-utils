@@ -374,7 +374,7 @@ class DataclassModel(QtCore.QAbstractItemModel):
 		"""
 		Sets the role data for the item at index to value.
 		"""
-		log.debug(f"Setting data at index {index} to {value} of type {type(value)}")
+		# log.debug(f"Setting data at index {index} to {value} of type {type(value)}")
 
 
 		if not self._undo_stack:

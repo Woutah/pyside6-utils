@@ -46,7 +46,7 @@ class DataClassTreeView(QtWidgets.QTreeView):
 			self._expanded_items.add(attr_name)
 		elif not expanded and attr_name in self._expanded_items:
 			self._expanded_items.remove(attr_name)
-		log.debug(f"Expansion changed: {index.data()} = {expanded}, expanded items: {self._expanded_items}")
+		# log.debug(f"Expansion changed: {index.data()} = {expanded}, expanded items: {self._expanded_items}")
 
 	def _get_set_expansion_state(self, index : QtCore.QModelIndex) -> None:
 		"""Recursively sets the expansion state of the given index (and its children) using the current settings"""
