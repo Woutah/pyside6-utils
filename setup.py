@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name = "pyside6_utils",
-	version= "1.2.0",
+	version= "1.2.1",
 	packages=find_packages('.'),
     description="A collection of useful widgets and utilities for PySide6 compatible with pyside6-designer.",
     long_description=open('README.md').read(),
