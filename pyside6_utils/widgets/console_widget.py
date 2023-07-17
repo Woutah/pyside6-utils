@@ -206,7 +206,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 	@staticmethod
 	def _get_index_nth_occurence(string : str, char : str, occurence : int) -> int:
 		counter = 0
-		if occurence == 0:
+		if occurence <= 0:
 			return 0
 		for i, char in enumerate(string):
 			if char == "\n":
@@ -241,7 +241,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 
 		# new_first_char_index = from_index + (len(new_text) - self._display_max_chars)
 		# shift = new_first_char_index - self._first_char_index
-		self._first_char_index = from_index + (len(new_text) - self._display_max_chars)
+		self._first_char_index = from_index + ( max(0, len(new_text) - self._display_max_chars))
 
 		#If cursor was at the end -> stay at the end
 		if at_end:
@@ -250,14 +250,14 @@ class ConsoleWidget(QtWidgets.QWidget):
 			self._updating_scrollbar_pos = False
 		else:
 			if self._target_console_text_index < self._first_char_index:
+				self._updating_scrollbar_pos = True
 				self.ui.consoleTextEdit.verticalScrollBar().setValue(0)
+				self._updating_scrollbar_pos = False
+				return #If target index < first char, just stay at the top
 
 			if not self._moving_scrollbar:
 				#Get the numbr of \n characters in self._cur_text before (from_index + self._cur_console_text_index)
 				target_line = self._cur_text[:self._target_console_text_index - self._first_char_index].count("\n")
-
-				# log.debug(f"Target index is  : {self._target_console_text_index}, firstchar is: 
-				# {self._first_char_index}, target line is {target_line}")
 				self._updating_scrollbar_pos = True
 				self.ui.consoleTextEdit.verticalScrollBar().setValue(target_line)
 				self._updating_scrollbar_pos = False
@@ -268,10 +268,10 @@ class ConsoleWidget(QtWidgets.QWidget):
 			return
 		self._moving_scrollbar = True
 		target_textedit_index = self._get_index_nth_occurence(self._cur_text, "\n", value)
-		# log.debug(f"Text scrollbar moved to line {value}, corresponding to index {target_textedit_index}!")
 		if target_textedit_index >= 0:
 			self._target_console_text_index = self._first_char_index + target_textedit_index
 			self._moving_scrollbar = False
+			log.debug(f"Text scrollbar moved to line {value}, corresponding to index {target_textedit_index} = {self._target_console_text_index} !")
 			return
 		self._moving_scrollbar = False
 		raise ValueError(f"Scrollbar moved to {value}, but no line found at that position")
