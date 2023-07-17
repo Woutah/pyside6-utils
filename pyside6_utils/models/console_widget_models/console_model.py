@@ -10,7 +10,9 @@ from PySide6 import QtCore, QtWidgets
 class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 	"""Base-class for console items. All user-defined console items should inherit from this class.
 	"""
-	currentTextChanged = QtCore.Signal(str) #Emits the buffer when the text in the file changes
+	currentTextChanged = QtCore.Signal(str, int) #Emits the string when the text-data changes. If we want to track the
+		# cursor position when using a max-string-size we must also emit the buffer-position relative to the 
+		# full string
 	dataChanged = QtCore.Signal() #When the metadata of the item changes (e.g. last-edit-date, name, running-state)
 
 	@abstractmethod

@@ -151,7 +151,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 			assert isinstance(item, BaseConsoleItem), "Item is not of type BaseConsoleItem"
 			item.currentTextChanged.connect(self._on_selected_item_text_changed)
 			self._current_text_connect = item.currentTextChanged
-			self._on_selected_item_text_changed(item.get_current_text())
+			self._process_text_changed(item.get_current_text(), from_index=999_999_999) #Scroll all the way down
 
 	def _on_selected_item_text_changed(self, newtext : str, from_index : int = 0):
 		"""
@@ -224,7 +224,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 		make sure we don't overload the UI with too many updates.
 		"""
 		self._last_text_update_time = time.time()
-		at_end = self.ui.consoleTextEdit.verticalScrollBar().value() == self.ui.consoleTextEdit.verticalScrollBar().maximum()
+		at_end = self.ui.consoleTextEdit.verticalScrollBar().value() >= self.ui.consoleTextEdit.verticalScrollBar().maximum()-3
 		
 
 		
@@ -246,7 +246,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 		#If cursor was at the end -> stay at the end
 		if at_end:
 			self._updating_scrollbar_pos = True
-			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum())
+			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum()-2)
 			self._updating_scrollbar_pos = False
 		else:
 			if self._target_console_text_index < self._first_char_index:
@@ -460,7 +460,7 @@ def run_example_app():
 		test_console_item._text = "\n".join([f"{i%10} "*100 for i in range(20_000)])
 		for i in range(20000): #First test test-item
 			test_console_item._text += f"Wrote line {i} to file {temp_file.name}\n"
-			test_console_item.currentTextChanged.emit(test_console_item._text)
+			test_console_item.currentTextChanged.emit(test_console_item._text, 0)
 			time.sleep(0.2)
 
 		for i in range(200000):

@@ -112,7 +112,7 @@ class ConsoleFromFileItem(BaseConsoleItem):
 		if not os.path.exists(self._path): #If file does not exist, clear the text edit
 			self._current_text = ""
 			self._current_seek = 0
-			self.currentTextChanged.emit("")
+			self.currentTextChanged.emit("", 0)
 			return
 
 		cur_size = os.path.getsize(self._path)
@@ -137,4 +137,4 @@ class ConsoleFromFileItem(BaseConsoleItem):
 
 		#Retrieve the last edit date
 		self._last_edited = os.path.getmtime(self._path)
-		self.currentTextChanged.emit(self._current_text) #Emit the current text
+		self.currentTextChanged.emit(self._current_text, 0) #Emit the current text
