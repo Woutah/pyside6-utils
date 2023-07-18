@@ -271,7 +271,8 @@ class ConsoleWidget(QtWidgets.QWidget):
 		if target_textedit_index >= 0:
 			self._target_console_text_index = self._first_char_index + target_textedit_index
 			self._moving_scrollbar = False
-			log.debug(f"Text scrollbar moved to line {value}, corresponding to index {target_textedit_index} = {self._target_console_text_index} !")
+			# log.debug(f"Text scrollbar moved to line {value}, corresponding to index {target_textedit_index} " 
+			# 	"= {self._target_console_text_index} !")
 			return
 		self._moving_scrollbar = False
 		raise ValueError(f"Scrollbar moved to {value}, but no line found at that position")
