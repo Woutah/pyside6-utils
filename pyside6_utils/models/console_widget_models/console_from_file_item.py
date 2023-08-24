@@ -1,9 +1,13 @@
 """Implements the model needed to sync to a file and dynamically display the contents to a widget"""
 import os
 import time
+import typing
 
 from PySide6 import QtCore, QtWidgets
-from pyside6_utils.models.console_widget_models.console_model import BaseConsoleItem
+
+from pyside6_utils.models.console_widget_models.console_model import \
+    BaseConsoleItem
+
 
 class FileCheckerWorker(QtCore.QObject):
 	"""A class that continuously checks a file path for changes in file size, if so, it emits a simple signal,
@@ -88,9 +92,11 @@ class ConsoleFromFileItem(BaseConsoleItem):
 		self._worker_thread.start()
 
 
-	def get_current_text(self) -> str:
-		"""Retrieves the current text in the watched file - as currently known to the item."""
-		return self._current_text
+	def get_current_text(self) -> typing.Tuple[str, int]:
+		"""Retrieves the current text in the watched file - as currently known to the item.
+		ICW the start-index of this buffer. When the full file is loaded, this will be 0.
+		"""
+		return self._current_text, 0 #TODO: No limit implemented yet
 
 
 	def data(self, role : QtCore.Qt.ItemDataRole, column : int = 0):

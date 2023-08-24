@@ -2,6 +2,7 @@
 We can then choose to implement custom sub-class of this model.
 """
 
+import typing
 from abc import abstractmethod
 
 from PySide6 import QtCore, QtWidgets
@@ -21,8 +22,11 @@ class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 		raise NotImplementedError()
 
 	@abstractmethod
-	def get_current_text(self) -> str:
+	def get_current_text(self) -> typing.Tuple[str, int]:
 		"""Get the current text (str) of this console-item
+
+		Retuns:
+			Tuple[str, int]: The current text and the start-index of this buffer
 		"""
 		raise NotImplementedError()
 
