@@ -2,6 +2,7 @@
 We can then choose to implement custom sub-class of this model.
 """
 
+import typing
 from abc import abstractmethod
 
 from PySide6 import QtCore, QtWidgets
@@ -10,7 +11,8 @@ from PySide6 import QtCore, QtWidgets
 class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 	"""Base-class for console items. All user-defined console items should inherit from this class.
 	"""
-	currentTextChanged = QtCore.Signal(str) #Emits the buffer when the text in the file changes
+	loadedLinesChanged = QtCore.Signal(list, int) #Emits all lines that have been changed, together with the start 
+		# line-index
 	dataChanged = QtCore.Signal() #When the metadata of the item changes (e.g. last-edit-date, name, running-state)
 
 	@abstractmethod
@@ -19,8 +21,11 @@ class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 		raise NotImplementedError()
 
 	@abstractmethod
-	def get_current_text(self) -> str:
+	def get_current_line_list(self) -> typing.Tuple[list[str], int]:
 		"""Get the current text (str) of this console-item
+
+		Retuns:
+			Tuple[str, int]: The current text and the start-index of this buffer
 		"""
 		raise NotImplementedError()
 

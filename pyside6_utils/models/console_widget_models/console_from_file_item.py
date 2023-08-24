@@ -1,9 +1,13 @@
 """Implements the model needed to sync to a file and dynamically display the contents to a widget"""
 import os
 import time
+import typing
 
 from PySide6 import QtCore, QtWidgets
-from pyside6_utils.models.console_widget_models.console_model import BaseConsoleItem
+
+from pyside6_utils.models.console_widget_models.console_model import \
+    BaseConsoleItem
+
 
 class FileCheckerWorker(QtCore.QObject):
 	"""A class that continuously checks a file path for changes in file size, if so, it emits a simple signal,
@@ -49,7 +53,7 @@ class ConsoleFromFileItem(BaseConsoleItem):
 	
 	TODO: file polling might not be the best approach, especially when using a lot of files.
 	"""
-	currentTextChanged = QtCore.Signal(str) #Emitted when the text in the file changes
+	loadedLinesChanged = QtCore.Signal(list, int) #Emits all lines that have been changed, together with the line-index 
 	emitDataChanged = QtCore.Signal() #Emitted when the data of the item changes
 
 	def __init__(self, name : str, path : str, *args, **kwargs):
@@ -60,7 +64,9 @@ class ConsoleFromFileItem(BaseConsoleItem):
 		self._name = name
 		self._path = path
 
-		self._current_text : str = "" #The current text in the file
+		# self._current_text : str = "" #The current text in the file #TODO: probably list of lines works better...
+		self._current_line_list : list[str] = [] #List of lines
+		self._cur_lines = [0, 0] #What lines are currently loaded
 		self._last_edited = QtCore.QDateTime.fromSecsSinceEpoch(0) #Set to 0 so that it is always updated on first change
 		self._current_seek : int = 0 #The current seek position in the current file
 
@@ -88,9 +94,12 @@ class ConsoleFromFileItem(BaseConsoleItem):
 		self._worker_thread.start()
 
 
-	def get_current_text(self) -> str:
-		"""Retrieves the current text in the watched file - as currently known to the item."""
-		return self._current_text
+	def get_current_line_list(self) -> tuple[list[str], int]:
+		"""Retrieves the current text in the watched file - as currently known to the item.
+		ICW the start-index of this buffer. When the full file is loaded, this will be 0.
+		"""
+		# return self._current_text, 0 #TODO: No limit implemented yet
+		return self._current_line_list, self._cur_lines[0]
 
 
 	def data(self, role : QtCore.Qt.ItemDataRole, column : int = 0):
@@ -110,14 +119,14 @@ class ConsoleFromFileItem(BaseConsoleItem):
 		"""
 
 		if not os.path.exists(self._path): #If file does not exist, clear the text edit
-			self._current_text = ""
+			self._current_line_list = []
 			self._current_seek = 0
-			self.currentTextChanged.emit("")
+			self.loadedLinesChanged.emit([], 0)
 			return
 
 		cur_size = os.path.getsize(self._path)
 
-		#First check is size is lower than the current seek position, if so, reset the seek position
+		#First check is size is lower than the current seek position, if so, reset the seek position (assume file reset)
 		if cur_size < self._current_seek:
 			# self.ui.consoleTextEdit.clear() #Also clear the text edit
 			self._current_seek = 0
@@ -126,15 +135,22 @@ class ConsoleFromFileItem(BaseConsoleItem):
 		if cur_size <= self._current_seek: #If file size is equal to the current seek position, do nothing
 			return
 
+		cur_line = len(self._current_line_list)+1 #Get the current line number
+		new_line_list : typing.List[str]= [] #List of new lines
+
 		#Open the file and seek to the current seek position
 		with open(self._path, "r", encoding=encoding) as in_file:
 			in_file.seek(self._current_seek)
-			newcontent = in_file.read()  #Read to end of file
+			if len(self._current_line_list) > 0 and not self._current_line_list[-1].endswith("\n"): #TODO os.linesep?
+				self._current_line_list[-1] += in_file.readline()
+				new_line_list.append(self._current_line_list[-1])
+				cur_line -= 1 #Also update the last line number
+			for line in in_file: #Read the new lines #TODO: maybe make a bit more efficient?
+				self._current_line_list.append(line)
+				new_line_list.append(line)
 			self._current_seek = in_file.tell() #Make the current seek position the end of the file
-			self._current_text += newcontent #Add the new content to the current text
-			# self.ui.consoleTextEdit.insertPlainText(newcontent) #Insert the new content into the text edit
-			# self.ui.consoleTextEdit.moveCursor(QtGui.QTextCursor.End) #Move the cursor to the end of the text edit
 
 		#Retrieve the last edit date
 		self._last_edited = os.path.getmtime(self._path)
-		self.currentTextChanged.emit(self._current_text) #Emit the current text
+		# self.currentTextChanged.emit(self._current_text, 0) #Emit the current text
+		self.loadedLinesChanged.emit(new_line_list, cur_line) #Emit the current text
