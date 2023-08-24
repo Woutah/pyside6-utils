@@ -104,7 +104,6 @@ class ConsoleWidget(QtWidgets.QWidget):
 		self.ui.fileSelectionTableView.selectionModel().selectionChanged.connect(self.selection_changed)
 		self._ui_text_min_update_interval = ui_text_min_update_interval #The minimum interval in seconds between updating the
 
-		
 
 		self.currently_loaded_lines = [0, 0] #Start with no lines
 
@@ -127,6 +126,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 			self.ui.consoleTextEdit.setPlainText("")
 			return
 		elif selection.indexes()[0].isValid():
+			self.ui.consoleTextEdit.setPlainText("")
 			index = selection.indexes()[0]
 			item = self._files_proxy_model.data(index, role = QtCore.Qt.ItemDataRole.UserRole + 1)
 			assert isinstance(item, BaseConsoleItem), "Item is not of type BaseConsoleItem"
@@ -137,6 +137,8 @@ class ConsoleWidget(QtWidgets.QWidget):
 			#Get the current text of the item
 			cur_line_list, from_index = item.get_current_line_list()
 			self.process_line_change(cur_line_list, from_index)
+			#Set slider to bottom
+			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum())
 
 
 	@staticmethod
@@ -159,17 +161,17 @@ class ConsoleWidget(QtWidgets.QWidget):
 		NOTE: it is probably most efficient if we only call this method with the new text, not the entire text, pyside
 			might not be able to send python-lists efficiently TODO: check
 
-		#TODO: also implement a reset (e.g. when file is cleared)? Right now we can only add to an existing file 
+		#TODO: also implement a reset (e.g. when file is cleared)? Right now we can only add to an existing file
 		Args:
 			new_line_list (list[str]): The new text of the item
 			from_line (int, optional): The line-index (in the original) buffer of the item from which we replace/append the new
-				lines. 
+				lines.
 		"""
 		if len(new_line_list) > self._display_max_blocks: #Don't just append useless new lines that will be removed anyway
 			from_line = from_line + len(new_line_list) - self._display_max_blocks
 			new_line_list = new_line_list[-self._display_max_blocks:]
 
-		new_loaded_lines = [ #Calculate the new currently loaded lines 
+		new_loaded_lines = [ #Calculate the new currently loaded lines
 			# max(self.currently_loaded_lines[0], from_line),
 			min(self.currently_loaded_lines[0], from_line),
 			max(from_line + len(new_line_list), self.currently_loaded_lines[1])
@@ -178,7 +180,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 		#If we're exceeding the block-limit, shift the currently loaded lines
 		if new_loaded_lines[1] - new_loaded_lines[0] > self._display_max_blocks:
 			# new_line_list = new_line_list[new_loaded_lines[1] - new_loaded_lines[0] - self._display_max_blocks:]
-			shift = new_loaded_lines[1] - self._display_max_blocks - new_loaded_lines[0] 
+			shift = new_loaded_lines[1] - self._display_max_blocks - new_loaded_lines[0]
 			new_loaded_lines = new_loaded_lines[1]- self._display_max_blocks, new_loaded_lines[1] #Only keep the last x lines
 
 		start_line = max(from_line - self.currently_loaded_lines[0], 0) #Relative to the left-most line
@@ -189,14 +191,14 @@ class ConsoleWidget(QtWidgets.QWidget):
 		cur_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Down, QtGui.QTextCursor.MoveMode.MoveAnchor, start_line)
 
 		#Set to overwrite mode
-		cur_cursor.insertText("".join(new_line_list))
+		cur_cursor.insertText("".join([i + "\n" for i in new_line_list]))
 
 		#Move scrollbar <shift> lines up if not at the bottom
-		if self.ui.consoleTextEdit.verticalScrollBar().value() > self.ui.consoleTextEdit.verticalScrollBar().maximum()-1:
+		if self.ui.consoleTextEdit.verticalScrollBar().value() < self.ui.consoleTextEdit.verticalScrollBar().maximum()-2:
 			self.ui.consoleTextEdit.verticalScrollBar().setValue(
 				self.ui.consoleTextEdit.verticalScrollBar().value() - shift)
-			
-		# print(repr(new_line_list[-1:]))
+		else:
+			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum()-1)
 
 		# self.currently_loaded_lines = [from_line, from_line + len(new_line_list)]
 		self.currently_loaded_lines = new_loaded_lines
@@ -341,7 +343,7 @@ def run_example_app():
 
 	app = QtWidgets.QApplication([])
 	test_console_model = ConsoleModel()
-	console_widget = ConsoleWidget(ui_text_min_update_interval=0.1, display_max_blocks=1000)
+	console_widget = ConsoleWidget(ui_text_min_update_interval=0.1, display_max_blocks=5000)
 	console_widget.set_model(test_console_model)
 
 
@@ -388,12 +390,12 @@ def run_example_app():
 		# test_console_item._line_list = "\n".join([f"{i%10} "*100 for i in range(20_000)]) #pylint: disable=protected-access
 		test_console_item._line_list = [f"{i%10} "*100 for i in range(20_000)] #pylint: disable=protected-access
 		cur = 0
-		for i in range(20000): #First test test-item
-			newmsg = f"Wrote line {i} to file {temp_file.name}\n"
+		for i in range(20_000): #First test test-item
+			newmsg = f"Wrote line {i} to file {temp_file.name}"
 			test_console_item._line_list.append(newmsg) #pylint: disable=protected-access
-			test_console_item.loadedLinesChanged.emit([newmsg], len(test_console_item._line_list)-1)
+			test_console_item.loadedLinesChanged.emit([newmsg], len(test_console_item._line_list))
 			cur += 1
-			time.sleep(0.01)
+			time.sleep(0.02)
 		print("DONE!")
 		# for i in range(200000):
 		# 	temp_file.write(f"Wrote line {i} to file {temp_file.name}\n")
