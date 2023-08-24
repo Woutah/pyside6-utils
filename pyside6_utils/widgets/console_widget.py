@@ -3,18 +3,19 @@ Implements a widget that combines a console-view and a tree-like-view so we're a
 """
 import logging
 import os
+import threading
+import time
 import typing
 
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtWidgets, QtGui
+
 from pyside6_utils.models.console_widget_models.console_model import (
     BaseConsoleItem, ConsoleModel)
 from pyside6_utils.models.extended_sort_filter_proxy_model import \
     ExtendedSortFilterProxyModel
 from pyside6_utils.ui.ConsoleWidget_ui import Ui_ConsoleWidget
-from pyside6_utils.widgets.delegates.console_widget_delegate import ConsoleWidgetDelegate
-import time
-from pyside6_utils.utility.signal_blocker import SignalBlocker
-import threading
+from pyside6_utils.widgets.delegates.console_widget_delegate import \
+    ConsoleWidgetDelegate
 
 log = logging.getLogger(__name__)
 
@@ -32,16 +33,16 @@ class ConsoleWidget(QtWidgets.QWidget):
 	"widget accordingly. Mainly intended for use with a file to which stdout/stderr can be redirected to.")
 
 	def __init__(self, parent: typing.Optional[QtWidgets.QWidget] = None,
-	    	display_max_chars = 200_000,
-		    ui_text_min_update_interval : float = 0.2
+			display_max_blocks = 1000, #How many blocks of text to display (lines)
+		    ui_text_min_update_interval : float = 0.05
 		) -> None:
 		"""
 		Args:
 			parent (QtCore.QObject, optional): The parent. Defaults to None.
 			name_date_path_model (QtCore.QStandardItemModel): The table model that contains the <name>, <last edit date>
 				and <path> of the file in column 1, 2 and 3 respectively
-			ui_text_min_update_interval (float, optional): The minimum interval in seconds between updating the 
-				current text in the UI. Defaults to 0.1. 
+			ui_text_min_update_interval (float, optional): The minimum interval in seconds between updating the
+				current text in the UI. Defaults to 0.1.
 				NOTE that setting this too low might cause the UI to become unresponsive if the console-output is updated
 				too frequently (e.g. when logging a lot).
 		"""
@@ -49,13 +50,12 @@ class ConsoleWidget(QtWidgets.QWidget):
 		self.ui = Ui_ConsoleWidget() #pylint: disable=invalid-name
 		self.ui.setupUi(self)
 
-		self._display_max_chars = display_max_chars #The maximum number of characters to display in the text edit
 
+		self._display_max_blocks = display_max_blocks #The maximum number of blocks to display in the text edit
+		self.ui.consoleTextEdit.setMaximumBlockCount(display_max_blocks)
+		# self.ui.consoleTextEdit.setCenterOnScroll(True)
 		self._files_proxy_model = ExtendedSortFilterProxyModel(self) #TODO: this doesn't really seem to work yet
-		# self._files_proxy_model = QtCore.QSortFilterProxyModel(self)
-		# self._files_proxy_model.setSourceModel(name_date_path_model)
 		self.ui.fileSelectionTableView.setModel(self._files_proxy_model)
-		# self.ui.fileSelectionTableView.setSortingEnabled(True)
 
 		#==============Treeview ==============
 		#Sort first by date, then by name
@@ -66,9 +66,6 @@ class ConsoleWidget(QtWidgets.QWidget):
 
 
 		#Hide the third column (path) and the second column (date) from the view
-		# self.ui.fileSelectionTableView.setColumnWidth(1, 0)
-		# self.ui.fileSelectionTableView.setColumnWidth(2, 0)
-		# self.ui.fileSelectionTableView.setColumnWidth(0, 800)
 		self.ui.fileSelectionTableView.hideColumn(1)
 		self.ui.fileSelectionTableView.hideColumn(2)
 
@@ -101,46 +98,30 @@ class ConsoleWidget(QtWidgets.QWidget):
 		self.ui.fileSelectionTableView.setItemDelegateForColumn(0, self.file_selection_delegate)
 		self.file_selection_delegate.deleteHoverItem.connect(self.delete_file_selector_at_index)
 
-		# self.ui.consoleTextEdit.
-		self._current_text_connect = None
-		#When moving mouse in fileSelectionTableView, update the currently hovered item
-		# self.ui.fileSelectionTableView.viewport().installEventFilter(self)
+		self._current_linechange_connect = None
 		self.ui.fileSelectionTableView.viewport().setMouseTracking(True)
 
 		self.ui.fileSelectionTableView.selectionModel().selectionChanged.connect(self.selection_changed)
-		self.ui.consoleTextEdit.verticalScrollBar().valueChanged.connect(self.onTextScrollBarMoved)
-		# self.ui.fileSelectionTableView.viewport().mouseMoveEvent = self._on_mouse_move_in_treeview
-
-		# self._has_queued_update = False #Whether a text-update is queued
 		self._ui_text_min_update_interval = ui_text_min_update_interval #The minimum interval in seconds between updating the
 
-		self._queued_text_lock = threading.Lock() #Lock for the queued text
-		self._queued_text = None #The text that is queued to be updated
-		self._queued_text_from_index = 0 #The index of the start of the new text according to the console-item
-		self._last_queued_time = 0 #The last time the text was queued (if something goes wrong, after some time, we start new queue)
-		self._last_text_update_time = 0 #The last time the text was updated
+		
 
-		self._target_console_text_index = 0 #The target index in the real buffer in the console-item
-		self._first_char_index = 0 #The index of the first character in the textedit (in the "real" buffer in the console-item)
-		self._updating_scrollbar_pos = False
-
-		# self._prev_textedit_index = 0 #The previous target character relative to the text in the textedit
-
-
-
-		self._cur_text = ""
-		self._moving_scrollbar = False #If moving the scrollbar -> don't reset the value
+		self.currently_loaded_lines = [0, 0] #Start with no lines
 
 
 	def selection_changed(self, selection : QtCore.QItemSelection):
-		"""Updates the UI based on the new selection
+		"""
+		Updates the UI based on the new selection. Starts the subscribtion to the new item:
+		- Retrieve the current text of the item (e.g. the logfile)
+		- Subscribe to the currentTextChanged signal of the item so any new text is automatically added to the UI
 
 		Args:
 			selection (PySide6.QtCore.QItemSelection): The new selection
 		"""
-		if self._current_text_connect is not None: #If selection changed -> stop subscribing to the old item
-			self._current_text_connect.disconnect()
-			self._current_text_connect = None
+		if self._current_linechange_connect is not None: #If selection changed -> stop subscribing to the old item
+			# self._current_linechange_connect.disconnect()
+			self.disconnect(self._current_linechange_connect)
+			self._current_linechange_connect = None
 
 		if len(selection.indexes()) == 0:
 			self.ui.consoleTextEdit.setPlainText("")
@@ -149,59 +130,14 @@ class ConsoleWidget(QtWidgets.QWidget):
 			index = selection.indexes()[0]
 			item = self._files_proxy_model.data(index, role = QtCore.Qt.ItemDataRole.UserRole + 1)
 			assert isinstance(item, BaseConsoleItem), "Item is not of type BaseConsoleItem"
-			item.currentTextChanged.connect(self._on_selected_item_text_changed)
-			self._current_text_connect = item.currentTextChanged
-			self._process_text_changed(item.get_current_text(), from_index=999_999_999) #Scroll all the way down
 
-	def _on_selected_item_text_changed(self, newtext : str, from_index : int = 0):
-		"""
-		The function to be called when the text of the currently selected item changes.
+			#Subscribe to new lines
+			self._current_linechange_connect = item.loadedLinesChanged.connect(self.process_line_change)
 
-		args:
-			newtext (str): The new text of the item
-			from_index (int | None): The index of the start of the new text according to the console-item. This allows
-				us to stay at the same position in the text when updating, even when the queue-item only caches part
-				of the text. If 0 - treat the text as if it is the "full" text.
-		"""
-		cur_time = time.time()
-		if cur_time - self._last_text_update_time > self._ui_text_min_update_interval: #if time for update -> update
-			self._process_text_changed(newtext, from_index)
-			return
-		else:
-			#Start _queue_text in a new qthread (since it waits for a lock)
-			QtCore.QTimer.singleShot( #Queue this function in a new thread
-				0, lambda: self._queue_new_text(newtext, from_index, cur_time)
-			)
+			#Get the current text of the item
+			cur_line_list, from_index = item.get_current_line_list()
+			self.process_line_change(cur_line_list, from_index)
 
-	def _queue_new_text(self, newtext : str, from_index : int, cur_time):
-		with self._queued_text_lock: #If not time for update -> queue (or update the to-be-updated text)
-			# if self._queued_text is not None: #If there is already a queued text -> update it
-			self._queued_text = newtext #Update the queued text
-			self._queued_text_from_index = from_index
-			if cur_time - self._last_queued_time < self._ui_text_min_update_interval * 2\
-				or cur_time - self._last_text_update_time < self._ui_text_min_update_interval:
-				#If last update didn't go wrong or update has taken place in mean time when getting lock, keep waiting
-				return
-			#If last update took to long, start a new timer
-			self._last_queued_time = cur_time
-
-			#Set 1-time timer to update the UI
-			QtCore.QTimer.singleShot( #Convert update-interval to milliseconds and queue the update
-				int(self._ui_text_min_update_interval*1000), lambda: self._update_queued_text
-			)
-			self._process_text_changed(newtext)
-			# self._queued_text = None
-
-	def _update_queued_text(self):
-		"""Used icw a timer, updates the UI with the queued text"""
-		with self._queued_text_lock:
-			if self._queued_text is not None:
-				if time.time() - self._last_text_update_time < self._ui_text_min_update_interval:
-					#If a recent update has taken place in the mean time, don't update
-					self._queued_text = None
-					return
-				self._process_text_changed(self._queued_text, self._queued_text_from_index)
-				self._queued_text = None
 
 	@staticmethod
 	def _get_index_nth_occurence(string : str, char : str, occurence : int) -> int:
@@ -214,68 +150,58 @@ class ConsoleWidget(QtWidgets.QWidget):
 			if counter >= occurence:
 				# self._prev_textedit_index = i
 				return i
-			
+
 		return -1
+
+	def process_line_change(self, new_line_list : list[str], from_line : int = 0):
+		"""
+		When the text of the selected item changes, this method is called.
+		NOTE: it is probably most efficient if we only call this method with the new text, not the entire text, pyside
+			might not be able to send python-lists efficiently TODO: check
+
+		#TODO: also implement a reset (e.g. when file is cleared)? Right now we can only add to an existing file 
+		Args:
+			new_line_list (list[str]): The new text of the item
+			from_line (int, optional): The line-index (in the original) buffer of the item from which we replace/append the new
+				lines. 
+		"""
+		if len(new_line_list) > self._display_max_blocks: #Don't just append useless new lines that will be removed anyway
+			from_line = from_line + len(new_line_list) - self._display_max_blocks
+			new_line_list = new_line_list[-self._display_max_blocks:]
+
+		new_loaded_lines = [ #Calculate the new currently loaded lines 
+			# max(self.currently_loaded_lines[0], from_line),
+			min(self.currently_loaded_lines[0], from_line),
+			max(from_line + len(new_line_list), self.currently_loaded_lines[1])
+		]
+		shift = 0
+		#If we're exceeding the block-limit, shift the currently loaded lines
+		if new_loaded_lines[1] - new_loaded_lines[0] > self._display_max_blocks:
+			# new_line_list = new_line_list[new_loaded_lines[1] - new_loaded_lines[0] - self._display_max_blocks:]
+			shift = new_loaded_lines[1] - self._display_max_blocks - new_loaded_lines[0] 
+			new_loaded_lines = new_loaded_lines[1]- self._display_max_blocks, new_loaded_lines[1] #Only keep the last x lines
+
+		start_line = max(from_line - self.currently_loaded_lines[0], 0) #Relative to the left-most line
+
+		#Set cursor to the desired position
+		cur_cursor = self.ui.consoleTextEdit.textCursor()
+		cur_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
+		cur_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Down, QtGui.QTextCursor.MoveMode.MoveAnchor, start_line)
+
+		#Set to overwrite mode
+		cur_cursor.insertText("".join(new_line_list))
+
+		#Move scrollbar <shift> lines up if not at the bottom
+		if self.ui.consoleTextEdit.verticalScrollBar().value() > self.ui.consoleTextEdit.verticalScrollBar().maximum()-1:
+			self.ui.consoleTextEdit.verticalScrollBar().setValue(
+				self.ui.consoleTextEdit.verticalScrollBar().value() - shift)
 			
+		# print(repr(new_line_list[-1:]))
 
-	def _process_text_changed(self, new_text : str, from_index : int):
-		"""
-		Actually update the UI. This function is only called after taking into account cur_text_min_update_interval to
-		make sure we don't overload the UI with too many updates.
-		"""
-		self._last_text_update_time = time.time()
-		at_end = self.ui.consoleTextEdit.verticalScrollBar().value() >= self.ui.consoleTextEdit.verticalScrollBar().maximum()-3
-		
-
-		
-		if len(new_text) > self._display_max_chars:
-			self._cur_text = new_text[-self._display_max_chars:]
-		else:
-			self._cur_text = new_text
-
-		with SignalBlocker(self.ui.consoleTextEdit.verticalScrollBar()): #Block signals from the scrollbar when setting text
-			self._updating_scrollbar_pos = True
-			self.ui.consoleTextEdit.setPlainText(self._cur_text)
-			self._updating_scrollbar_pos = False
+		# self.currently_loaded_lines = [from_line, from_line + len(new_line_list)]
+		self.currently_loaded_lines = new_loaded_lines
 
 
-		# new_first_char_index = from_index + (len(new_text) - self._display_max_chars)
-		# shift = new_first_char_index - self._first_char_index
-		self._first_char_index = from_index + ( max(0, len(new_text) - self._display_max_chars))
-
-		#If cursor was at the end -> stay at the end
-		if at_end:
-			self._updating_scrollbar_pos = True
-			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum()-2)
-			self._updating_scrollbar_pos = False
-		else:
-			if self._target_console_text_index < self._first_char_index:
-				self._updating_scrollbar_pos = True
-				self.ui.consoleTextEdit.verticalScrollBar().setValue(0)
-				self._updating_scrollbar_pos = False
-				return #If target index < first char, just stay at the top
-
-			if not self._moving_scrollbar:
-				#Get the numbr of \n characters in self._cur_text before (from_index + self._cur_console_text_index)
-				target_line = self._cur_text[:self._target_console_text_index - self._first_char_index].count("\n")
-				self._updating_scrollbar_pos = True
-				self.ui.consoleTextEdit.verticalScrollBar().setValue(target_line)
-				self._updating_scrollbar_pos = False
-
-	def onTextScrollBarMoved(self, value : int):
-		"""Called when the scrollbar of the textedit is moved"""
-		if self._updating_scrollbar_pos:
-			return
-		self._moving_scrollbar = True
-		target_textedit_index = self._get_index_nth_occurence(self._cur_text, "\n", value)
-		if target_textedit_index >= 0:
-			self._target_console_text_index = self._first_char_index + target_textedit_index
-			self._moving_scrollbar = False
-			# log.debug(f"Text scrollbar moved to line {value}, corresponding to index {target_textedit_index} " 
-			# 	"= {self._target_console_text_index} !")
-			return
-		self._moving_scrollbar = False
-		raise ValueError(f"Scrollbar moved to {value}, but no line found at that position")
 
 
 	def dragMoveEvent(self, event) -> bool:
@@ -404,9 +330,10 @@ def run_example_app():
 	Creates a temp file and mirrors the output to the "console", then deletes the temp file afterwards
 	"""
 	#pylint: disable=import-outside-toplevel
-	from pyside6_utils.models.console_widget_models.console_from_file_item import ConsoleFromFileItem
 	import tempfile
-	import threading
+
+	from pyside6_utils.models.console_widget_models.console_from_file_item import \
+	    ConsoleFromFileItem
 	log.info("Now running an example using console from file items, the console should print a number every second")
 	temp_dir = tempfile.gettempdir()
 	temp_file = tempfile.NamedTemporaryFile(dir=temp_dir, mode='w', delete=False, suffix=".txt") #Delete temporary
@@ -414,19 +341,19 @@ def run_example_app():
 
 	app = QtWidgets.QApplication([])
 	test_console_model = ConsoleModel()
-	console_widget = ConsoleWidget(ui_text_min_update_interval=0.1)
+	console_widget = ConsoleWidget(ui_text_min_update_interval=0.1, display_max_blocks=1000)
 	console_widget.set_model(test_console_model)
 
 
 	class TestConsoleItem(BaseConsoleItem):
-		def __init__(self, id):
+		def __init__(self, item_id):
 			super().__init__()
-			self._id = id
-			self._text = ""
+			self._id = item_id
+			self._line_list = []
 
-		def get_current_text(self) -> str:
-			return self._text
-		
+		def get_current_line_list(self) -> typing.Tuple[list[str], int]:
+			return self._line_list, 0
+
 		def data(self, role : QtCore.Qt.ItemDataRole, column : int = 0):
 			if role == QtCore.Qt.ItemDataRole.DisplayRole:
 				return self._id
@@ -458,16 +385,20 @@ def run_example_app():
 	def log_to_file():
 		"""logs integer to file every seconds for 10 seconds"""
 		# test_console_item._text = ("KAAS"*100 + "\n") * 20_000
-		test_console_item._text = "\n".join([f"{i%10} "*100 for i in range(20_000)])
+		# test_console_item._line_list = "\n".join([f"{i%10} "*100 for i in range(20_000)]) #pylint: disable=protected-access
+		test_console_item._line_list = [f"{i%10} "*100 for i in range(20_000)] #pylint: disable=protected-access
+		cur = 0
 		for i in range(20000): #First test test-item
-			test_console_item._text += f"Wrote line {i} to file {temp_file.name}\n"
-			test_console_item.currentTextChanged.emit(test_console_item._text, 0)
-			time.sleep(0.2)
-
-		for i in range(200000):
-			temp_file.write(f"Wrote line {i} to file {temp_file.name}\n")
-			temp_file.flush()
-			time.sleep(0.1)
+			newmsg = f"Wrote line {i} to file {temp_file.name}\n"
+			test_console_item._line_list.append(newmsg) #pylint: disable=protected-access
+			test_console_item.loadedLinesChanged.emit([newmsg], len(test_console_item._line_list)-1)
+			cur += 1
+			time.sleep(0.01)
+		print("DONE!")
+		# for i in range(200000):
+		# 	temp_file.write(f"Wrote line {i} to file {temp_file.name}\n")
+		# 	temp_file.flush()
+		# 	time.sleep(0.1)
 	thread = threading.Thread(target=log_to_file)
 	thread.start()
 

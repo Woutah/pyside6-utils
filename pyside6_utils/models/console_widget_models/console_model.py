@@ -11,9 +11,8 @@ from PySide6 import QtCore, QtWidgets
 class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 	"""Base-class for console items. All user-defined console items should inherit from this class.
 	"""
-	currentTextChanged = QtCore.Signal(str, int) #Emits the string when the text-data changes. If we want to track the
-		# cursor position when using a max-string-size we must also emit the buffer-position relative to the 
-		# full string
+	loadedLinesChanged = QtCore.Signal(list, int) #Emits all lines that have been changed, together with the start 
+		# line-index
 	dataChanged = QtCore.Signal() #When the metadata of the item changes (e.g. last-edit-date, name, running-state)
 
 	@abstractmethod
@@ -22,7 +21,7 @@ class BaseConsoleItem(QtCore.QObject): #TODO: AbstractQObjectMeta
 		raise NotImplementedError()
 
 	@abstractmethod
-	def get_current_text(self) -> typing.Tuple[str, int]:
+	def get_current_line_list(self) -> typing.Tuple[list[str], int]:
 		"""Get the current text (str) of this console-item
 
 		Retuns:
