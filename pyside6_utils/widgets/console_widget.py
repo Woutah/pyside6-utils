@@ -185,6 +185,10 @@ class ConsoleWidget(QtWidgets.QWidget):
 
 		start_line = max(from_line - self.currently_loaded_lines[0], 0) #Relative to the left-most line
 
+		at_end_scrollbar = (
+			self.ui.consoleTextEdit.verticalScrollBar().value() > self.ui.consoleTextEdit.verticalScrollBar().maximum()-4
+		)
+
 		#Set cursor to the desired position
 		cur_cursor = self.ui.consoleTextEdit.textCursor()
 		cur_cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
@@ -193,12 +197,12 @@ class ConsoleWidget(QtWidgets.QWidget):
 		#Set to overwrite mode
 		cur_cursor.insertText("".join([i + "\n" for i in new_line_list]))
 
-		#Move scrollbar <shift> lines up if not at the bottom (-4 bc of a bit of room when scrolling fast)
-		if self.ui.consoleTextEdit.verticalScrollBar().value() < self.ui.consoleTextEdit.verticalScrollBar().maximum()-4:
+		#Move scrollbar <shift> lines up if not at the bottom 
+		if at_end_scrollbar:
+			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum()-1)
+		else:
 			self.ui.consoleTextEdit.verticalScrollBar().setValue(
 				self.ui.consoleTextEdit.verticalScrollBar().value() - shift)
-		else:
-			self.ui.consoleTextEdit.verticalScrollBar().setValue(self.ui.consoleTextEdit.verticalScrollBar().maximum()-1)
 
 		# self.currently_loaded_lines = [from_line, from_line + len(new_line_list)]
 		self.currently_loaded_lines = new_loaded_lines
@@ -391,9 +395,12 @@ def run_example_app():
 		test_console_item._line_list = [f"{i%10} "*100 for i in range(20_000)] #pylint: disable=protected-access
 		cur = 0
 		for i in range(20_000): #First test test-item
-			newmsg = f"Wrote line {i} to file {temp_file.name}"
-			test_console_item._line_list.append(newmsg) #pylint: disable=protected-access
-			test_console_item.loadedLinesChanged.emit([newmsg], len(test_console_item._line_list))
+			newmsg = f"Wrote line {i} to file\nasdf\nasdfd\nasdf\n asdfsa {temp_file.name}END".split("\n")
+			for i in range(10):
+				newmsg.append("kaas\n")
+			newmsg.append("Lastrow")
+			test_console_item._line_list.extend(newmsg) #pylint: disable=protected-access
+			test_console_item.loadedLinesChanged.emit(newmsg, len(test_console_item._line_list))
 			cur += 1
 			time.sleep(0.01)
 		print("DONE!")
