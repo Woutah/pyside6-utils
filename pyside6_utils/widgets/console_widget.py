@@ -194,7 +194,7 @@ class ConsoleWidget(QtWidgets.QWidget):
 		cur_cursor.insertText("".join([i + "\n" for i in new_line_list]))
 
 		#Move scrollbar <shift> lines up if not at the bottom (-4 bc of a bit of room when scrolling fast)
-		if self.ui.consoleTextEdit.verticalScrollBar().value() < self.ui.consoleTextEdit.verticalScrollBar().maximum()-5:
+		if self.ui.consoleTextEdit.verticalScrollBar().value() < self.ui.consoleTextEdit.verticalScrollBar().maximum()-4:
 			self.ui.consoleTextEdit.verticalScrollBar().setValue(
 				self.ui.consoleTextEdit.verticalScrollBar().value() - shift)
 		else:
