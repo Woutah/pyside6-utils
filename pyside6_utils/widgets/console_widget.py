@@ -193,8 +193,8 @@ class ConsoleWidget(QtWidgets.QWidget):
 		#Set to overwrite mode
 		cur_cursor.insertText("".join([i + "\n" for i in new_line_list]))
 
-		#Move scrollbar <shift> lines up if not at the bottom
-		if self.ui.consoleTextEdit.verticalScrollBar().value() < self.ui.consoleTextEdit.verticalScrollBar().maximum()-2:
+		#Move scrollbar <shift> lines up if not at the bottom (-4 bc of a bit of room when scrolling fast)
+		if self.ui.consoleTextEdit.verticalScrollBar().value() < self.ui.consoleTextEdit.verticalScrollBar().maximum()-5:
 			self.ui.consoleTextEdit.verticalScrollBar().setValue(
 				self.ui.consoleTextEdit.verticalScrollBar().value() - shift)
 		else:
@@ -395,7 +395,7 @@ def run_example_app():
 			test_console_item._line_list.append(newmsg) #pylint: disable=protected-access
 			test_console_item.loadedLinesChanged.emit([newmsg], len(test_console_item._line_list))
 			cur += 1
-			time.sleep(0.02)
+			time.sleep(0.01)
 		print("DONE!")
 		# for i in range(200000):
 		# 	temp_file.write(f"Wrote line {i} to file {temp_file.name}\n")
