@@ -28,7 +28,7 @@ class ExtendedSortFilterProxyModel(QtCore.QSortFilterProxyModel):
 	in addition to the custom functions.
 	"""
 
-	def __init__(self, parent: QtCore.QObject | None = ...) -> None:
+	def __init__(self, parent: QtCore.QObject | None) -> None:
 		super().__init__(parent)
 		self._sort_columns : list[int] = []
 		self._sort_orders : list[QtCore.Qt.SortOrder] = []

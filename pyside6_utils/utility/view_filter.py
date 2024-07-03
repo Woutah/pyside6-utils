@@ -4,6 +4,8 @@ import datetime
 from dateutil import parser
 import re
 import typing
+import logging
+log = logging.getLogger(__name__)
 
 #Enum with the different types of number comparitors
 class FilterComparitors(Enum):
@@ -34,7 +36,52 @@ class FilterMethods(Enum):
 	SELECTION = "Selection"
 
 
-class RegexFilter:
+class Filter:
+	"""
+	A base class for all filters
+	"""
+	def __init__(self):
+		pass
+
+	def __call__(self, value) -> bool:
+		raise NotImplementedError
+	
+
+class CombinationFilter(Filter):
+	"""
+	A filter that or-combines multiple filters into one. 
+	"""
+
+	def __init__(self, filters : list[Filter | None]):
+		super().__init__()
+		self._filters : list[Filter] = []
+		self.or_combine_filters(filters)
+
+	def or_combine_filters(self, filters : list[Filter | None]):
+		"""
+		Or-combine multiple filters into one filter. None values are ignored.
+		"""
+		for cur_filter in filters:
+			if cur_filter is None: #Skip None values
+				continue
+			if not isinstance(cur_filter, Filter):
+				raise TypeError(f"Expected a Filter, got {type(cur_filter)}")
+
+			if isinstance(cur_filter, CombinationFilter): #If the filter is a combination filter, add all filters in the combination filter
+				self._filters.extend(cur_filter._filters)
+			else:
+				self._filters.append(cur_filter)
+			#TODO: also merge individual filters? 
+
+
+	def __call__(self, value) -> bool:
+		for filter in self._filters:
+			if filter(value):
+				return True
+		return False
+
+
+class RegexFilter(Filter):
 	"""
 	A filter based on a regex pattern that can be used to filter a list of values.
 	"""
@@ -53,7 +100,7 @@ class RegexFilter:
 		return bool(self._regex.search(str(value)))
 
 
-class ExpressionFilter:
+class ExpressionFilter(Filter):
 	"""
 	A filter based on an expression that can be used to filter a list of values.
 	Although usage can be similar to a SelectionFilter, this filter acts in a more general way. 
@@ -64,25 +111,29 @@ class ExpressionFilter:
 	
 	These expressions are internally 
 	"""
-	def __init__(self, expression : str, value_type : type[Number | datetime.datetime]):
-		self.value_type = value_type
+	def __init__(self, expression : str):
 		self._expression = expression
 		self.set_expression(expression)
 
 
 	def set_expression(self, expression : str):
+		"""
+		Raises:
+		SyntaxError: If the expression is not valid
+		"""
 		self._expression = expression
 		self._parsed_expression, self._filter_lambda =\
-			generate_filter_from_string(expression, self.value_type) #Generate a lambda-like function from the expression
+			generate_filter_from_string(expression) #Generate a lambda-like function from the expression
 
 
 	def __call__(self, value) -> bool:
-		try: 
-			res = self._filter_lambda(value)
-		except Exception as e:
-			print(f"Error filtering value {value} with expression {self._expression} parsed to {self._parsed_expression}")
-			raise e
+		"""
+		Filters the value based on the expression
 
+		Raises:
+			NameError: If the lambda contains a variable that is not defined
+		"""
+		res = self._filter_lambda(value)
 		return res
 
 class SelectionFilter:
@@ -112,7 +163,7 @@ def starts_with(value, filter_value) -> bool:
 	"""
 	return str(value).startswith(str(filter_value))
 
-def generate_filter_from_string(filter : str, value_type : type[Number | datetime.datetime]) -> tuple[str, typing.Callable]:
+def generate_filter_from_string(filter : str) -> tuple[str, typing.Callable]:
 	"""
 	Tries to parse an input-string to a lambda function that can be used to filter a list of values.
 	Takes in a filter such as:
@@ -141,16 +192,16 @@ def generate_filter_from_string(filter : str, value_type : type[Number | datetim
 		#If not; 
 
 	#if datetime, regex search for dates and replace them with datetime objects
-	if value_type == datetime.datetime:
-		#Replace all instances (Also time) such as:
-		# 2022-01-01
-		# 2022/01/01 12:00:00
-		# 01-01-2022 12:00:00
-		filter = re.sub(r"(\d{4}[/-]\d{2}[/-]\d{2})(\s?\d{2}:\d{2}(:\d{2})?)?", "parser.parse('\\1 \\2\\3')", filter)
-		filter = re.sub(r"(\d{2}[/-]\d{2}[/-]\d{4})(\s*\d{2}:\d{2}(:\d{2})?)?", "parser.parse('\\1 \\2\\3')", filter)
+	#Replace all instances (Also time) such as:
+	# 2022-01-01
+	# 2022/01/01 12:00:00
+	# 01-01-2022 12:00:00
+	filter = re.sub(r"(\d{4}[/-]\d{2}[/-]\d{2})(\s?\d{2}:\d{2}(:\d{2})?)?", "parser.parse('\\1 \\2\\3')", filter)
+	filter = re.sub(r"(\d{2}[/-]\d{2}[/-]\d{4})(\s*\d{2}:\d{2}(:\d{2})?)?", "parser.parse('\\1 \\2\\3')", filter)
 
-		
-	return filter, eval(f"lambda x: ({filter})")
+	lambda_str = f"lambda x: ({filter})"
+
+	return filter, eval(lambda_str)
 
 
 
@@ -159,12 +210,12 @@ def generate_filter_from_string(filter : str, value_type : type[Number | datetim
 if __name__ == "__main__":
 	print("Running tests")
 	parsednumb, numb = generate_filter_from_string(	
-		"( <5 & >3) | ==4 | == 0.1 | ends_with(1000000.001) | starts_with(200.00000001)", Number)
+		"( <5 & >3) | ==4 | == 0.1 | ends_with(1000000.001) | starts_with(200.00000001)")
 	parseddat, dat = generate_filter_from_string(
-		"<2022-01-01 and >2021-01-01 12:30 or >01-01-2021 12:30 or == 2021-01-01", datetime.datetime)
+		"<2022-01-01 and >2021-01-01 12:30 or >01-01-2021 12:30 or == 2021-01-01")
 	
 	parseddat2, dat2 = generate_filter_from_string(
-		"ends_with('01-09') or starts_with('2021-01')", datetime.datetime
+		"ends_with('01-09') or starts_with('2021-01')"
 	)
 
 	print(parsednumb)

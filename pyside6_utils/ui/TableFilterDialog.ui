@@ -13,13 +13,17 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0">
+  <property name="windowIcon">
+   <iconset resource="../icons/app_resources.qrc">
+    <normaloff>:/icons/custom/filter.svg</normaloff>:/icons/custom/filter.svg</iconset>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0">
    <item>
-    <layout class="QFormLayout" name="StringFilterLayout">
+    <layout class="QFormLayout" name="stringFilterFormLayout">
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Filter:</string>
+        <string>Regex:</string>
        </property>
       </widget>
      </item>
@@ -33,7 +37,22 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="NumericFilter"/>
+    <layout class="QFormLayout" name="expressionFilterFormLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="expressionLabel">
+       <property name="text">
+        <string>Expression:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="expressionComboBox">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QCheckBox" name="useOldFilterCheckBox">
@@ -71,7 +90,7 @@
         <x>0</x>
         <y>0</y>
         <width>333</width>
-        <height>149</height>
+        <height>103</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -93,13 +112,24 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>10000</height>
+           <height>40</height>
           </size>
          </property>
         </spacer>
        </item>
       </layout>
      </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="pushButton_3">
+     <property name="text">
+      <string>Clear Filter</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../icons/app_resources.qrc">
+       <normaloff>:/icons/custom/remove_filter.svg</normaloff>:/icons/custom/remove_filter.svg</iconset>
+     </property>
     </widget>
    </item>
    <item>
@@ -114,7 +144,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/app_resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

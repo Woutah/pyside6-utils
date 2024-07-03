@@ -19,34 +19,49 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QDialog, QDialogButtonBox, QFormLayout, QHBoxLayout,
     QLabel, QLayout, QPushButton, QScrollArea,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
+import pyside6_utils.icons.app_resources_rc
 
 class Ui_TableFilterDialog(object):
     def setupUi(self, TableFilterDialog):
         if not TableFilterDialog.objectName():
             TableFilterDialog.setObjectName(u"TableFilterDialog")
         TableFilterDialog.resize(353, 301)
+        icon = QIcon()
+        icon.addFile(u":/icons/custom/filter.svg", QSize(), QIcon.Normal, QIcon.Off)
+        TableFilterDialog.setWindowIcon(icon)
         self.verticalLayout = QVBoxLayout(TableFilterDialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.StringFilterLayout = QFormLayout()
-        self.StringFilterLayout.setObjectName(u"StringFilterLayout")
+        self.stringFilterFormLayout = QFormLayout()
+        self.stringFilterFormLayout.setObjectName(u"stringFilterFormLayout")
         self.label = QLabel(TableFilterDialog)
         self.label.setObjectName(u"label")
 
-        self.StringFilterLayout.setWidget(0, QFormLayout.LabelRole, self.label)
+        self.stringFilterFormLayout.setWidget(0, QFormLayout.LabelRole, self.label)
 
         self.filterRegexComboBox = QComboBox(TableFilterDialog)
         self.filterRegexComboBox.setObjectName(u"filterRegexComboBox")
         self.filterRegexComboBox.setEditable(True)
 
-        self.StringFilterLayout.setWidget(0, QFormLayout.FieldRole, self.filterRegexComboBox)
+        self.stringFilterFormLayout.setWidget(0, QFormLayout.FieldRole, self.filterRegexComboBox)
 
 
-        self.verticalLayout.addLayout(self.StringFilterLayout)
+        self.verticalLayout.addLayout(self.stringFilterFormLayout)
 
-        self.NumericFilter = QVBoxLayout()
-        self.NumericFilter.setObjectName(u"NumericFilter")
+        self.expressionFilterFormLayout = QFormLayout()
+        self.expressionFilterFormLayout.setObjectName(u"expressionFilterFormLayout")
+        self.expressionLabel = QLabel(TableFilterDialog)
+        self.expressionLabel.setObjectName(u"expressionLabel")
 
-        self.verticalLayout.addLayout(self.NumericFilter)
+        self.expressionFilterFormLayout.setWidget(0, QFormLayout.LabelRole, self.expressionLabel)
+
+        self.expressionComboBox = QComboBox(TableFilterDialog)
+        self.expressionComboBox.setObjectName(u"expressionComboBox")
+        self.expressionComboBox.setEditable(True)
+
+        self.expressionFilterFormLayout.setWidget(0, QFormLayout.FieldRole, self.expressionComboBox)
+
+
+        self.verticalLayout.addLayout(self.expressionFilterFormLayout)
 
         self.useOldFilterCheckBox = QCheckBox(TableFilterDialog)
         self.useOldFilterCheckBox.setObjectName(u"useOldFilterCheckBox")
@@ -73,7 +88,7 @@ class Ui_TableFilterDialog(object):
         self.resultsScrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 333, 149))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 333, 103))
         self.verticalLayout_3 = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.resultsLayout = QVBoxLayout()
@@ -83,13 +98,21 @@ class Ui_TableFilterDialog(object):
 
         self.verticalLayout_3.addLayout(self.resultsLayout)
 
-        self.verticalSpacer = QSpacerItem(20, 10000, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.verticalLayout_3.addItem(self.verticalSpacer)
 
         self.resultsScrollArea.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.resultsScrollArea)
+
+        self.pushButton_3 = QPushButton(TableFilterDialog)
+        self.pushButton_3.setObjectName(u"pushButton_3")
+        icon1 = QIcon()
+        icon1.addFile(u":/icons/custom/remove_filter.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.pushButton_3.setIcon(icon1)
+
+        self.verticalLayout.addWidget(self.pushButton_3)
 
         self.buttonBox = QDialogButtonBox(TableFilterDialog)
         self.buttonBox.setObjectName(u"buttonBox")
@@ -108,9 +131,11 @@ class Ui_TableFilterDialog(object):
 
     def retranslateUi(self, TableFilterDialog):
         TableFilterDialog.setWindowTitle(QCoreApplication.translate("TableFilterDialog", u"Dialog", None))
-        self.label.setText(QCoreApplication.translate("TableFilterDialog", u"Filter:", None))
+        self.label.setText(QCoreApplication.translate("TableFilterDialog", u"Regex:", None))
+        self.expressionLabel.setText(QCoreApplication.translate("TableFilterDialog", u"Expression:", None))
         self.useOldFilterCheckBox.setText(QCoreApplication.translate("TableFilterDialog", u"Add Filter To Current Filter", None))
         self.pushButton_2.setText(QCoreApplication.translate("TableFilterDialog", u"Select All", None))
         self.pushButton.setText(QCoreApplication.translate("TableFilterDialog", u"Deselect All", None))
+        self.pushButton_3.setText(QCoreApplication.translate("TableFilterDialog", u"Clear Filter", None))
     # retranslateUi
 

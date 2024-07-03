@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>custom/filter.svg</file>
+    <file>custom/remove_filter.svg</file>
     <file>actions/address-book-new.png</file>
     <file>actions/appointment-new.png</file>
     <file>actions/bookmark-new.png</file>
@@ -214,5 +216,15 @@
     <file>status/weather-showers-scattered.png</file>
     <file>status/weather-snow.png</file>
     <file>status/weather-storm.png</file>
+  </qresource>
+  <qresource prefix="fonts">
+    <file>fonts/Inconsolata/Inconsolata-Black.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-Bold.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-ExtraBold.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-ExtraLight.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-Light.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-Medium.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-Regular.ttf</file>
+    <file>fonts/Inconsolata/Inconsolata-SemiBold.ttf</file>
   </qresource>
 </RCC>
