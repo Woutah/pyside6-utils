@@ -11,7 +11,7 @@ import typing
 from enum import Enum
 
 import pandas as pd
-from PySide6 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QTableView
@@ -42,17 +42,35 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 		# The key is the column number and the value is the callable class that filters the rows in this column
 		# The callable class should take a single argument (the value) and return True if the value should be accepted 
 
-	def acceptRow(self, source_row: int, source_parent: QtCore.QModelIndex) -> bool:
-		"""Check if the row should be accepted based on the filter"""
+		self._filter_icon = QtGui.QIcon()
+		self._filter_icon.addFile(
+			u":/icons/custom/filter.svg", QtCore.QSize(), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+
+
+	def filterAcceptsRow(self, source_row: int, source_parent: QtCore.QModelIndex, column_filter_ignore_list : list[int] | None = None) -> bool:
+		"""Check if the row should be accepted based on the filter
+		
+		Args:
+			source_row (int): The row to check
+			source_parent (QtCore.QModelIndex): The parent index of the row
+			column_filter_ignore_list (list[int]): A list of columns to ignore when filtering (default: []) - this is a 
+				addition to the base implementation to enable us to retrieve all rows when filtering on only part of the columns
+		"""
+		if column_filter_ignore_list is None:
+			column_filter_ignore_list = []
+
 		if not self.column_filters or len(self.column_filters.items()) == 0:
 			return True
 
 		for column, filter_func in self.column_filters.items():
+			if column in column_filter_ignore_list:
+				continue
 			index = self.sourceModel().index(source_row, column)
 			value = self.sourceModel().data(index, Qt.ItemDataRole.EditRole) #TODO: self.filterRole()? Or put inside filter
 			if not filter_func(value):
 				return False
 		return True
+	
 
 	def headerData(self,
 				section: int,
@@ -65,6 +83,13 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 			# #Check if this column is sorted
 
 			return (*default_data,)
+		
+		if orientation == Qt.Orientation.Horizontal:
+			#Add icon if the column has a filter
+			if role == Qt.ItemDataRole.DecorationRole:
+				if section in self.column_filters:
+					# return QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.StandardPixmap.SP_DialogYesButton)
+					return self._filter_icon
 
 		return super().headerData(section, orientation, role)
 
@@ -88,7 +113,7 @@ class PandasTableProxyModel(QtCore.QSortFilterProxyModel):
 		try:
 			val = ldata < rdata
 			return val
-		except Exception as exception: #pylint: disable=broad-except,unused-variable
+		except Exception as _:
 			return super().lessThan(left, right)
 
 
@@ -111,7 +136,7 @@ class PandasTableView(QTableView):
 		self._copy_shortcut.activated.connect(self.copy_selection_to_clipboard)
 
 
-
+		self._source_model = None #The actual source model
 		self.proxy_model = PandasTableProxyModel(self) #A proxy model accesible to outside - for some other filtering
 		self.proxy_model.setDynamicSortFilter(True)
 		self.proxy_model.setSourceModel(None) #type: ignore
@@ -129,23 +154,61 @@ class PandasTableView(QTableView):
 		self.horizontalHeader().customContextMenuRequested.connect(self._column_filter_popup)
 		self._cur_column_filter_dialog = None
 
+	#The following function edits the display role of table headers such that a small icon is displayed if the column is sorted
+	
+
+
 
 	def get_column_entries(
 			self,
 			column : int,
-			convert_to_string : bool = True,
-			role : int = Qt.ItemDataRole.EditRole
+			role : int = Qt.ItemDataRole.EditRole,
+			column_filter_ignore_list : list[int] | None = None,
+			skip_nan_none : bool = True
 		) -> set:
 		"""
-		Get set of unique entries in the given column for filtering purposes
+		Get set of unique entries in the given column for further filtering purposes. 
+		Allows re-filtering the base model while ignoring the to-be-refiltered column.
 
-		convert_to_string: If True, convert all entries to strings
-		role: The role to use when getting the data (default: Qt.ItemDataRole.EditRole)
+		args:
+			column (int): The column to get the entries from
+			role (int): The role to use when getting the data (default: Qt.ItemDataRole.EditRole)
+			column_filter_ignore_list (list[int]): A list of columns to ignore when filtering (default: []) - this is a 
+				addition to the base implementation to enable us to retrieve all rows when filtering on only part of the columns
 		"""
 		entries = set()
-		for row in range(self.model().rowCount()):
-			index = self.model().index(row, column)
-			entries.add(self.model().data(index, role))
+		need_to_refilter = True
+		if column_filter_ignore_list is None or len(column_filter_ignore_list) == 0:
+			#No need to refilter if we are not filtering on any columns
+			need_to_refilter = False
+		else:
+			#If we refilter without certain columns, but those had no filter before, we don't need to refilter
+			need_to_refilter = False
+			for col in column_filter_ignore_list:
+				if col in self.proxy_model.column_filters.keys() and self.proxy_model.column_filters[col] is not None:
+					need_to_refilter = True
+					break
+	
+
+		if need_to_refilter:
+			if self._source_model is None:
+				return entries
+			for row in range(self._source_model.rowCount()):
+				if not self.proxy_model.filterAcceptsRow(row, QtCore.QModelIndex(), column_filter_ignore_list):
+					continue
+				index = self._source_model.index(row, column)
+				data = self._source_model.data(index, role)
+				if skip_nan_none and (data is None or pd.isnull(data)):
+					continue
+				entries.add(data)
+		else:
+			#If no re-filtering is needed, just get the entries
+			for row in range(self.model().rowCount()): #use proxy-model
+				index = self.model().index(row, column)
+				data = self.model().data(index, role)
+				if skip_nan_none and (data is None or pd.isnull(data)):
+					continue
+				entries.add(data)
 		return entries
 
 	def _column_filter_popup(self, pos : QtCore.QPoint):
@@ -155,7 +218,7 @@ class PandasTableView(QTableView):
 		old_filter = self.proxy_model.column_filters.get(col, None)
 
 		dialog = TableFilterDialog(
-			column_entries=self.get_column_entries(col),
+			column_entries=self.get_column_entries(col, column_filter_ignore_list=[col]), #Get the unique entries in the column - refilter such that we ignore the current column
 			old_filter=old_filter,
 		)
 		#Convert pos to global pos
@@ -163,7 +226,7 @@ class PandasTableView(QTableView):
 		dialog.move(pos)
 		# dialog.show()
 		self._cur_column_filter_dialog = dialog
-		result = dialog.exec_()
+		result = dialog.exec()
 
 		if result == QtWidgets.QDialog.DialogCode.Accepted:
 			result_filter = dialog.get_resulting_filter()
@@ -171,15 +234,17 @@ class PandasTableView(QTableView):
 				if col not in self.proxy_model.column_filters: #If nothing changed -> return
 					return
 				del self.proxy_model.column_filters[col]
-				self.proxy_model.invalidateFilter()
 			else:
 				self.proxy_model.column_filters[col] = result_filter
 		else:
-			if dialog.pressed_clear_filter():
-				if col in self.proxy_model.column_filters:
-					del self.proxy_model.column_filters[col]
-					self.proxy_model.invalidateFilter()
-			return
+			if dialog.cleared_filter():
+				if col not in self.proxy_model.column_filters:
+					return
+				del self.proxy_model.column_filters[col]
+
+		dialog.deleteLater()
+		
+		self.proxy_model.invalidateRowsFilter()
 		
 
 
@@ -190,6 +255,7 @@ class PandasTableView(QTableView):
 
 	def setModel(self, model: QtCore.QAbstractItemModel) -> None: #type: ignore
 		"""Set the model for the table view"""
+		self._source_model = model
 		return self.proxy_model.setSourceModel(model)
 
 
@@ -287,14 +353,24 @@ def run_example_app():
 	app = QtWidgets.QApplication([])
 	test_window = QtWidgets.QMainWindow()
 	#====== Example df for PandasTableView ======
+	# example_df = pd.DataFrame({
+	# 	"Column 1": [1, 2, 3, 4, 5],
+	# 	"Column 2": [10, 20, 30, 40, 50],
+	# 	"Column 3": [100, 200, 300, 400, 500],
+	# 	"Column 4": [1000, 2000, 3000, 4000, 5000],
+	# 	"Column 5": [0.1, 0.01, 0.001, 0.0001, 0.00001],
+	# 	"Column 6": ["A", "B", "C", "D", "E"],
+	# })
+
 	example_df = pd.DataFrame({
-		"Column 1": [1, 2, 3, 4, 5],
-		"Column 2": [10, 20, 30, 40, 50],
-		"Column 3": [100, 200, 300, 400, 500],
-		"Column 4": [1000, 2000, 3000, 4000, 5000],
-		"Column 5": [0.1, 0.01, 0.001, 0.0001, 0.00001],
-		"Column 6": ["A", "B", "C", "D", "E"],
+		"Column 1" : [i for i in range(10000)],
+		"Column 2" : [i*10 for i in range(10000)],
+		"Column 3" : [i*100 for i in range(10000)],
+		"Column 4" : [i*1000 for i in range(10000)],
+		"Column 5" : [i*10000 for i in range(10000)],
+		"Column 6" : [i*100000 for i in range(10000)],
 	})
+
 	example_df_model = PandasTableModel(example_df)
 	example_view = PandasTableView()
 	example_view.setModel(example_df_model)

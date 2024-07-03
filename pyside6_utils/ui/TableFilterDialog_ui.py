@@ -70,15 +70,15 @@ class Ui_TableFilterDialog(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.pushButton_2 = QPushButton(TableFilterDialog)
-        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.selectAllButton = QPushButton(TableFilterDialog)
+        self.selectAllButton.setObjectName(u"selectAllButton")
 
-        self.horizontalLayout_4.addWidget(self.pushButton_2)
+        self.horizontalLayout_4.addWidget(self.selectAllButton)
 
-        self.pushButton = QPushButton(TableFilterDialog)
-        self.pushButton.setObjectName(u"pushButton")
+        self.deselectAllButton = QPushButton(TableFilterDialog)
+        self.deselectAllButton.setObjectName(u"deselectAllButton")
 
-        self.horizontalLayout_4.addWidget(self.pushButton)
+        self.horizontalLayout_4.addWidget(self.deselectAllButton)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
@@ -106,13 +106,13 @@ class Ui_TableFilterDialog(object):
 
         self.verticalLayout.addWidget(self.resultsScrollArea)
 
-        self.pushButton_3 = QPushButton(TableFilterDialog)
-        self.pushButton_3.setObjectName(u"pushButton_3")
+        self.clearFilterButton = QPushButton(TableFilterDialog)
+        self.clearFilterButton.setObjectName(u"clearFilterButton")
         icon1 = QIcon()
         icon1.addFile(u":/icons/custom/remove_filter.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.pushButton_3.setIcon(icon1)
+        self.clearFilterButton.setIcon(icon1)
 
-        self.verticalLayout.addWidget(self.pushButton_3)
+        self.verticalLayout.addWidget(self.clearFilterButton)
 
         self.buttonBox = QDialogButtonBox(TableFilterDialog)
         self.buttonBox.setObjectName(u"buttonBox")
@@ -130,12 +130,12 @@ class Ui_TableFilterDialog(object):
     # setupUi
 
     def retranslateUi(self, TableFilterDialog):
-        TableFilterDialog.setWindowTitle(QCoreApplication.translate("TableFilterDialog", u"Dialog", None))
+        TableFilterDialog.setWindowTitle(QCoreApplication.translate("TableFilterDialog", u"Filter Column", None))
         self.label.setText(QCoreApplication.translate("TableFilterDialog", u"Regex:", None))
         self.expressionLabel.setText(QCoreApplication.translate("TableFilterDialog", u"Expression:", None))
         self.useOldFilterCheckBox.setText(QCoreApplication.translate("TableFilterDialog", u"Add Filter To Current Filter", None))
-        self.pushButton_2.setText(QCoreApplication.translate("TableFilterDialog", u"Select All", None))
-        self.pushButton.setText(QCoreApplication.translate("TableFilterDialog", u"Deselect All", None))
-        self.pushButton_3.setText(QCoreApplication.translate("TableFilterDialog", u"Clear Filter", None))
+        self.selectAllButton.setText(QCoreApplication.translate("TableFilterDialog", u"Select All", None))
+        self.deselectAllButton.setText(QCoreApplication.translate("TableFilterDialog", u"Deselect All", None))
+        self.clearFilterButton.setText(QCoreApplication.translate("TableFilterDialog", u"Clear Filter", None))
     # retranslateUi
 

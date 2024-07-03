@@ -85,9 +85,12 @@ class RegexFilter(Filter):
 	"""
 	A filter based on a regex pattern that can be used to filter a list of values.
 	"""
-	def __init__(self, pattern : str):
+	def __init__(self, pattern : str, case_sensitive : bool = False):
 		self._pattern = pattern
-		self._regex = re.compile(pattern)
+		if case_sensitive:
+			self._regex = re.compile(pattern)
+		else:
+			self._regex = re.compile(pattern, re.IGNORECASE)
 
 	def set_pattern(self, pattern : str):
 		self._pattern = pattern
@@ -136,7 +139,7 @@ class ExpressionFilter(Filter):
 		res = self._filter_lambda(value)
 		return res
 
-class SelectionFilter:
+class SelectionFilter(Filter):
 	"""
 	A filter based on a set of values, if the value is in the set, the filter returns True
 	"""
@@ -146,6 +149,12 @@ class SelectionFilter:
 	def set_selection(self, values : set):
 		self._values = values
 	
+	def remove_item(self, value):
+		self._values.remove(value)
+	
+	def add_item(self, value):
+		self._values.add(value)
+
 	def get_selection(self) -> set:
 		return self._values
 
@@ -201,7 +210,7 @@ def generate_filter_from_string(filter : str) -> tuple[str, typing.Callable]:
 
 	lambda_str = f"lambda x: ({filter})"
 
-	return filter, eval(lambda_str)
+	return lambda_str, eval(lambda_str)
 
 
 
