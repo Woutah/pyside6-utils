@@ -15,6 +15,8 @@ from PySide6 import QtCore, QtWidgets, QtGui
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QTableView
+from numbers import Number
+import locale
 
 from pyside6_utils.widgets.table_filter_dialog import TableFilterDialog
 from pyside6_utils.utility.view_filter import RegexFilter, ExpressionFilter, SelectionFilter, CombinationFilter, Filter
@@ -134,6 +136,8 @@ class PandasTableView(QTableView):
 		#If ctrl+c is pressed, copy the selection to the clipboard
 		self._copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), self)
 		self._copy_shortcut.activated.connect(self.copy_selection_to_clipboard)
+		self._copy_sum_shortcut = QShortcut(QKeySequence("Ctrl+Shift+C"), self)
+		self._copy_sum_shortcut.activated.connect(self._copy_status_bar_sum)
 
 
 		self._source_model = None #The actual source model
@@ -154,9 +158,17 @@ class PandasTableView(QTableView):
 		self.horizontalHeader().customContextMenuRequested.connect(self._column_filter_popup)
 		self._cur_column_filter_dialog = None
 
+		# =============== On status bar click, copy the selection to the clipboard ===============
+		self._cur_selected_sum = None
+
 	#The following function edits the display role of table headers such that a small icon is displayed if the column is sorted
 	
-
+	def _copy_status_bar_sum(self):
+		"""Copy the selection to the clipboard if the status bar is clicked"""
+		if self._cur_selected_sum is not None:
+			clipboard = QApplication.clipboard()
+			clipboard.clear()
+			clipboard.setText(self.get_local_format(self._cur_selected_sum, 2))
 
 
 	def get_column_entries(
@@ -283,7 +295,17 @@ class PandasTableView(QTableView):
 				clip_data += sep
 				index = self.model().index(row, column)
 				sep = "\t"
-				clip_data += str(self.model().data(index, Qt.ItemDataRole.EditRole))
+				data = self.model().data(index, Qt.ItemDataRole.EditRole)
+				#If number, use the locale to format the number
+				locale.setlocale(locale.LC_ALL, '')
+				if isinstance(data, Number): #If number, use the locale to format the number
+					if isinstance(data, int):
+						clip_data += locale.format_string("%d", data, grouping=True)
+					else:
+						clip_data += locale.format_string("%f", data, grouping=True) 
+				else:
+					clip_data += str(data)
+
 			clip_data += os.linesep
 
 		clipboard = QApplication.clipboard()
@@ -310,6 +332,31 @@ class PandasTableView(QTableView):
 			data.append(self.model().data(index, Qt.ItemDataRole.EditRole))
 		return data
 
+	def get_local_format(self, data : Number, round_decimals : int = -1) -> str:
+		""" Tries to return the string representation of a number in the local format.
+		Attempts to get the locale from the system and format the number accordingly.
+		If no number is given, the string representation of the data is returned.
+
+		Args:
+			data (Number, Any): The number to format - if not a number, the string representation is returned
+			round_decimals (int): The number of decimals to round the number to (default: -1, i.e. no rounding)
+				ignored if the data is not a number or if it is an integer
+		Returns:
+			str: The formatted number or the string representation of the data
+		"""
+		if round_decimals > -1:
+			fmt_str = f"%.{round_decimals}f"
+		else:
+			fmt_str = "%f"
+
+		locale.setlocale(locale.LC_ALL, '')
+		if isinstance(data, Number): #If number, use the locale to format the number
+			if isinstance(data, int):
+				return locale.format_string("%d", data, grouping=True)
+			else:
+				return locale.format_string(fmt_str, data, grouping=True) 
+
+		return str(data)
 
 	def display_selection_stats(self):
 		"""Display the number of selected cells, the average and the sum of the selected data"""
@@ -321,9 +368,11 @@ class PandasTableView(QTableView):
 
 		#Get the average and sum of the selected data
 		try:
-			average = round(sum(data) / len(data), 2)
-			total = round(sum(data), 2)
-			thesum = sum(data)
+			raw_sum = sum(data)
+			average = self.get_local_format(raw_sum / len(data), 2)
+			total = self.get_local_format(raw_sum, 2)
+			thesum = self.get_local_format(raw_sum)
+			self._cur_selected_sum = raw_sum
 		except (TypeError, ZeroDivisionError):
 			average = "-"
 			total = "-"
@@ -332,7 +381,7 @@ class PandasTableView(QTableView):
 
 		if len(data) == 2: #If we selected exactly 2 cells -> also show the difference
 			try:
-				difference = abs(data[1] - data[0])
+				difference = self.get_local_format(abs(data[1] - data[0]))
 				additional_text = f", Difference: {difference}"
 			except (TypeError, ZeroDivisionError):
 				additional_text = ""
@@ -363,7 +412,7 @@ def run_example_app():
 	# })
 
 	example_df = pd.DataFrame({
-		"Column 1" : [i for i in range(10000)],
+		"Column 1" : [i/10.0 for i in range(10000)],
 		"Column 2" : [i*10 for i in range(10000)],
 		"Column 3" : [i*100 for i in range(10000)],
 		"Column 4" : [i*1000 for i in range(10000)],
